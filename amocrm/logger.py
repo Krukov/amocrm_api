@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 if not logger.handlers:
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s.%(msecs)d %(levelname)s in \'amocrm\%(module)s\' at line %(lineno)d: %(message)s', '%Y-%m-%d %H:%M:%S'
+        '%(asctime)s.%(msecs)d %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S'
     )
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(formatter)

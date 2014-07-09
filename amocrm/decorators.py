@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
 from functools import wraps
 
 
@@ -14,6 +13,14 @@ def amo_request(method=None):
             return self.request(method, data=func(*args, **kwargs))
         return call_func
     return decor
+
+
+def to_amo_obj(func):
+    @wraps(func)
+    def call_func(*args, **kwargs):
+        self = args[0]
+        return self.convert_to_obj(func(*args, **kwargs))
+    return call_func
 
 
 class lazy_property(object):

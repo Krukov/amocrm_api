@@ -8,7 +8,8 @@ from copy import copy, deepcopy
 
 import requests
 
-from .decorators import amo_request, lazy_dict_property
+from .settings import settings
+from .decorators import amo_request, lazy_dict_property, to_amo_obj, lazy_property
 from .logger import logger
 
 AMO_LOGIN_PATH = '/private/api/auth.php'
@@ -34,19 +35,40 @@ class BaseAmoManager(object):
         'add': {'path': 'set', 'method': 'post', 'result': ['add', 0, 'id'], 'container': ['add']},
         'update': {'path': 'set', 'method': 'post', 'container': ['update'], 'timestamp': True},
     }
+    _amo_model_class = None
 
-    def __init__(self, user_login, user_hash, domain, responsible_user=None, query_field='email'):
-        self._domain = domain
-        self._login_data = {'USER_LOGIN': user_login, 'USER_HASH': user_hash, 'type': 'json'}
-        self._responsible_user = responsible_user or user_login
-        self._query_field = query_field
-
+    def __init__(self, user_login=None, user_hash=None, domain=None, responsible_user=None, query_field='email'):
+        if user_login is not None:
+           settings.set(user_login, user_hash, domain, responsible_user, query_field)
         self.methods = deepcopy(self.methods)
         self.methods.update(self._methods)
+
+    @lazy_property
+    def domain(self):
+        return settings.domain
+
+    @lazy_property
+    def login_data(self):
+        return {'USER_LOGIN': settings.user_login, 'USER_HASH': settings.user_hash, 'type': 'json'}
+
+    @lazy_property
+    def responsible_user(self):
+        return settings.responsible_user or settings.user_login
+
+    @lazy_property
+    def query_field(self):
+        return settings.query_field
 
     @abstractproperty
     def name(cls):
         pass
+
+    def convert_to_obj(cls, result):
+        if not cls._amo_model_class:
+            return result
+        if isinstance(result, (tuple, list)):
+            return [cls._amo_model_class(obj) for obj in result]
+        return cls._amo_model_class(result)
 
     @lazy_dict_property
     def custom_fields(self):
@@ -58,29 +80,29 @@ class BaseAmoManager(object):
 
     @lazy_dict_property
     def rui(self):
-        if isinstance(self._responsible_user, int):
-            return self._responsible_user
+        if isinstance(self.responsible_user, int):
+            return self.responsible_user
         else:
-            filter_func = lambda _: _.get('login') == self._responsible_user or \
-                                    _.get('name') == self._responsible_user
+            filter_func = lambda _: _.get('login') == self.responsible_user or \
+                                    _.get('name') == self.responsible_user
             user = filter(filter_func, self.account_info.get('users', [])).pop()
             if not user:
                 raise Exception(u'Can not get responsible user id')
             return user.get('id')
 
     def _request(self, path, method, data):
-        params = copy(self._login_data)
+        params = copy(self.login_data)
         if method != 'POST':
             params.update(data)
             data = None
 
-        logger.info('Sending %s request to %s' % (method, path))
+        logger.info('%s - Sending %s request to %s' % (self.__class__.name, method, path))
         logger.debug('Data: %s \n Params: %s' % (data, params))
 
         req = getattr(requests, method.lower(), 'get')(self.url(path), data=json.dumps(data), params=params)
         if not req.ok:
             logger.error('Something went wrong')
-            return req.raise_for_status()
+            return req.raise_for_status() # TODO: do not raise errors
         try:
             return req.json()
         except ValueError:
@@ -135,7 +157,7 @@ class BaseAmoManager(object):
         return self._base_path % {'path': path, 'format': self.format_, 'name': name}
 
     def url(self, path):
-        return 'https://%(domain)s.amocrm.ru%(path)s' % {'domain': self._domain, 'path': path}
+        return 'https://%(domain)s.amocrm.ru%(path)s' % {'domain': self.domain, 'path': path}
 
     def get_custom_fields(self, to):
         custom_fields = self.account_info['custom_fields'][to]
@@ -145,6 +167,7 @@ class BaseAmoManager(object):
     def get_account_info(self):
         return {}
 
+    @to_amo_obj
     @amo_request(method='list')
     def get_list(self, limit=100, limit_offset=None, query=None):
         request = query or {}
@@ -159,7 +182,7 @@ class BaseAmoManager(object):
 
     def search(self, query):
         if not isinstance(query, dict):
-            query = {self._query_field: query}
+            query = {self.query_field: query}
         query = {'type': self.object_type or self.name[:-1], 'query': query}
         return self.get_list(limit=5, query=query)
 
@@ -184,7 +207,7 @@ class BaseAmoManager(object):
 
     @abstractmethod
     def create_or_update_data(self, **kwargs):
-        query = kwargs.get(self._query_field)
+        query = kwargs.get(self.query_field)
         contact = self.search(query) if query else {}
         data = self.merge_data(kwargs, contact)
         if contact:
@@ -208,17 +231,6 @@ class BlankMixin(object):
 
     def create_or_update_data(self, **kwargs):
         return super(BlankMixin, self).create_or_update_data(**kwargs)
-
-
-class Field(object):
-    _parent = ''
-
-    def __init__(self, name=None):
-        self.name = name
-
-
-class CustomField(Field):
-    _parent = 'custom_fields'
 
 
 def Helper(_class, name):
