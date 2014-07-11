@@ -35,7 +35,7 @@ class Contact(BaseModel):
     type = fields.ConstantField('type', 'contact')
     id = fields.Field('id')
     name = fields.Field('name')
-    company = fields.ForeignField('linked_company_id', ['company_name'], object_type=Company)
+    company = fields.ForeignField(Company, 'linked_company_id', ['company_name'])
     created_user = fields.Field('created_user_id')
     linked_leads = fields.ManyForeignField('linked_leads_id')
 

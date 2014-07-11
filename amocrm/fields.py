@@ -2,7 +2,9 @@
 from __future__ import absolute_import, unicode_literals
 import copy
 from datetime import datetime
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
+
+from .decorators import lazy_dict_property
 
 
 class BaseField(object):
@@ -17,6 +19,7 @@ class BaseField(object):
 
     def set_data(self, value):
         self._data = value
+        return self
 
     @property
     def data(self):
@@ -47,47 +50,64 @@ class DateTimeField(Field):
 class BooleanField(Field):
 
     def cleaned_data(self):
-        return bool(super(BooleanField, self).cleaned_data())
+        data = super(BooleanField, self).cleaned_data()
+        data = int(data) if str(data).isdigit() else data
+        return bool(data)
 
 
 class ForeignField(Field):
 
-    def __init__(self, field=None, keys=None, object_type=None):
+    def __init__(self, object_type=None, field=None, keys=None):
         super(ForeignField, self).__init__(field)
         self.keys = keys
         self.object_type = object_type
 
+    def init_keys(self, data):
+        assert isinstance(data, dict)
+        if [i for i in data.keys() if i in self.keys]:
+            self._keys_data = data
+        return data
+
     def cleaned_data(self):
-        _id, fields = super(ForeignField, self).cleaned_data()
-        obj = self.object_type.objects.get(_id)
-        [setattr(obj, name, value) for name, value in fields.items()]
+        _id = super(ForeignField, self).cleaned_data()
+        wrap = lambda this: this.get(_id)
+        obj = lazy_dict_property(wrap).__get__(self.object_type.objects)
+        [setattr(obj, name, value) for name, value in self._keys_data.items()]
         return obj
 
 
-class ManyMixin(object):
-    pass
-    # def __init__(self, field=None):
-    #     self.field = field
+class ManyForeignField(Field):
+
+    def __init__(self, objects_type, field=None, key=None):
+        super(ManyForeignField, self).__init__(field)
+        self.objects_type = objects_type
+        self.key = key
+
+    def cleaned_data(self):
+        data = super(ManyForeignField, self).cleaned_data()
+        items = []
+        for item in data:
+            wrap = lambda this: this.get(item)
+            item = lazy_dict_property(wrap).__get__(self.objects_type.objects)
+            items.append(item)
+        return items
 
 
-class ManyForeignField(ManyMixin, Field):
-    pass
+class ManyDictField(Field):
 
-
-class ManyField(ManyMixin, Field):
-    pass
-
-
-class ManyDictField(ManyMixin, Field):
-
-    def __init__(self, field=None, keys=None, types=None):
+    def __init__(self, field=None, key=None):
         super(ManyDictField, self).__init__(field)
-        self.keys = copy.copy(keys)
-        self.types = types
+        self.key = key
     
     def cleaned_data(self):
         data = super(ManyDictField, self).cleaned_data()
-        return data
+        _items = namedtuple('items', [i.get(self.key, 'pass') for i in data])
+        items = {}
+        for item in data:
+            item = OrderedDict(item)
+            _item = namedtuple('item', item.keys())
+            items[item[self.key]] = _item(**item)
+        return _items(**items)
 
 
 class CustomField(Field):
