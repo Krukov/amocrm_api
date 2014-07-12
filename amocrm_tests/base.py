@@ -3,14 +3,14 @@
 import time
 from datetime import datetime
 
-from unittest import TestCase
+import unittest
 
 import amocrm
 from amocrm.decorators import empty
 from amocrm import fields
 
 
-class FieldsTests(TestCase):
+class FieldsTests(unittest.TestCase):
 
     def test_constant_field(self):
         f = fields.ConstantField('test', 'value')
@@ -61,3 +61,7 @@ class FieldsTests(TestCase):
         f.data = [1, 4, 10]
         self.assertIsInstance(f.data[0], empty)
         self.assertEqual(len(f.data), 3)
+
+
+if __name__ == '__main__':
+    unittest.main()

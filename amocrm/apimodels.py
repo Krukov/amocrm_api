@@ -11,7 +11,8 @@ class ModelMeta(type):
         _manager = getattr(super_new, 'objects', None)
         if _manager:
             _manager._amo_model_class = super_new
-            super_new.__fields = {name: instance for name, instance in attrs.items() if isinstance(instance, fields.BaseField)}
+            super_new.__fields = {name: instance for name, instance in attrs.items()
+                 if isinstance(instance, fields.BaseField)}
         return super_new
 
 

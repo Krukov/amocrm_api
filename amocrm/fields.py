@@ -14,6 +14,17 @@ class BaseField(object):
         self.field = field
         self._data = {}
 
+    def __get__(self, obj, _=None):
+        if not self._data:
+            if self._parent:
+                self.data = obj.data.get(self._parent, {}).get(self.field)
+            else:
+                self.data = obj.data.get(self.field)
+        return self.data
+
+    def __set__(self, value):
+        self.set_data(value)
+
     def cleaned_data(self):
         return self._data
 
