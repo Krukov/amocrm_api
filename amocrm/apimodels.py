@@ -12,7 +12,7 @@ class ModelMeta(type):
         if _manager:
             _manager._amo_model_class = super_new
             super_new.__fields = {name: instance for name, instance in attrs.items()
-                 if isinstance(instance, fields.BaseField)}
+                                  if isinstance(instance, fields.BaseField)}
         return super_new
 
 
@@ -21,14 +21,24 @@ class BaseModel(object):
 
     __fields = {}
 
-    def __init__(self, **kwargs):
-
-        for key, value in kwargs.items():
-            self.__fields.get(key).data = value
+    def __init__(self, data=None):
+        self.data = data
 
 
 class Company(BaseModel):
-    type = fields.Field('type')
+    type = fields.ConstantField('type', 'company')
+    id = fields.Field('id')
+    name = fields.Field('name')
+
+    objects = CompanyManager()
+
+
+class Lead(BaseModel):
+
+    id = fields.Field('id')
+    name = fields.Field('name')
+
+    objects = LeadsManager()
 
 
 class Contact(BaseModel):
@@ -43,7 +53,7 @@ class Contact(BaseModel):
     date_create = fields.DateTimeField('date_create')
     last_modified = fields.DateTimeField('last_modified')
 
-    tags = fields.ManyDictField('tags', ['id', 'name'])
+    tags = fields.ManyDictField('tags', 'name')
     deleted = fields.BooleanField('deleted')
 
     objects = ContactsManager()

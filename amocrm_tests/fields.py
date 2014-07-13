@@ -38,9 +38,9 @@ class FieldsTests(unittest.TestCase):
     def test_foreign_field(self):
         f = fields.ForeignField(amocrm.Contact, 'test', ['name', 'two'])
         self.assertEqual(f.field, 'test')
-        self.assertEqual(f.keys, ['name', 'two'])
+        self.assertEqual(f._keys, ['name', 'two'])
         self.assertEqual(f.object_type, amocrm.Contact)
-        f.init_keys({'name': 'test_'})
+        f._keys_data = {'name': 'test_'}
         f.data = 1
         self.assertEqual(f.data.name, 'test_')
         self.assertIsInstance(f.data, empty)

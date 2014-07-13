@@ -49,7 +49,8 @@ class BaseAmoManager(object):
 
     @lazy_property
     def login_data(self):
-        return {'USER_LOGIN': settings.user_login, 'USER_HASH': settings.user_hash, 'type': 'json'}
+        if settings.user_login:
+            return {'USER_LOGIN': settings.user_login, 'USER_HASH': settings.user_hash, 'type': 'json'}
 
     @lazy_property
     def responsible_user(self):
@@ -67,7 +68,7 @@ class BaseAmoManager(object):
         if not cls._amo_model_class:
             return result
         if isinstance(result, (tuple, list)):
-            return [cls._amo_model_class(obj) for obj in result]
+            return [cls._amo_model_class(data=obj) for obj in result]
         return cls._amo_model_class(result)
 
     @lazy_dict_property
@@ -178,7 +179,7 @@ class BaseAmoManager(object):
         return request
 
     def get(self, id_):
-        return self.get_list(limit=1, query={'id': id_, 'type': self.name[:-1]}).pop()
+        contact = self.get_list(limit=1, query={'id': id_, 'type': self.name[:-1]})
 
     def search(self, query):
         if not isinstance(query, dict):

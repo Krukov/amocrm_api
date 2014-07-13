@@ -11,8 +11,8 @@ class Settings(object):
 
     def set(self, user_login, user_hash, domain, responsible_user=None, query_field=None):
         self.user_login, self.user_hash, self.domain = user_login, user_hash, domain
-
-        self.responsible_user = responsible_user
+        if responsible_user is not None:
+            self.responsible_user = responsible_user
         if query_field is not None:
             self.query_field = query_field
 

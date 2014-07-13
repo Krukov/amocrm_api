@@ -20,6 +20,8 @@ class BaseField(object):
                 self.data = obj.data.get(self._parent, {}).get(self.field)
             else:
                 self.data = obj.data.get(self.field)
+            if hasattr(self, 'keys_map'):
+                self._keys_data = {key: obj.data.get(val) for key, val in self.keys_map.items()}
         return self.data
 
     def __set__(self, value):
@@ -70,14 +72,16 @@ class ForeignField(Field):
 
     def __init__(self, object_type=None, field=None, keys=None):
         super(ForeignField, self).__init__(field)
-        self.keys = keys
+        self._keys, self._keys_data = keys, {}
         self.object_type = object_type
 
-    def init_keys(self, data):
-        assert isinstance(data, dict)
-        if [i for i in data.keys() if i in self.keys]:
-            self._keys_data = data
-        return data
+    @property
+    def _keys_map(self):
+        if isinstance(self._keys, (list, tuple)):
+            return dict(zip(self._keys))
+        elif isinstance(self._keys, dict):
+            return self._keys
+        return {}
 
     def cleaned_data(self):
         _id = super(ForeignField, self).cleaned_data()

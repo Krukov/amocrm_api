@@ -32,7 +32,8 @@ class lazy_property(object):
         if obj is None:
             return self
         value = self._calculate(obj)
-        setattr(obj, self._calculate.func_name, value)
+        if value is not None:
+            setattr(obj, self._calculate.func_name, value)
         return value
 
 

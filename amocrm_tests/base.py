@@ -12,10 +12,11 @@ from amocrm.decorators import empty
 class TestContacts(unittest.TestCase):
 
     def setUp(self):
-        settings.set()
+        settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
     
     def test_getting_contact_by_id(self):
         contact = Contact.objects.get(1)
+        contact
 
     def test_searching_contact(self):
         contact = Contact.objects.search('test@test.ru')
