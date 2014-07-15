@@ -10,7 +10,7 @@ import requests
 
 from .settings import settings
 from .decorators import (amo_request, lazy_dict_property,
-                             to_amo_obj, lazy_property)
+                         to_amo_obj, lazy_property)
 from .logger import logger
 
 AMO_LOGIN_PATH = '/private/api/auth.php'

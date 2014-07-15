@@ -61,3 +61,5 @@ class FieldsTests(unittest.TestCase):
         f.data = [1, 4, 10]
         self.assertIsInstance(f.data[0], empty)
         self.assertEqual(len(f.data), 3)
+
+

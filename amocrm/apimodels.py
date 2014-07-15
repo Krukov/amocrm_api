@@ -21,8 +21,10 @@ class BaseModel(object):
 
     __fields = {}
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, **kwargs):
         self.data = data
+        if data is None and kwargs:
+            self.data = kwargs
 
 
 class Company(BaseModel):
