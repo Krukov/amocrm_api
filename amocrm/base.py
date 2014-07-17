@@ -31,16 +31,28 @@ class BaseAmoManager(object):
     object_type = None
     _base_path = '/private/api/v2/%(format)s%(name)s%(path)s'
     _methods = {
-        'account_info': {'path': 'current', 'result': ['account'], 'name': 'accounts'},
-        'list': {'path': 'list', 'result': True},
-        'add': {'path': 'set', 'method': 'post', 'result': ['add', 0, 'id'], 'container': ['add']},
-        'update': {'path': 'set', 'method': 'post', 'container': ['update'], 'timestamp': True},
+        'account_info': {
+            'path': 'current', 'result': ['account'], 'name': 'accounts'
+        },
+        'list': {
+            'path': 'list', 'result': True
+        },
+        'add': {
+            'path': 'set', 'method': 'post', 'result': ['add', 0, 'id'],
+                    'container': ['add']
+        },
+        'update': {
+            'path': 'set', 'method': 'post',
+                    'container': ['update'], 'timestamp': True
+        },
     }
     _amo_model_class = None
 
-    def __init__(self, user_login=None, user_hash=None, domain=None, responsible_user=None, query_field='email'):
+    def __init__(self, user_login=None, user_hash=None,
+                 domain=None, responsible_user=None, query_field='email'):
         if user_login is not None:
-           settings.set(user_login, user_hash, domain, responsible_user, query_field)
+           settings.set(user_login, user_hash, domain,
+                        responsible_user, query_field)
         self.methods = deepcopy(self.methods)
         self.methods.update(self._methods)
 
@@ -51,7 +63,8 @@ class BaseAmoManager(object):
     @lazy_property
     def login_data(self):
         if settings.user_login:
-            return {'USER_LOGIN': settings.user_login, 'USER_HASH': settings.user_hash, 'type': 'json'}
+            return {'USER_LOGIN': settings.user_login,
+                    'USER_HASH': settings.user_hash, 'type': 'json'}
 
     @lazy_property
     def responsible_user(self):
@@ -93,18 +106,21 @@ class BaseAmoManager(object):
             return user.get('id')
 
     def _request(self, path, method, data):
+        method = method.lower()
         params = copy(self.login_data)
-        if method != 'POST':
+        if method != 'post':
             params.update(data)
             data = None
 
-        logger.info('%s - Sending %s request to %s' % (self.__class__.name, method, path))
+        logger.info('%s - Sending %s request to %s' % (self.__class__.name,
+                                                       method, path))
         logger.debug('Data: %s \n Params: %s' % (data, params))
 
-        req = getattr(requests, method.lower(), 'get')(self.url(path), data=json.dumps(data), params=params)
+        req_method = getattr(requests, method, 'get')
+        req = req_method(self.url(path), data=json.dumps(data), params=params)
         if not req.ok:
             logger.error('Something went wrong')
-            return req.raise_for_status() # TODO: do not raise errors
+            return req.raise_for_status()  # TODO: do not raise errors
         try:
             return req.json()
         except ValueError:
