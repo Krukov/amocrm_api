@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 import json
 import time
+from function_tools import wraps
 
 import six
 if six.PY2:
@@ -14,6 +15,16 @@ from responses import RequestsMock
 from amoapi.base import BaseAmoManager
 
 
+def check_auth(func):
+    @wraps
+    def _call(self, obj, params):
+        if self._check_auth(params):
+            return func(self, obj, params)
+        return json.loads({'status': 'error', 'auth': False})
+
+    return _call
+
+
 class FakeApi(object):
     """docstring for FakeApi"""
     def __init__(self):
@@ -24,14 +35,20 @@ class FakeApi(object):
         super(FakeApi, self).reset()
         self._data = json.loads(open('generated.json').read())
 
-    def _auth(self, obj, params):
-        r = {'auth': False}
+    def _check_auth(params):
         if 'USER_LOGIN' in params and 'USER_HASH' in params:
             if params['USER_LOGIN'] == self.login \
                             and params['USER_HASH'] == self.hash:
-                r['auth'] = True
+                return True
+        return False
+
+    def _auth(self, obj, params):
+        r = {'auth': False}
+        if self._check_auth(params):
+            r['auth'] = True
         return json.dumps(r)
 
+    @check_auth
     def _list(self, obj, params):
         params = params.get('request', {}).get(obj)
         _id, query = params.get('id'), params.get('query')
@@ -45,6 +62,7 @@ class FakeApi(object):
                         int(params.get('limit_rows'))]
         return json.dumps({'response': {obj: resp}})
 
+    @check_auth
     def _set(self, obj, params):
         resp = {}
         params = params.get('request', {}).get(obj)
@@ -52,8 +70,7 @@ class FakeApi(object):
             if 'update' in params:
                 params['update']['last_modified'] = time.time()
                 target_id = params['update']['id']
-                update_obj = (i for i in self.data
-                        if i['id'] == target_id).next()
+                update_obj = (i for i in self.data if i['id'] == target_id).next()
                 update_obj.update(params['update'])
                 resp = {'update': {'id': target_id}}
             elif 'add' in params:
@@ -64,6 +81,7 @@ class FakeApi(object):
                 resp = {'add': {'id': _id, 'request_id': 1}}
         return json.dumps({'response': {obj: resp}})
 
+    @check_auth
     def _current(self, obj, params):
         return json.dumps(self.data[obj])
 
