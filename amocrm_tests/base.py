@@ -7,35 +7,38 @@ import unittest
 
 from amocrm import *
 from amocrm.decorators import empty
+from amocrm_tests.utils import amomock
 
 
 class TestContacts(unittest.TestCase):
 
     def setUp(self):
-        settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
-    
+        amomock.set_login_params('test', 'test')
+        settings.set('test', 'test', 'testcentrobit')
+
+    @amomock.activate
     def test_getting_contact_by_id(self):
-        contact = Contact.objects.get(1)
-        contact
+        contact = Contact.objects.get(0)
+        self.assertEqual(contact.name, 'Parker Crosby')
 
+    @amomock.activate
     def test_searching_contact(self):
-        contact = Contact.objects.search('test@test.ru')
+        contact = Contact.objects.search('traceywalsh@voratak.com')
+        self.assertEqual(contact.name, 'Tracey Walsh')
 
+    @amomock.activate
     def test_edit_contact(self):
-        contact = Contact.objects.get(1)
-        assert contact.name != 'frog'
+        contact = Contact.objects.get(0)
+        self.assertNotEqual(contact.name, 'Frog')
         contact.name = 'frog'
         contact.save()
 
-        _contact = Contact.objects.get(1)
+        _contact = Contact.objects.get(0)
         self.assertEqual(_contact.name, 'frog')
 
+    @amomock.activate
     def test_creating_contact(self):
-        contact = Contact({
-                'name': 'test',
-                'email': 'test@test.ru',
-                'company': 'TEST.CO'
-            })
+        contact = Contact(name='test', email='test@test.ru', company='TEST.CO')
         contact.save()
 
 if __name__ == '__main__':

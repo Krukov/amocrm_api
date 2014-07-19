@@ -73,10 +73,10 @@ class TestUtils(unittest.TestCase):
         resp = requests.post('http://test.amocrm/private/api/contacts/set',
                              data=data).json()
         self.assertNotIn('auth', resp)
-        print resp
 
+        # Check adding
         data = {'request': json.dumps(
-            {'contacts': {'limit_rows': 1, 'query': {'name': 'frog'}}}
+            {'contacts': {'limit_rows': 1, 'query': {'name': 'Frog'}}}
         )}
         data.update(self.login_data)
         resp = requests.get('http://test.amocrm/private/api/contacts/list',
@@ -86,7 +86,7 @@ class TestUtils(unittest.TestCase):
         contacts = resp['response']['contacts']
         self.assertEquals(len(contacts), 1)
         contact = contacts.pop()
-        self.assertEquals('frog', contact['name'])
+        self.assertEquals('Frog', contact['name'])
         self.assertIn('id', contact)
 
 

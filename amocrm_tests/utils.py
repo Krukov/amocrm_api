@@ -48,7 +48,6 @@ class FakeApi(object):
         if params is None:
             return json.dumps({'status': 'error'})
         _id, query = params.get('id'), params.get('query')
-        resp = []
         if _id:
             resp = [i for i in self._data[obj] if i['id'] == _id]
         elif query:
@@ -73,9 +72,8 @@ class FakeApi(object):
                 resp = {'update': {'id': target_id}}
             elif 'add' in params:
                 params['add']['last_modified'] = time.time()
-                max_id = max(self._data[obj], lambda x: int(x['id']))
-                print max_id
-                _id = int(max_id['id']) + 1
+                max_id = max(map(lambda x: int(x['id']), self._data[obj]))
+                _id = max_id + 1
                 params['add']['id'] = _id
                 self._data[obj].append(params['add'])
                 resp = {'add': {'id': _id, 'request_id': 1}}
