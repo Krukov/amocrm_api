@@ -197,6 +197,8 @@ class BaseAmoManager(object):
 
     def get(self, id_):
         contact = self.get_list(limit=1, query={'id': id_, 'type': self.name[:-1]})
+        if contact:
+            return contact.pop()
 
     def search(self, query):
         if not isinstance(query, dict):
