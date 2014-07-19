@@ -12,8 +12,6 @@ else:
 
 from responses import RequestsMock
 
-from amocrm.api import BaseAmoManager
-
 
 def check_auth(func):
     @wraps(func)
@@ -46,13 +44,17 @@ class FakeApi(object):
 
     @check_auth
     def _list(self, obj, params):
-        params = params.get('request', {}).get(obj)
+        params = json.loads(params.get('request', {})).get(obj)
+        if params is None:
+            return json.dumps({'status': 'error'})
         _id, query = params.get('id'), params.get('query')
         resp = []
         if _id:
             resp = [i for i in self._data[obj] if i['id'] == _id]
         elif query:
-            resp = [i for i in self._data[obj] if query in i.items()]
+            resp = [i for i in self._data[obj] if all([j in i.items() for j in query.items()])]
+        else:
+            resp = self._data[obj]
         if 'limit_rows' in params:
             resp = resp[int(params.get('limit_offset', 0)):int(params.get('limit_rows'))]
         return json.dumps({'response': {obj: resp}})
@@ -79,14 +81,13 @@ class FakeApi(object):
 
     @check_auth
     def _current(self, obj, params):
-        return json.dumps(self._data[obj])
+        return json.dumps({'response': {obj: self._data[obj]}})
 
 
 class AmoApiMock(RequestsMock):
-    _urls_data = BaseAmoManager._methods
     _objects = ('contacts', 'notes', 'company', 'tasks', 'leads')
-    _base_url = 'https://%(domain)s.amocrm.ru' + BaseAmoManager._base_path
-    _format = BaseAmoManager.format_
+    _base_url = 'https://%(domain)s.amocrm.ru/private/api/v2/%(format)s%(name)s%(path)s'
+    _format = 'json'
 
     def reset(self):
         super(AmoApiMock, self).reset()

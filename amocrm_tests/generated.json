@@ -153,6 +153,13 @@
       }
     ],
   "accounts": {
-    "id": 1
+    "id": 1,
+    "users": [
+      {
+        "id": 1,
+        "name": "manager"
+      }
+    ],
+    "custom_fields": [1]
   }
 }
