@@ -62,7 +62,7 @@ class FakeApi(object):
     @check_auth
     def _set(self, obj, params):
         resp = {}
-        params = params.get('request', {}).get(obj)
+        params = json.loads(params.get('request', {})).get(obj)
         if params:
             if 'update' in params:
                 params['update']['last_modified'] = time.time()
@@ -73,7 +73,9 @@ class FakeApi(object):
                 resp = {'update': {'id': target_id}}
             elif 'add' in params:
                 params['add']['last_modified'] = time.time()
-                _id = max(self._data[obj], lambda x: x['id'])['id'] + 1
+                max_id = max(self._data[obj], lambda x: int(x['id']))
+                print max_id
+                _id = int(max_id['id']) + 1
                 params['add']['id'] = _id
                 self._data[obj].append(params['add'])
                 resp = {'add': {'id': _id, 'request_id': 1}}

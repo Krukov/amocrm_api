@@ -51,7 +51,9 @@ class TestUtils(unittest.TestCase):
 
     @amomock.activate
     def test_contacts_search(self):
-        data = {'request': json.dumps({'contacts': {'limit_rows': 1, 'query': {'name': 'Molina Chapman'}}})}
+        data = {'request': json.dumps(
+            {'contacts': {'limit_rows': 1, 'query': {'name': 'Molina Chapman'}}}
+        )}
         data.update(self.login_data)
         resp = requests.get('http://test.amocrm/private/api/contacts/list',
                             data=data).json()
@@ -60,6 +62,33 @@ class TestUtils(unittest.TestCase):
         contacts = resp['response']['contacts']
         self.assertEquals(len(contacts), 1)
         self.assertEquals('Molina Chapman', contacts.pop()['name'])
+
+    @amomock.activate
+    def test_contact_add(self):
+        contact = {'name': 'Frog', 'company_name': 'TestsCo'}
+        data = {'request': json.dumps(
+            {'contacts': {'add': contact}}
+        )}
+        data.update(self.login_data)
+        resp = requests.post('http://test.amocrm/private/api/contacts/set',
+                             data=data).json()
+        self.assertNotIn('auth', resp)
+        print resp
+
+        data = {'request': json.dumps(
+            {'contacts': {'limit_rows': 1, 'query': {'name': 'frog'}}}
+        )}
+        data.update(self.login_data)
+        resp = requests.get('http://test.amocrm/private/api/contacts/list',
+                            data=data).json()
+        self.assertNotIn('auth', resp)
+        self.assertIn('response', resp)
+        contacts = resp['response']['contacts']
+        self.assertEquals(len(contacts), 1)
+        contact = contacts.pop()
+        self.assertEquals('frog', contact['name'])
+        self.assertIn('id', contact)
+
 
 
 if __name__ == '__main__':
