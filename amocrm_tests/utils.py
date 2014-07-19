@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 import json
 import time
-from function_tools import wraps
+from functools import wraps
 
 import six
 if six.PY2:
@@ -12,15 +12,15 @@ else:
 
 from responses import RequestsMock
 
-from amoapi.base import BaseAmoManager
+from amocrm.api import BaseAmoManager
 
 
 def check_auth(func):
-    @wraps
+    @wraps(func)
     def _call(self, obj, params):
         if self._check_auth(params):
             return func(self, obj, params)
-        return json.loads({'status': 'error', 'auth': False})
+        return json.dumps({'status': 'error', 'auth': False})
 
     return _call
 
@@ -29,17 +29,13 @@ class FakeApi(object):
     """docstring for FakeApi"""
     def __init__(self):
         self.login, self.hash = None, None
-        super(FakeApi, self).__init__()
-
-    def reset(self):
-        super(FakeApi, self).reset()
         self._data = json.loads(open('generated.json').read())
 
-    def _check_auth(params):
-        if 'USER_LOGIN' in params and 'USER_HASH' in params:
-            if params['USER_LOGIN'] == self.login \
-                            and params['USER_HASH'] == self.hash:
-                return True
+    def _check_auth(self, params):
+        login = params.pop('USER_LOGIN', None)
+        _hash = params.pop('USER_HASH', None)
+        if login == self.login and _hash == self.hash:
+            return True
         return False
 
     def _auth(self, obj, params):
@@ -54,12 +50,11 @@ class FakeApi(object):
         _id, query = params.get('id'), params.get('query')
         resp = []
         if _id:
-            resp = [i for i in self.data[obj] if i['id'] == _id]
+            resp = [i for i in self._data[obj] if i['id'] == _id]
         elif query:
-            resp = [i for i in self.data[obj] if query in i.items()]
+            resp = [i for i in self._data[obj] if query in i.items()]
         if 'limit_rows' in params:
-            resp = resp[int(params.get('limit_offset', 0)),
-                        int(params.get('limit_rows'))]
+            resp = resp[int(params.get('limit_offset', 0)):int(params.get('limit_rows'))]
         return json.dumps({'response': {obj: resp}})
 
     @check_auth
@@ -70,20 +65,21 @@ class FakeApi(object):
             if 'update' in params:
                 params['update']['last_modified'] = time.time()
                 target_id = params['update']['id']
-                update_obj = (i for i in self.data if i['id'] == target_id).next()
+                update_obj = (i for i in self._data
+                              if i['id'] == target_id).next()
                 update_obj.update(params['update'])
                 resp = {'update': {'id': target_id}}
             elif 'add' in params:
                 params['add']['last_modified'] = time.time()
-                _id = max(self.data[obj], lambda x: x['id'])['id'] + 1
+                _id = max(self._data[obj], lambda x: x['id'])['id'] + 1
                 params['add']['id'] = _id
-                self.data[obj].append(params['add'])
+                self._data[obj].append(params['add'])
                 resp = {'add': {'id': _id, 'request_id': 1}}
         return json.dumps({'response': {obj: resp}})
 
     @check_auth
     def _current(self, obj, params):
-        return json.dumps(self.data[obj])
+        return json.dumps(self._data[obj])
 
 
 class AmoApiMock(RequestsMock):
@@ -92,8 +88,8 @@ class AmoApiMock(RequestsMock):
     _base_url = 'https://%(domain)s.amocrm.ru' + BaseAmoManager._base_path
     _format = BaseAmoManager.format_
 
-    def __init__(self):
-        super(AmoApiMock, self).__init__()
+    def reset(self):
+        super(AmoApiMock, self).reset()
         self._faker = FakeApi()
 
     def _find_match(self, request):
@@ -104,13 +100,24 @@ class AmoApiMock(RequestsMock):
 
     def _get_response(self, request):
         url_parsed = urlparse(request.url)
-        url_qsl = parse_qsl(url_parsed.query)
+        if url_parsed.query or request.body:
+            url_qsl = dict(parse_qsl(url_parsed.query) + parse_qsl(request.body))
+        else:
+            url_qsl = {}
         obj, method = url_parsed.path.split('/')[-2:]
         method = method.split('.')[0]
-        return getattr(self._faker, '_%s' % method)(obj, url_qsl)
+        body = getattr(self._faker, '_%s' % method)(obj, url_qsl)
+        return {
+            'body': body,
+            'content_type': 'text/plain',
+            'status': 200,
+            'adding_headers': None,
+            'stream': False
+        }
 
-    def set_login_params(self, login, hash):
+    def set_login_params(self, login, _hash):
         self._faker.login = login
-        self._faker.hash = hash
+        self._faker.hash = _hash
+
 
 amomock = AmoApiMock()

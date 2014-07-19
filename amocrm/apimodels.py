@@ -28,6 +28,7 @@ class BaseModel(object):
 
 
 class Company(BaseModel):
+
     type = fields.ConstantField('type', 'company')
     id = fields.Field('id')
     name = fields.Field('name')
