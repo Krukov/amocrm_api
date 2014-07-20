@@ -118,6 +118,7 @@ class BaseAmoManager(object):
 
         req_method = getattr(requests, method, 'get')
         req = req_method(self.url(path), data=json.dumps(data), params=params)
+        logger.debug('Url: %s', req.url)
         if not req.ok:
             logger.error('Something went wrong')
             return req.raise_for_status()  # TODO: do not raise errors
@@ -196,15 +197,19 @@ class BaseAmoManager(object):
         return request
 
     def get(self, id_):
-        contact = self.get_list(limit=1, query={'id': id_, 'type': self.name[:-1]})
-        if contact:
-            return contact.pop()
+        contacts = self.get_list(limit=1,
+                                 query={'id': id_, 'type': self.name[:-1]})
+        return contacts.pop() if contacts else None
 
     def search(self, query):
         if not isinstance(query, dict):
             query = {self.query_field: query}
-        query = {'type': self.object_type or self.name[:-1], 'query': query}
-        return self.get_list(limit=5, query=query)
+        query = {
+            'type': self.object_type or self.name[:-1],
+            'query': json.dumps(query)
+        }
+        contacts = self.get_list(limit=1, query=query)
+        return contacts.pop() if contacts else None
 
     @amo_request('add')
     def add(self, **kwargs):

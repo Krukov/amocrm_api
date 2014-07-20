@@ -26,20 +26,20 @@ class TestContacts(unittest.TestCase):
         contact = Contact.objects.search('traceywalsh@voratak.com')
         self.assertEqual(contact.name, 'Tracey Walsh')
 
-    @amomock.activate
-    def test_edit_contact(self):
-        contact = Contact.objects.get(0)
-        self.assertNotEqual(contact.name, 'Frog')
-        contact.name = 'frog'
-        contact.save()
+    # @amomock.activate
+    # def test_edit_contact(self):
+    #     contact = Contact.objects.get(0)
+    #     self.assertNotEqual(contact.name, 'Frog')
+    #     contact.name = 'frog'
+    #     contact.save()
 
-        _contact = Contact.objects.get(0)
-        self.assertEqual(_contact.name, 'frog')
+    #     _contact = Contact.objects.get(0)
+    #     self.assertEqual(_contact.name, 'frog')
 
-    @amomock.activate
-    def test_creating_contact(self):
-        contact = Contact(name='test', email='test@test.ru', company='TEST.CO')
-        contact.save()
+    # @amomock.activate
+    # def test_creating_contact(self):
+    #     contact = Contact(name='test', email='test@test.ru', company='TEST.CO')
+    #     contact.save()
 
 if __name__ == '__main__':
     unittest.main()

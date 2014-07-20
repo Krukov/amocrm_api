@@ -6,13 +6,17 @@ from collections import namedtuple, OrderedDict
 
 from .decorators import lazy_dict_property
 
+class Empty(object):
+    pass
+
 
 class BaseField(object):
     _parent = None
 
-    def __init__(self, field=None):
+    def __init__(self, field=None, *args, **kwargs):
         self.field = field
         self._data = {}
+        self._args, self._kwargs = args, kwargs
 
     def __get__(self, obj, _=None):
         if not self._data:
@@ -24,8 +28,15 @@ class BaseField(object):
                 self._keys_data = {key: obj.data.get(val) for key, val in self.keys_map.items()}
         return self.data
 
-    def __set__(self, value):
-        self.set_data(value)
+    # def __set__(self, value):
+        # self.set_data(value)
+    def __copy__(self):
+        # We need to avoid hitting __reduce__, so define this
+        # slightly weird copy construct.
+        obj = Empty()
+        obj.__class__ = self.__class__
+        obj.__dict__ = self.__dict__.copy()
+        return obj
 
     def cleaned_data(self):
         return self._data
@@ -93,7 +104,7 @@ class ForeignField(Field):
 
 class ManyForeignField(Field):
 
-    def __init__(self, objects_type, field=None, key=None):
+    def __init__(self, objects_type=None, field=None, key=None):
         super(ManyForeignField, self).__init__(field)
         self.objects_type = objects_type
         self.key = key

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import json
+import os
 import time
 from functools import wraps
 
@@ -11,6 +12,9 @@ else:
     from urllib.parse import urlparse, parse_qsl
 
 from responses import RequestsMock
+
+DIR = os.path.normpath(os.path.dirname(__file__))
+FILE_DIR = os.path.join(DIR, 'generated.json')
 
 
 def check_auth(func):
@@ -27,7 +31,7 @@ class FakeApi(object):
     """docstring for FakeApi"""
     def __init__(self):
         self.login, self.hash = None, None
-        self._data = json.loads(open('generated.json').read())
+        self._data = json.loads(open(FILE_DIR).read())
 
     def _check_auth(self, params):
         login = params.pop('USER_LOGIN', None)
@@ -44,13 +48,13 @@ class FakeApi(object):
 
     @check_auth
     def _list(self, obj, params):
-        params = json.loads(params.get('request', {})).get(obj)
         if params is None:
             return json.dumps({'status': 'error'})
         _id, query = params.get('id'), params.get('query')
-        if _id:
-            resp = [i for i in self._data[obj] if i['id'] == _id]
+        if _id is not None:
+            resp = [i for i in self._data[obj] if int(i['id']) == int(_id)]
         elif query:
+            query = json.loads(query)
             resp = [i for i in self._data[obj] if all([j in i.items() for j in query.items()])]
         else:
             resp = self._data[obj]
@@ -61,9 +65,9 @@ class FakeApi(object):
     @check_auth
     def _set(self, obj, params):
         resp = {}
-        params = json.loads(params.get('request', {})).get(obj)
         if params:
             if 'update' in params:
+                params['update'] = json.loads(params['update'])
                 params['update']['last_modified'] = time.time()
                 target_id = params['update']['id']
                 update_obj = (i for i in self._data
@@ -71,6 +75,7 @@ class FakeApi(object):
                 update_obj.update(params['update'])
                 resp = {'update': {'id': target_id}}
             elif 'add' in params:
+                params['add'] = json.loads(params['add'])
                 params['add']['last_modified'] = time.time()
                 max_id = max(map(lambda x: int(x['id']), self._data[obj]))
                 _id = max_id + 1
