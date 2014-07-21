@@ -65,22 +65,29 @@ class FakeApi(object):
     @check_auth
     def _set(self, obj, params):
         resp = {}
+        try:
+            params = params['request'][obj]
+        except KeyError:
+            pass
         if params:
             if 'update' in params:
-                params['update'] = json.loads(params['update'])
-                params['update']['last_modified'] = time.time()
-                target_id = params['update']['id']
-                update_obj = (i for i in self._data
+                update = params['update']
+                update = json.loads(update) \
+                    if isinstance(update, str) else update
+                update['last_modified'] = time.time()
+                target_id = update['id']
+                update_obj = (i for i in self._data[obj]
                               if i['id'] == target_id).next()
-                update_obj.update(params['update'])
+                update_obj.update(update)
                 resp = {'update': {'id': target_id}}
             elif 'add' in params:
-                params['add'] = json.loads(params['add'])
-                params['add']['last_modified'] = time.time()
+                add = params['add']
+                add = json.loads(add) if isinstance(add, str) else add
+                add['last_modified'] = time.time()
                 max_id = max(map(lambda x: int(x['id']), self._data[obj]))
                 _id = max_id + 1
-                params['add']['id'] = _id
-                self._data[obj].append(params['add'])
+                add['id'] = _id
+                self._data[obj].append(add)
                 resp = {'add': {'id': _id, 'request_id': 1}}
         return json.dumps({'response': {obj: resp}})
 
@@ -108,6 +115,9 @@ class AmoApiMock(RequestsMock):
         url_parsed = urlparse(request.url)
         if url_parsed.query or request.body:
             url_qsl = dict(parse_qsl(url_parsed.query) + parse_qsl(request.body))
+            body_data = json.loads(request.body)
+            if body_data:
+                url_qsl.update(body_data)
         else:
             url_qsl = {}
         obj, method = url_parsed.path.split('/')[-2:]

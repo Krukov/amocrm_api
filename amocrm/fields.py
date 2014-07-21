@@ -6,37 +6,34 @@ from collections import namedtuple, OrderedDict
 
 from .decorators import lazy_dict_property
 
-class Empty(object):
-    pass
-
 
 class BaseField(object):
     _parent = None
 
-    def __init__(self, field=None, *args, **kwargs):
+    def __init__(self, field=None):
         self.field = field
-        self._data = {}
-        self._args, self._kwargs = args, kwargs
+        self.refresh()
 
     def __get__(self, obj, _=None):
-        if not self._data:
+        if obj.fields_data.get(self.field) is None:
             if self._parent:
                 self.data = obj.data.get(self._parent, {}).get(self.field)
             else:
                 self.data = obj.data.get(self.field)
             if hasattr(self, 'keys_map'):
                 self._keys_data = {key: obj.data.get(val) for key, val in self.keys_map.items()}
-        return self.data
+            obj.fields_data[self.field] = self.data
+            self.refresh()
+        return obj.fields_data[self.field]
 
-    # def __set__(self, value):
-        # self.set_data(value)
-    def __copy__(self):
-        # We need to avoid hitting __reduce__, so define this
-        # slightly weird copy construct.
-        obj = Empty()
-        obj.__class__ = self.__class__
-        obj.__dict__ = self.__dict__.copy()
-        return obj
+    def __set__(self, obj, value):
+        if not self._parent:
+            obj.data[self.field] = value
+        else:
+            obj.data[self._parent][self.field] = value
+
+    def refresh(self):
+        self._data = None
 
     def cleaned_data(self):
         return self._data
@@ -102,11 +99,10 @@ class ForeignField(Field):
         return obj
 
 
-class ManyForeignField(Field):
+class ManyForeignField(ForeignField):
 
     def __init__(self, objects_type=None, field=None, key=None):
-        super(ManyForeignField, self).__init__(field)
-        self.objects_type = objects_type
+        super(ManyForeignField, self).__init__(field=field, object_type=objects_type)
         self.key = key
 
     def cleaned_data(self):
@@ -127,13 +123,12 @@ class ManyDictField(Field):
     
     def cleaned_data(self):
         data = super(ManyDictField, self).cleaned_data()
-        _items = namedtuple('items', [i.get(self.key, 'pass') for i in data])
         items = {}
         for item in data:
             item = OrderedDict(item)
             _item = namedtuple('item', item.keys())
             items[item[self.key]] = _item(**item)
-        return _items(**items)
+        return items
 
 
 class CustomField(Field):

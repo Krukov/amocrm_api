@@ -160,7 +160,7 @@ class BaseAmoManager(object):
 
         if timestamp:
             _time = timestamp if isinstance(timestamp, (str, unicode)) else 'last_modified'
-            data.setdafault(_time, int(time()))
+            data.setdefault(_time, int(time()))
         if container is not None:
             data = self._create_container(container, data)
         response = self._request(path=path, method=method_type, data=data)

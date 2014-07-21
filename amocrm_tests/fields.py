@@ -51,9 +51,9 @@ class FieldsTests(unittest.TestCase):
         f.data = [{'foreign': 1, 'id': 100, 'name': 'frog'},
                   {'foreign': 2, 'id': 200, 'name': 'test'},]
 
-        self.assertEqual(f.data.frog.id, 100)
-        self.assertEqual(f.data.test.foreign, 2)
-        self.assertEqual(f.data.frog.name, 'frog')
+        self.assertEqual(f.data['frog'].id, 100)
+        self.assertEqual(f.data['test'].foreign, 2)
+        self.assertEqual(f.data['frog'].name, 'frog')
 
     def test_many_f_field(self):
         f = fields.ManyForeignField(amocrm.Contact, 'test')
