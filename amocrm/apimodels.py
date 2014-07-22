@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from copy import deepcopy, copy
+import time
 from . import fields
 from .api import *
 
@@ -30,9 +30,12 @@ class BaseModel(object):
     def __getitem__(self, item):
         return self.__getattribute__(item)
 
-    def save(self):
-        result = self.objects.create_or_update(**self.data)
-        return result
+    def save(self, update_if_exists=True):
+        if self.id is not None:
+            return self.objects.update(**self.data)
+        if update_if_exists:
+            return self.objects.create_or_update(**self.data)
+        return self.objects.create(**self.data)
 
 
 class Company(BaseModel):
@@ -40,6 +43,7 @@ class Company(BaseModel):
     type = fields.ConstantField('type', 'company')
     id = fields.Field('id')
     name = fields.Field('name')
+    adress = fields.Field('adress')
 
     objects = CompanyManager()
 
@@ -69,3 +73,8 @@ class Contact(BaseModel):
     deleted = fields.BooleanField('deleted')
 
     objects = ContactsManager()
+
+    def save(self, *args, **kwargs):
+        if self.date_create is None:
+            self.date_create = time.time()
+        return super(Contact, self).save(*args, **kwargs)
