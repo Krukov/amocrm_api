@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-import copy
 from datetime import datetime
 from collections import namedtuple, OrderedDict
 
@@ -21,7 +20,8 @@ class BaseField(object):
             else:
                 self.data = obj.data.get(self.field)
             if hasattr(self, 'keys_map'):
-                self._keys_data = {key: obj.data.get(val) for key, val in self.keys_map.items()}
+                self._keys_data = {key: obj.data.get(val)
+                                   for key, val in self.keys_map.items()}
             obj.fields_data[self.field] = self.data
             self.refresh()
         return obj.fields_data[self.field]
@@ -65,7 +65,9 @@ class ConstantField(BaseField):
 class DateTimeField(Field):
 
     def cleaned_data(self):
-        return datetime.fromtimestamp(super(DateTimeField, self).cleaned_data())
+        data = super(DateTimeField, self).cleaned_data()
+        if data is not None:
+            return datetime.fromtimestamp(float(data))
 
 
 class BooleanField(Field):
@@ -102,7 +104,8 @@ class ForeignField(Field):
 class ManyForeignField(ForeignField):
 
     def __init__(self, objects_type=None, field=None, key=None):
-        super(ManyForeignField, self).__init__(field=field, object_type=objects_type)
+        super(ManyForeignField, self).__init__(field=field,
+                                               object_type=objects_type)
         self.key = key
 
     def cleaned_data(self):
@@ -120,7 +123,7 @@ class ManyDictField(Field):
     def __init__(self, field=None, key=None):
         super(ManyDictField, self).__init__(field)
         self.key = key
-    
+
     def cleaned_data(self):
         data = super(ManyDictField, self).cleaned_data()
         items = {}

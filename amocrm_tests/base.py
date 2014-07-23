@@ -2,8 +2,9 @@
 
 import unittest
 from datetime import datetime
+import time
 
-from amocrm.apimodels import *
+from amocrm import *
 from amocrm_tests.utils import amomock
 
 
@@ -20,11 +21,11 @@ class TestContacts(unittest.TestCase):
         self.assertEqual(contact.name, 'Parker Crosby')
         self.assertEqual(contact.id, 0)
         self.assertEquals(contact.deleted, True)
-        self.assertEquals(contact.tags[1].name, 'Carrillo Beach')
-        self.assertEquals(contact.datecreate, datetime.fromtimestamp(67444200))
+        self.assertEquals(contact.tags['Carrillo Beach'].id, 1)
+        self.assertEquals(contact.date_create, datetime.fromtimestamp(67444200))
         self.assertEquals(contact.last_modified, datetime.fromtimestamp(7675716))
 
-        self.assertEquals(contact.created_user, '731')
+        self.assertEquals(contact.created_user, 731)
 
 
     @amomock.activate
@@ -50,6 +51,7 @@ class TestContacts(unittest.TestCase):
         _contact = Contact.objects.get(_id['id'])
         self.assertEqual(_contact.name, 'test')
         self.assertEqual(_contact.email, 'test@test.ru')
+        self.assertEqual(_contact.date_create.date(), datetime.now().date())
 
     @amomock.activate
     def test_creating_company(self):
@@ -58,7 +60,7 @@ class TestContacts(unittest.TestCase):
 
         _company = Company.objects.get(_id['id'])
         self.assertEqual(_company.name, 'test')
-        self.assertEqual(_contact.adress, 'test@test.ru')
+        self.assertEqual(_company.adress, 'test@test.ru')
 
     @amomock.activate
     def test_creating_company_by_contact(self):
@@ -72,6 +74,7 @@ class TestContacts(unittest.TestCase):
     def test_company_fk(self):
         contact = Contact(name='test', email='test@test.ru', company='testCo')
         contact.save()
+        print contact.company.keys()
         self.assertEquals(contact.company.name, 'testCo')
         self.assertEquals(contact.company.id, 4)
 

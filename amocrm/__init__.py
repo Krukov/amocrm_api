@@ -2,4 +2,4 @@
 
 from .settings import settings
 from .api import *
-from .apimodels import Contact
+from .apimodels import Contact, Company

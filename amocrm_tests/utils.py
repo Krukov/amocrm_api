@@ -84,7 +84,8 @@ class FakeApi(object):
                 add = params['add']
                 add = json.loads(add) if isinstance(add, str) else add
                 add['last_modified'] = time.time()
-                max_id = max(map(lambda x: int(x['id']), self._data[obj]))
+                max_id = max(map(lambda x: int(x['id']), self._data[obj]))\
+                            if self._data[obj] else 0
                 _id = max_id + 1
                 add['id'] = _id
                 self._data[obj].append(add)

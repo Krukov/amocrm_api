@@ -63,7 +63,7 @@ class Contact(BaseModel):
     name = fields.Field('name')
     email = fields.Field('email')
     company = fields.ForeignField(Company, 'linked_company_id', ['company_name'])
-    created_user = fields.Field('created_user_id')
+    created_user = fields.Field('created_user')
     linked_leads = fields.ManyForeignField('linked_leads_id')
 
     date_create = fields.DateTimeField('date_create')
@@ -77,4 +77,4 @@ class Contact(BaseModel):
     def save(self, *args, **kwargs):
         if self.date_create is None:
             self.date_create = time.time()
-        return super(Contact, self).save(*args, **kwargs)
+        return BaseModel.save(self, *args, **kwargs)
