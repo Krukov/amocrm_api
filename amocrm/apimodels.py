@@ -41,16 +41,16 @@ class BaseModel(object):
 class Company(BaseModel):
 
     type = fields.ConstantField('type', 'company')
-    id = fields.Field('id')
+    id = fields.UneditableField('id')
     name = fields.Field('name')
-    adress = fields.Field('adress')
+    adres = fields.Field('adress')
 
     objects = CompanyManager()
 
 
 class Lead(BaseModel):
 
-    id = fields.Field('id')
+    id = fields.UneditableField('id')
     name = fields.Field('name')
 
     objects = LeadsManager()
@@ -59,10 +59,11 @@ class Lead(BaseModel):
 class Contact(BaseModel):
 
     type = fields.ConstantField('type', 'contact')
-    id = fields.Field('id')
+    id = fields.UneditableField('id')
     name = fields.Field('name')
     email = fields.Field('email')
-    company = fields.ForeignField(Company, 'linked_company_id', ['company_name'])
+    company = fields.ForeignField(Company, 'linked_company_id', auto_created='company_name')
+    company_name = fields.Field('company_name')
     created_user = fields.Field('created_user')
     linked_leads = fields.ManyForeignField('linked_leads_id')
 

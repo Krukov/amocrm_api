@@ -13,24 +13,24 @@ class BaseField(object):
         self.field = field
         self.refresh()
 
-    def __get__(self, obj, _=None):
-        if obj.fields_data.get(self.field) is None:
+    def __get__(self, instance, _=None):
+        if instance.fields_data.get(self.field) is None:
             if self._parent:
-                self.data = obj.data.get(self._parent, {}).get(self.field)
+                self.data = instance.data.get(self._parent, {}).get(self.field)
             else:
-                self.data = obj.data.get(self.field)
+                self.data = instance.data.get(self.field)
             if hasattr(self, 'keys_map'):
-                self._keys_data = {key: obj.data.get(val)
+                self._keys_data = {key: instance.data.get(val)
                                    for key, val in self.keys_map.items()}
-            obj.fields_data[self.field] = self.data
+            instance.fields_data[self.field] = self.data
             self.refresh()
-        return obj.fields_data[self.field]
+        return instance.fields_data[self.field]
 
-    def __set__(self, obj, value):
+    def __set__(self, instance, value):
         if not self._parent:
-            obj.data[self.field] = value
+            instance.data[self.field] = value
         else:
-            obj.data[self._parent][self.field] = value
+            instance.data[self._parent][self.field] = value
 
     def refresh(self):
         self._data = None
@@ -55,7 +55,13 @@ class Field(BaseField):
     pass
 
 
-class ConstantField(BaseField):
+class UneditableField(Field):
+
+    def __set__(self, instance, value):
+        pass
+
+
+class ConstantField(UneditableField):
 
     def __init__(self, field=None, value=None):
         super(ConstantField, self).__init__(field)
@@ -87,23 +93,14 @@ class BaseForeignField(Field):
 
 class ForeignField(BaseForeignField):
 
-    def __init__(self, object_type=None, field=None, keys=None):
+    def __init__(self, object_type=None, field=None, auto_created=False):
         super(ForeignField, self).__init__(object_type, field)
-        self._keys, self._keys_data = keys, {}
-
-    @property
-    def _keys_map(self):
-        if isinstance(self._keys, (list, tuple)):
-            return dict(zip(self._keys))
-        elif isinstance(self._keys, dict):
-            return self._keys
-        return {}
+        self.auto = auto_created
 
     def cleaned_data(self):
         _id = super(ForeignField, self).cleaned_data()
         wrap = lambda this: this.get(_id)
         obj = lazy_dict_property(wrap).__get__(self.object_type.objects)
-        [setattr(obj, name, value) for name, value in self._keys_data.items()]
         return obj
 
 
