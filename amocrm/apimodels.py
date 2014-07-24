@@ -43,7 +43,7 @@ class Company(BaseModel):
     type = fields.ConstantField('type', 'company')
     id = fields.UneditableField('id')
     name = fields.Field('name')
-    adres = fields.Field('adress')
+    address = fields.Field('address')
 
     objects = CompanyManager()
 

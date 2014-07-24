@@ -55,12 +55,12 @@ class TestContacts(unittest.TestCase):
 
     @amomock.activate
     def test_creating_company(self):
-        company = Company(name='test', adress='test@test.ru')
+        company = Company(name='test', address='test@test.ru')
         _id = company.save()
 
         _company = Company.objects.get(_id['id'])
         self.assertEqual(_company.name, 'test')
-        self.assertEqual(_company.adress, 'test@test.ru')
+        self.assertEqual(_company.address, 'test@test.ru')
 
     @amomock.activate
     def test_creating_company_by_contact(self):
