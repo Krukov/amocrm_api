@@ -8,6 +8,7 @@ import unittest
 import amocrm
 from amocrm.decorators import empty
 from amocrm import fields
+from  amocrm_tests.utils import amomock
 
 
 class FieldsTests(unittest.TestCase):
@@ -55,6 +56,7 @@ class FieldsTests(unittest.TestCase):
         self.assertEqual(f.data['test'].foreign, 2)
         self.assertEqual(f.data['frog'].name, 'frog')
 
+    @amomock.activate
     def test_many_f_field(self):
         f = fields.ManyForeignField(amocrm.Contact, 'test')
         self.assertEqual(f.field, 'test')

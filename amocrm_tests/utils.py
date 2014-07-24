@@ -116,9 +116,13 @@ class AmoApiMock(RequestsMock):
         url_parsed = urlparse(request.url)
         if url_parsed.query or request.body:
             url_qsl = dict(parse_qsl(url_parsed.query) + parse_qsl(request.body))
-            body_data = json.loads(request.body)
-            if body_data:
-                url_qsl.update(body_data)
+            try:
+                body_data = json.loads(request.body)
+            except ValueError:
+                pass
+            else:
+                if body_data:
+                    url_qsl.update(body_data)
         else:
             url_qsl = {}
         obj, method = url_parsed.path.split('/')[-2:]

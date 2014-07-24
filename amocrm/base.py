@@ -107,7 +107,7 @@ class BaseAmoManager(object):
 
     def _request(self, path, method, data):
         method = method.lower()
-        params = copy(self.login_data)
+        params = copy(self.login_data) or {}
         if method != 'post':
             params.update(data)
             data = None

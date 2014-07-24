@@ -78,12 +78,18 @@ class BooleanField(Field):
         return bool(data)
 
 
-class ForeignField(Field):
+class BaseForeignField(Field):
+
+    def __init__(self, object_type=None, field=None):
+        super(BaseForeignField, self).__init__(field)
+        self.object_type = object_type
+
+
+class ForeignField(BaseForeignField):
 
     def __init__(self, object_type=None, field=None, keys=None):
-        super(ForeignField, self).__init__(field)
+        super(ForeignField, self).__init__(object_type, field)
         self._keys, self._keys_data = keys, {}
-        self.object_type = object_type
 
     @property
     def _keys_map(self):
@@ -101,7 +107,7 @@ class ForeignField(Field):
         return obj
 
 
-class ManyForeignField(ForeignField):
+class ManyForeignField(BaseForeignField):
 
     def __init__(self, objects_type=None, field=None, key=None):
         super(ManyForeignField, self).__init__(field=field,
@@ -113,7 +119,7 @@ class ManyForeignField(ForeignField):
         items = []
         for item in data:
             wrap = lambda this: this.get(item)
-            item = lazy_dict_property(wrap).__get__(self.objects_type.objects)
+            item = lazy_dict_property(wrap).__get__(self.object_type.objects)
             items.append(item)
         return items
 

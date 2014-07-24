@@ -22,7 +22,7 @@ class TestUtils(unittest.TestCase):
     @amomock.activate
     def test_invalid_login(self):
         resp = requests.post('http://test.amocrm/private/api/auth.php',
-                             {'USER_LOGIN': 'test', 'USER_HASH': 'test2'})
+                             data={'USER_LOGIN': 'test', 'USER_HASH': 'test2'})
         self.assertEquals(resp.json()['auth'], False)
 
     @amomock.activate
