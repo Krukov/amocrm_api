@@ -26,7 +26,7 @@ class TestContacts(unittest.TestCase):
         self.assertEquals(contact.last_modified, datetime.fromtimestamp(7675716))
 
         self.assertEquals(contact.created_user, 731)
-
+        self.assertEqual(contact.company.name, 'TWIIST')
 
     @amomock.activate
     def test_searching_contact(self):
@@ -74,7 +74,6 @@ class TestContacts(unittest.TestCase):
     def test_company_fk(self):
         contact = Contact(name='test', email='test@test.ru', company='testCo')
         contact.save()
-        print contact.company.keys()
         self.assertEquals(contact.company.name, 'testCo')
         self.assertEquals(contact.company.id, 4)
 

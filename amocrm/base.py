@@ -47,6 +47,7 @@ class BaseAmoManager(object):
         },
     }
     _amo_model_class = None
+    _query_field = None
 
     def __init__(self, user_login=None, user_hash=None,
                  domain=None, responsible_user=None, query_field='email'):
@@ -72,7 +73,7 @@ class BaseAmoManager(object):
 
     @lazy_property
     def query_field(self):
-        return settings.query_field
+        return self._query_field or settings.query_field
 
     @abstractproperty
     def name(cls):
@@ -82,8 +83,8 @@ class BaseAmoManager(object):
         if not cls._amo_model_class:
             return result
         if isinstance(result, (tuple, list)):
-            return [cls._amo_model_class(data=obj) for obj in result]
-        return cls._amo_model_class(result)
+            return [cls._amo_model_class(obj, _loaded=True) for obj in result]
+        return cls._amo_model_class(result, _loaded=True)
 
     @lazy_dict_property
     def custom_fields(self):
@@ -233,10 +234,10 @@ class BaseAmoManager(object):
     @abstractmethod
     def create_or_update_data(self, **kwargs):
         query = kwargs.get(self.query_field)
-        contact = self.search(query) if query else {}
-        data = self.merge_data(kwargs, contact)
-        if contact:
-            data['id'] = contact['id']
+        obj = self.search(query) if query else {}
+        data = self.merge_data(kwargs, obj)
+        if obj:
+            data['id'] = obj['id']
             return self.update(**data)
         else:
             return self.add(**data)

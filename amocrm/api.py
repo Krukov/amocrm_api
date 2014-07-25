@@ -20,6 +20,7 @@ class ContactsManager(BlankMixin, BaseAmoManager):
 class CompanyManager(BlankMixin, BaseAmoManager):
     name = 'company'
     object_type = name
+    _query_field = 'name'
 
 
 class LeadsManager(BlankMixin, BaseAmoManager):

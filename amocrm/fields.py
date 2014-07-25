@@ -15,6 +15,7 @@ class BaseField(object):
 
     def __get__(self, instance, _=None):
         if instance.fields_data.get(self.field) is None:
+            self._instance = instance
             if self._parent:
                 self.data = instance.data.get(self._parent, {}).get(self.field)
             else:
@@ -31,9 +32,10 @@ class BaseField(object):
             instance.data[self.field] = value
         else:
             instance.data[self._parent][self.field] = value
+        instance.changed_fields.append(self.field)
 
     def refresh(self):
-        self._data = None
+        self._data, self._instance = None, None
 
     def cleaned_data(self):
         return self._data
@@ -93,14 +95,17 @@ class BaseForeignField(Field):
 
 class ForeignField(BaseForeignField):
 
-    def __init__(self, object_type=None, field=None, auto_created=False):
+    def __init__(self, object_type=None, field=None, auto_created=False, links={}):
         super(ForeignField, self).__init__(object_type, field)
-        self.auto = auto_created
+        self.auto, self.links = auto_created, links
 
     def cleaned_data(self):
         _id = super(ForeignField, self).cleaned_data()
+        if not self._instance._loaded:
+            return self._instance.data.get(self.links.get(self._instance.query_field, self._instance.query_field))
         wrap = lambda this: this.get(_id)
         obj = lazy_dict_property(wrap).__get__(self.object_type.objects)
+        [setattr(obj, name, self._instance.data.get(value)) for name, value in self.links.items()]
         return obj
 
 
@@ -113,6 +118,10 @@ class ManyForeignField(BaseForeignField):
 
     def cleaned_data(self):
         data = super(ManyForeignField, self).cleaned_data()
+        if data is None:
+            return
+        if not self._instance._loaded:
+            return data
         items = []
         for item in data:
             wrap = lambda this: this.get(item)

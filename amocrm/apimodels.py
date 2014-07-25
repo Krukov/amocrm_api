@@ -23,14 +23,25 @@ class BaseModel(object):
 
     def __init__(self, data=None, **kwargs):
         self.data = data
-        self.fields_data = {}
+        self.fields_data, self.changed_fields = {}, []
+        self._loaded = bool(kwargs.pop('_loaded', False))
         if data is None and kwargs:
             self.data = kwargs
 
     def __getitem__(self, item):
         return self.__getattribute__(item)
 
+    def _save_fk(self):
+        for name, field in self._fields.items():
+            if not isinstance(field, fields.BaseForeignField) or getattr(field, 'auto', None):
+                continue
+            if (field.field in self.changed_fields or not self._loaded) and getattr(self, name):
+                field.object_type.objects.create_or_update(
+                    {field.field: getattr(self, name)}
+                )
+
     def save(self, update_if_exists=True):
+        self._save_fk()
         if self.id is not None:
             return self.objects.update(**self.data)
         if update_if_exists:
@@ -62,8 +73,8 @@ class Contact(BaseModel):
     id = fields.UneditableField('id')
     name = fields.Field('name')
     email = fields.Field('email')
-    company = fields.ForeignField(Company, 'linked_company_id', auto_created='company_name')
-    company_name = fields.Field('company_name')
+    company = fields.ForeignField(Company, 'linked_company_id', auto_created=False,
+                                  links={'name': 'company_name'})
     created_user = fields.Field('created_user')
     linked_leads = fields.ManyForeignField('linked_leads_id')
 
