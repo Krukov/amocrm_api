@@ -107,9 +107,6 @@ class ForeignField(BaseForeignField):
         [setattr(obj, name, self._instance.data.get(value))
             for name, value in self.links.items()]
 
-        if not self._instance._loaded:
-            obj_qf = self.object_type.objects.query_field
-            setattr(obj, obj_qf, self._instance.data.get('company'))
         return obj
 
 

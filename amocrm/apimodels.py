@@ -29,9 +29,9 @@ class BaseModel(object):
             self.data = kwargs
         if not self._loaded:
             for name, field in self._fields.items():
-                if isinstance(field, fields.BaseForeignField):
-                    rev_links = {v: k for k, v in field.links.items()}
-                    # setattr(field.links, )
+                if isinstance(field, fields.ForeignField) and name in self.data:
+                    mf = field.object_type.objects._main_field
+                    self.data[field.links[mf]] = self.data[name]
 
     def __getitem__(self, item):
         return self.__getattribute__(item)
@@ -42,11 +42,13 @@ class BaseModel(object):
                     or getattr(field, 'auto', None):
                 continue
             if (field.field in self.changed_fields or not self._loaded)\
-                    and getattr(self, name) is not None:
-                qf = field.object_type.objects.query_field
-                field.object_type.objects.create_or_update(
-                    **{qf: self.data[name]}
+                    and name in self.data:
+                mf = field.object_type.objects._main_field
+                result = field.object_type.objects.create_or_update(
+                    **{mf: self.data[name]}
                 )
+                if 'id' in result:
+                    setattr(getattr(self, name), 'id', result['id'])
 
     def save(self, update_if_exists=True):
         self._save_fk()

@@ -51,7 +51,7 @@ class TestUtils(unittest.TestCase):
 
     @amomock.activate
     def test_contacts_search(self):
-        data = {'limit_rows': 1, 'query': json.dumps({'name': 'Molina Chapman'})}
+        data = {'limit_rows': 1, 'query': 'Molina Chapman'}
         data.update(self.login_data)
         resp = requests.get('http://test.amocrm/private/api/contacts/list',
                             data=data).json()
@@ -71,7 +71,7 @@ class TestUtils(unittest.TestCase):
         self.assertNotIn('auth', resp)
 
         # Check adding
-        data = {'limit_rows': 1, 'query': json.dumps({'name': 'Frog'})}
+        data = {'limit_rows': 1, 'query': 'Frog'}
         data.update(self.login_data)
         resp = requests.get('http://test.amocrm/private/api/contacts/list',
                             data=data).json()

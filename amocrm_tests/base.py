@@ -2,7 +2,6 @@
 
 import unittest
 from datetime import datetime
-import time
 
 from amocrm import *
 from amocrm_tests.utils import amomock
@@ -64,10 +63,9 @@ class TestContacts(unittest.TestCase):
     @amomock.activate
     def test_creating_company_by_contact(self):
         contact = Contact(name='test', email='test@test.ru', company='testCo')
-        print contact.company.name
         contact.save()
 
-        company = Company.objects.search({'name': 'testCo'})
+        company = Company.objects.search('testCo')
         self.assertEqual(company.name, 'testCo')
 
     @amomock.activate
@@ -75,7 +73,13 @@ class TestContacts(unittest.TestCase):
         contact = Contact(name='test', email='test@test.ru', company='testCo')
         contact.save()
         self.assertEquals(contact.company.name, 'testCo')
-        self.assertEquals(contact.company.id, 4)
+        self.assertEquals(contact.company.id, 1)
+
+    def test_test(self):
+        settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
+        contact = Contact.objects.search(u'ФИО FIO')
+
+
 
 if __name__ == '__main__':
     unittest.main()

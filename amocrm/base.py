@@ -47,21 +47,21 @@ class BaseAmoManager(object):
         },
     }
     _amo_model_class = None
-    _query_field = None
+    _main_field = None
 
     def __init__(self, user_login=None, user_hash=None,
-                 domain=None, responsible_user=None, query_field='email'):
+                 domain=None, responsible_user=None):
         if user_login is not None:
            settings.set(user_login, user_hash, domain,
-                        responsible_user, query_field)
+                        responsible_user)
         self.methods = deepcopy(self.methods)
         self.methods.update(self._methods)
 
-    @lazy_property
+    @property
     def domain(self):
         return settings.domain
 
-    @lazy_property
+    @property
     def login_data(self):
         if settings.user_login:
             return {'USER_LOGIN': settings.user_login,
@@ -71,20 +71,17 @@ class BaseAmoManager(object):
     def responsible_user(self):
         return settings.responsible_user or settings.user_login
 
-    @lazy_property
-    def query_field(self):
-        return self._query_field or settings.query_field
-
     @abstractproperty
     def name(cls):
         pass
 
     def convert_to_obj(cls, result):
-        if not cls._amo_model_class:
-            return result
-        if isinstance(result, (tuple, list)):
-            return [cls._amo_model_class(obj, _loaded=True) for obj in result]
-        return cls._amo_model_class(result, _loaded=True)
+        if result:
+            if not cls._amo_model_class:
+                return result
+            if isinstance(result, (tuple, list)):
+                return [cls._amo_model_class(obj, _loaded=True) for obj in result]
+            return cls._amo_model_class(result, _loaded=True)
 
     @lazy_dict_property
     def custom_fields(self):
@@ -198,19 +195,19 @@ class BaseAmoManager(object):
         return request
 
     def get(self, id_):
-        contacts = self.get_list(limit=1,
-                                 query={'id': id_, 'type': self.name[:-1]})
-        return contacts.pop() if contacts else None
+        results = self.get_list(limit=1, query={'id': id_, 'type': self.name[:-1]})
+        if results is None:
+            raise ValueError('Object with id %s not founded' % id_)
+        return results.pop()
 
     def search(self, query):
-        if not isinstance(query, dict):
-            query = {self.query_field: query}
         query = {
             'type': self.object_type or self.name[:-1],
-            'query': json.dumps(query)
+            'query': query
         }
-        contacts = self.get_list(limit=1, query=query)
-        return contacts.pop() if contacts else None
+        results = self.get_list(limit=1, query=query)
+
+        return results.pop() if results is not None else None
 
     @amo_request('add')
     def add(self, **kwargs):
@@ -233,7 +230,7 @@ class BaseAmoManager(object):
 
     @abstractmethod
     def create_or_update_data(self, **kwargs):
-        query = kwargs.get(self.query_field)
+        query = kwargs.get(self._main_field)
         obj = self.search(query) if query else {}
         data = self.merge_data(kwargs, obj)
         if obj:

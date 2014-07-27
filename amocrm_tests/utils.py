@@ -54,8 +54,7 @@ class FakeApi(object):
         if _id is not None:
             resp = [i for i in self._data[obj] if int(i['id']) == int(_id)]
         elif query:
-            query = json.loads(query)
-            resp = [i for i in self._data[obj] if all([j in i.items() for j in query.items()])]
+            resp = [i for i in self._data[obj] if query in i.values()]
         else:
             resp = self._data[obj]
         if 'limit_rows' in params:
