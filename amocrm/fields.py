@@ -95,17 +95,21 @@ class BaseForeignField(Field):
 
 class ForeignField(BaseForeignField):
 
-    def __init__(self, object_type=None, field=None, auto_created=False, links={}):
+    def __init__(self, object_type=None, field=None, auto_created=False,
+                 links={}):
         super(ForeignField, self).__init__(object_type, field)
         self.auto, self.links = auto_created, links
 
     def cleaned_data(self):
         _id = super(ForeignField, self).cleaned_data()
-        if not self._instance._loaded:
-            return self._instance.data.get(self.links.get(self._instance.query_field, self._instance.query_field))
         wrap = lambda this: this.get(_id)
         obj = lazy_dict_property(wrap).__get__(self.object_type.objects)
-        [setattr(obj, name, self._instance.data.get(value)) for name, value in self.links.items()]
+        [setattr(obj, name, self._instance.data.get(value))
+            for name, value in self.links.items()]
+
+        if not self._instance._loaded:
+            obj_qf = self.object_type.objects.query_field
+            setattr(obj, obj_qf, self._instance.data.get('company'))
         return obj
 
 
