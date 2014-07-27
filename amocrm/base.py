@@ -103,6 +103,10 @@ class BaseAmoManager(object):
                 raise Exception(u'Can not get responsible user id')
             return user.get('id')
 
+    @lazy_property
+    def leads_statuses(self):
+        return self.account_info.get('leads_statuses')
+
     def _request(self, path, method, data):
         method = method.lower()
         params = copy(self.login_data) or {}
@@ -186,7 +190,7 @@ class BaseAmoManager(object):
 
     @to_amo_obj
     @amo_request(method='list')
-    def get_list(self, limit=100, limit_offset=None, query=None):
+    def all(self, limit=100, limit_offset=None, query=None):
         request = query or {}
         if limit is not None:
             request['limit_rows'] = limit
@@ -195,7 +199,7 @@ class BaseAmoManager(object):
         return request
 
     def get(self, id_):
-        results = self.get_list(limit=1, query={'id': id_, 'type': self.name[:-1]})
+        results = self.all(limit=1, query={'id': id_, 'type': self.name[:-1]})
         if results is None:
             raise ValueError('Object with id %s not founded' % id_)
         return results.pop()
@@ -205,7 +209,7 @@ class BaseAmoManager(object):
             'type': self.object_type or self.name[:-1],
             'query': query
         }
-        results = self.get_list(limit=1, query=query)
+        results = self.all(limit=1, query=query)
 
         return results.pop() if results is not None else None
 

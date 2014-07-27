@@ -11,7 +11,7 @@ class TestContacts(unittest.TestCase):
 
     def setUp(self):
         amomock.set_login_params('test', 'test')
-        settings.set('test', 'test', 'testcentrobit')
+        amo_settings.set('test', 'test', 'testcentrobit')
 
     @amomock.activate
     def test_getting_contact_by_id_and_data(self):
@@ -76,7 +76,7 @@ class TestContacts(unittest.TestCase):
         self.assertEquals(contact.company.id, 1)
 
     def test_test(self):
-        settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
+        amo_settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
         contact = Contact.objects.search(u'ФИО FIO')
 
 

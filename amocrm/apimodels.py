@@ -29,6 +29,9 @@ class BaseModel(object):
             self.data = kwargs
         if not self._loaded:
             for name, field in self._fields.items():
+                val = self.data.get(name, None)
+                if val is not None:
+                    self.data[field.field] = val
                 if isinstance(field, fields.ForeignField) and name in self.data:
                     mf = field.object_type.objects._main_field
                     self.data[field.links[mf]] = self.data[name]
@@ -79,10 +82,21 @@ class Company(BaseModel):
 
 class Lead(BaseModel):
 
-    id = fields.UneditableField('id')
-    name = fields.Field('name')
+    status = fields.Field('status_id')
+    price = fields.Field('price')
 
     objects = LeadsManager()
+
+
+class Task(BaseModel):
+
+    element = fields.Field('element_id')
+    element_type = fields.Field('element_type')
+    type = fields.Field('task_type')
+    text = fields.Field('text')
+    complete_till = fields.DateTimeField('complete_till')
+
+    objects = TasksManager()
 
 
 class Contact(BaseModel):
