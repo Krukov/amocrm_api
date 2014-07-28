@@ -11,46 +11,31 @@ class BaseField(object):
 
     def __init__(self, field=None):
         self.field = field
-        self.refresh()
 
     def __get__(self, instance, _=None):
         if instance.fields_data.get(self.field) is None:
-            self._instance = instance
             if self._parent:
-                self.data = instance.data.get(self._parent, {}).get(self.field)
+                _data = instance.data.get(self._parent, {}).get(self.field)
             else:
-                self.data = instance.data.get(self.field)
-            if hasattr(self, 'keys_map'):
-                self._keys_data = {key: instance.data.get(val)
-                                   for key, val in self.keys_map.items()}
-            instance.fields_data[self.field] = self.data
-            self.refresh()
+                _data = instance.data.get(self.field)
+            _data = self.on_get(_data, instance)
+            instance.fields_data[self.field] = _data
         return instance.fields_data[self.field]
 
     def __set__(self, instance, value):
+        instance.fields_data[self.field] = None
+        value = self.on_set(value)
         if not self._parent:
             instance.data[self.field] = value
         else:
             instance.data[self._parent][self.field] = value
         instance.changed_fields.append(self.field)
 
-    def refresh(self):
-        self._data, self._instance = None, None
+    def on_set(self, value):
+        return value
 
-    def cleaned_data(self):
-        return self._data
-
-    def set_data(self, value):
-        self._data = value
-        return self
-
-    @property
-    def data(self):
-        return self.cleaned_data()
-
-    @data.setter
-    def data(self, value):
-        self.set_data(value)
+    def on_get(self, data, instance):
+        return data
 
 
 class Field(BaseField):
@@ -69,19 +54,20 @@ class ConstantField(UneditableField):
         super(ConstantField, self).__init__(field)
         self._data = value
 
+    def on_get(self, data, instance):
+        return self._data
+
 
 class DateTimeField(Field):
 
-    def cleaned_data(self):
-        data = super(DateTimeField, self).cleaned_data()
+    def on_get(self, data, instance):
         if data is not None:
             return datetime.fromtimestamp(float(data))
 
 
 class BooleanField(Field):
 
-    def cleaned_data(self):
-        data = super(BooleanField, self).cleaned_data()
+    def on_get(self, data, instance):
         data = int(data) if str(data).isdigit() else data
         return bool(data)
 
@@ -100,13 +86,11 @@ class ForeignField(BaseForeignField):
         super(ForeignField, self).__init__(object_type, field)
         self.auto, self.links = auto_created, links
 
-    def cleaned_data(self):
-        _id = super(ForeignField, self).cleaned_data()
-        wrap = lambda this: this.get(_id)
+    def on_get(self, data, instance):
+        wrap = lambda this: this.get(data)
         obj = lazy_dict_property(wrap).__get__(self.object_type.objects)
-        [setattr(obj, name, self._instance.data.get(value))
+        [setattr(obj, name, instance.data.get(value))
             for name, value in self.links.items()]
-
         return obj
 
 
@@ -117,11 +101,10 @@ class ManyForeignField(BaseForeignField):
                                                object_type=objects_type)
         self.key = key
 
-    def cleaned_data(self):
-        data = super(ManyForeignField, self).cleaned_data()
+    def on_get(self, data, instance):
         if data is None:
             return
-        if not self._instance._loaded:
+        if not instance._loaded:
             return data
         items = []
         for item in data:
@@ -131,20 +114,25 @@ class ManyForeignField(BaseForeignField):
         return items
 
 
-class ManyDictField(Field):
+class CommaSepField(Field):
 
     def __init__(self, field=None, key=None):
-        super(ManyDictField, self).__init__(field)
+        super(CommaSepField, self).__init__(field)
         self.key = key
 
-    def cleaned_data(self):
-        data = super(ManyDictField, self).cleaned_data()
-        items = {}
+    def on_get(self, data, instance):
+        if isinstance(data, basestring):
+            return data
+        items = []
         for item in data:
-            item = OrderedDict(item)
-            _item = namedtuple('item', item.keys())
-            items[item[self.key]] = _item(**item)
-        return items
+            if isinstance(item, basestring):
+                items.append(item)
+            elif isinstance(item, dict):
+                items.append(item[self.key])
+        return ', '.join(items)
+
+    def on_set(self, value):
+        return value.split(', ')
 
 
 class CustomField(Field):

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import absolute_import, unicode_literals
 import unittest
 from datetime import datetime
 
@@ -20,7 +20,7 @@ class TestContacts(unittest.TestCase):
         self.assertEqual(contact.name, 'Parker Crosby')
         self.assertEqual(contact.id, 0)
         self.assertEquals(contact.deleted, True)
-        self.assertEquals(contact.tags['Carrillo Beach'].id, 1)
+        self.assertSetEqual(set(contact.tags.replace(', ', ',').split(',')), {'Hodges Watts', 'Carrillo Beach', 'Bonner Leon'})
         self.assertEquals(contact.date_create, datetime.fromtimestamp(67444200))
         self.assertEquals(contact.last_modified, datetime.fromtimestamp(7675716))
 
@@ -43,22 +43,29 @@ class TestContacts(unittest.TestCase):
         self.assertEqual(_contact.name, 'frog')
 
     @amomock.activate
+    def test_creating_tags(self):
+        contact = Contact(name='TestTags', tags=['Tag2', 'Tag1'])
+        self.assertEqual(contact.tags, 'Tag2, Tag1')
+        contact.save()
+
+        _contact = Contact.objects.search('TestTags')
+        self.assertEqual(_contact.tags, 'Tag2, Tag1')
+
+        _contact.tags += ', frog'
+        _contact.tags
+
+    @amomock.activate
     def test_creating_contact(self):
         contact = Contact(name='test', email='test@test.ru')
+        self.assertEqual(contact.name, 'test')
+        self.assertEqual(contact.email, 'test@test.ru')
+
         _id = contact.save()
 
         _contact = Contact.objects.get(_id['id'])
         self.assertEqual(_contact.name, 'test')
         self.assertEqual(_contact.email, 'test@test.ru')
         self.assertEqual(_contact.date_create.date(), datetime.now().date())
-
-    @amomock.activate
-    def test_creating_company(self):
-        company = Company(name='test')
-        _id = company.save()
-
-        _company = Company.objects.get(_id['id'])
-        self.assertEqual(_company.name, 'test')
 
     @amomock.activate
     def test_creating_company_by_contact(self):
@@ -75,9 +82,30 @@ class TestContacts(unittest.TestCase):
         self.assertEquals(contact.company.name, 'testCo')
         self.assertEquals(contact.company.id, 1)
 
-    def test_test(self):
-        amo_settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
-        contact = Contact.objects.search(u'ФИО FIO')
+    @amomock.activate
+    def test_edit_company_at_contact(self):
+        contact = Contact(name='test', email='test@test.ru', company='testCo')
+        contact.company.name = 'SomeName'
+        contact.save()
+
+        self.assertEquals(contact.company.name, 'SomeName')
+        self.assertEquals(contact.company.id, 1)
+
+        contact.company.name = 'Frog'
+        contact.save()
+
+        contact = Contact.objects.search('test')
+        self.assertEquals(contact.company.name, 'Frog')
+        self.assertEquals(contact.company.id, 1)
+
+    ## TESTS COMPANY API
+    @amomock.activate
+    def test_creating_company(self):
+        company = Company(name='test')
+        _id = company.save()
+
+        _company = Company.objects.get(_id['id'])
+        self.assertEqual(_company.name, 'test')
 
 
 

@@ -7,8 +7,10 @@ from .api import *
 
 class ModelMeta(type):
     def __new__(cls, name, bases, attrs):
-        attrs['_fields'] = {name: instance for name, instance in attrs.items()
-                            if isinstance(instance, fields.BaseField)}
+        attrs.setdefault('_fields', {})
+        [attrs.update(getattr(base, '_fields', {})) for base in bases]
+        attrs['_fields'].update({name: instance for name, instance in attrs.items()
+                            if isinstance(instance, fields.BaseField)})
         super_new = super(ModelMeta, cls).__new__(cls, name, bases, attrs)
         _manager = getattr(super_new, 'objects', None)
         if _manager:
@@ -58,18 +60,20 @@ class BaseModel(object):
         if self.date_create is None:
             self.date_create = time.time()
         self.last_modified = time.time()
+        _names = [field.field for field in self._fields.values()]
+        _send_data = {k: v for k, v in self.data.items() if k in _names}
         if self.id is not None:
-            return self.objects.update(**self.data)
+            return self.objects.update(**_send_data)
         if update_if_exists:
-            return self.objects.create_or_update(**self.data)
-        return self.objects.create(**self.data)
+            return self.objects.create_or_update(**_send_data)
+        return self.objects.create(**_send_data)
 
     id = fields.UneditableField('id')
     name = fields.Field('name')
     linked_leads = fields.ManyForeignField('linked_leads_id')
     date_create = fields.DateTimeField('date_create')
     last_modified = fields.DateTimeField('last_modified')
-    tags = fields.ManyDictField('tags', 'name')
+    tags = fields.CommaSepField('tags', 'name')
     rui = fields.Field('responsible_user_id')
 
 
