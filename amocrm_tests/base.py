@@ -60,9 +60,9 @@ class TestContacts(unittest.TestCase):
         self.assertEqual(contact.name, 'test')
         self.assertEqual(contact.email, 'test@test.ru')
 
-        _id = contact.save()
+        contact.save()
 
-        _contact = Contact.objects.get(_id['id'])
+        _contact = Contact.objects.get(contact.id)
         self.assertEqual(_contact.name, 'test')
         self.assertEqual(_contact.email, 'test@test.ru')
         self.assertEqual(_contact.date_create.date(), datetime.now().date())
@@ -102,9 +102,9 @@ class TestContacts(unittest.TestCase):
     @amomock.activate
     def test_creating_company(self):
         company = Company(name='test')
-        _id = company.save()
+        company.save()
 
-        _company = Company.objects.get(_id['id'])
+        _company = Company.objects.get(company.id)
         self.assertEqual(_company.name, 'test')
 
 

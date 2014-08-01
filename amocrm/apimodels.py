@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import time
+
 from . import fields
 from .api import *
 
@@ -24,35 +25,51 @@ class BaseModel(object):
     _fields = {}
 
     def __init__(self, data=None, **kwargs):
-        self.data = data
-        self.fields_data, self.changed_fields = {}, []
+        self._data, self._init_data = {}, {}
+        self._fields_data, self._changed_fields = {}, []
         self._loaded = bool(kwargs.pop('_loaded', False))
-        if data is None and kwargs:
-            self.data = kwargs
+        if self._loaded:
+            self._data = data or kwargs
+        else:
+            self._init_data = data or kwargs
         if not self._loaded:
             for name, field in self._fields.items():
-                val = self.data.get(name, None)
-                if val is not None:
-                    self.data[field.field] = val
-                if isinstance(field, fields.ForeignField) and name in self.data:
+                val = self._init_data.get(name, None)
+                if isinstance(field, fields.ForeignField) and name in self._init_data:
+                    if isinstance(self._init_data[name], field.object_type):
+                        pass
                     mf = field.object_type.objects._main_field
-                    self.data[field.links[mf]] = self.data[name]
+                    self._data[field.links[mf]] = self._init_data[name]
+                    self._changed_fields.append(field.field)
+                else:
+                    if val is not None:
+                        self._data[field.field] = val
+                        self._changed_fields.append(field.field)
 
     def __getitem__(self, item):
         return self.__getattribute__(item)
 
     def _save_fk(self):
         for name, field in self._fields.items():
-            if not isinstance(field, fields.BaseForeignField)\
-                    or getattr(field, 'auto', None):
+            if not isinstance(field, fields.ForeignField):
                 continue
-            if (field.field in self.changed_fields or not self._loaded)\
-                    and name in self.data:
-                mf = field.object_type.objects._main_field
-                result = field.object_type.objects.create_or_update(
-                    **{mf: self.data[name]}
-                )
+            mf = field.object_type.objects._main_field
+            value = getattr(getattr(self, name), mf)
+            self._data[field.links[mf]] = value
+            if getattr(field, 'auto', None):
+                continue
+            if (field.field in self._changed_fields or not self._loaded)\
+                    and (name in self._data or name in self._init_data):
+                if getattr(self, name).id is not None:
+                    result = field.object_type.objects.update(
+                        **{mf: value, 'id': getattr(self, name).id}
+                    )
+                else:
+                    result = field.object_type.objects.create_or_update(
+                        **{mf: value}
+                    )
                 if 'id' in result:
+                    self._data[field.field] = result['id']
                     setattr(getattr(self, name), 'id', result['id'])
 
     def save(self, update_if_exists=True):
@@ -60,13 +77,20 @@ class BaseModel(object):
         if self.date_create is None:
             self.date_create = time.time()
         self.last_modified = time.time()
-        _names = [field.field for field in self._fields.values()]
-        _send_data = {k: v for k, v in self.data.items() if k in _names}
+        _send_data = {k: v for k, v in self._data.items()}
         if self.id is not None:
-            return self.objects.update(**_send_data)
-        if update_if_exists:
-            return self.objects.create_or_update(**_send_data)
-        return self.objects.create(**_send_data)
+            method = self.objects.update
+        elif update_if_exists:
+            method = self.objects.create_or_update
+        else:
+            method = self.objects.create
+        result = method(**_send_data)
+        if 'id' in result:
+            self._data['id'] = result['id']
+
+    def _get_field_by_name(self, name):
+        result = [v for k, v in self._fields.items() if v.field == name]
+        return result.pop()
 
     id = fields.UneditableField('id')
     name = fields.Field('name')
