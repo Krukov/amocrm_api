@@ -6,53 +6,13 @@ from datetime import datetime
 from amocrm import *
 from amocrm_tests.utils import amomock
 
+from_ts = datetime.fromtimestamp
 
 class TestContacts(unittest.TestCase):
 
     def setUp(self):
         amomock.set_login_params('test', 'test')
         amo_settings.set('test', 'test', 'testcentrobit')
-
-    @amomock.activate
-    def test_getting_contact_by_id_and_data(self):
-        contact = Contact.objects.get(0)
-
-        self.assertEqual(contact.name, 'Parker Crosby')
-        self.assertEqual(contact.id, 0)
-        self.assertEquals(contact.deleted, True)
-        self.assertSetEqual(set(contact.tags.replace(', ', ',').split(',')), {'Hodges Watts', 'Carrillo Beach', 'Bonner Leon'})
-        self.assertEquals(contact.date_create, datetime.fromtimestamp(67444200))
-        self.assertEquals(contact.last_modified, datetime.fromtimestamp(7675716))
-
-        self.assertEquals(contact.created_user, 731)
-        self.assertEqual(contact.company.name, 'TWIIST')
-
-    @amomock.activate
-    def test_searching_contact(self):
-        contact = Contact.objects.search('traceywalsh@voratak.com')
-        self.assertEqual(contact.name, 'Tracey Walsh')
-
-    @amomock.activate
-    def test_edit_contact(self):
-        contact = Contact.objects.get(0)
-        self.assertNotEqual(contact.name, 'frog')
-        contact.name = 'frog'
-        contact.save()
-
-        _contact = Contact.objects.get(0)
-        self.assertEqual(_contact.name, 'frog')
-
-    @amomock.activate
-    def test_creating_tags(self):
-        contact = Contact(name='TestTags', tags=['Tag2', 'Tag1'])
-        self.assertEqual(contact.tags, 'Tag2, Tag1')
-        contact.save()
-
-        _contact = Contact.objects.search('TestTags')
-        self.assertEqual(_contact.tags, 'Tag2, Tag1')
-
-        _contact.tags += ', frog'
-        _contact.tags
 
     @amomock.activate
     def test_creating_contact(self):
@@ -66,6 +26,59 @@ class TestContacts(unittest.TestCase):
         self.assertEqual(_contact.name, 'test')
         self.assertEqual(_contact.email, 'test@test.ru')
         self.assertEqual(_contact.date_create.date(), datetime.now().date())
+
+    def create_contact(self, **kwargs):
+        kw = dict(name='test_name', deleted=False, tags=['1', '2', '3'],
+                  email='test@mail.com', created_user=731)
+        kw.update(**kwargs)
+        Contact(**kw).save()
+
+    @amomock.activate
+    def test_getting_contact_by_id_and_data(self):
+        self.create_contact()
+        contact = Contact.objects.get(1)
+
+        self.assertEqual(contact.name, 'test_name')
+        self.assertEqual(contact.id, 1)
+        self.assertEquals(contact.deleted, False)
+        self.assertSetEqual(set(contact.tags.replace(', ', ',').split(',')),
+                            {'1', '2', '3'})
+        self.assertEquals(contact.date_create.date(), from_ts(int(time.time())).date())
+        self.assertEquals(contact.last_modified.date(), from_ts(int(time.time())).date())
+
+        self.assertEquals(contact.created_user, 731)
+
+    @amomock.activate
+    def test_searching_contact(self):
+        self.create_contact()
+        self.create_contact(name='super_uniq')
+        contact = Contact.objects.search('super_uniq')
+        self.assertEqual(contact.name, 'super_uniq')
+
+    @amomock.activate
+    def test_edit_contact(self):
+        self.create_contact()
+        contact = Contact.objects.get(1)
+        self.assertNotEqual(contact.name, 'frog')
+        contact.name = 'frog'
+        contact.save()
+
+        _contact = Contact.objects.get(1)
+        self.assertEqual(_contact.name, 'frog')
+
+    @amomock.activate
+    def test_creating_tags(self):
+        contact = Contact(name='TestTags', tags=['Tag2', 'Tag1'])
+        self.assertEqual(contact.tags, 'Tag2, Tag1')
+        contact.save()
+
+        _contact = Contact.objects.search('TestTags')
+        self.assertEqual(_contact.tags, 'Tag2, Tag1')
+
+        _contact.tags += ', frog'
+        _contact.save()
+        _contact = Contact.objects.search('TestTags')
+        self.assertEqual(_contact.tags, 'Tag2, Tag1, frog')
 
     @amomock.activate
     def test_creating_company_by_contact(self):
@@ -107,7 +120,9 @@ class TestContacts(unittest.TestCase):
         _company = Company.objects.get(company.id)
         self.assertEqual(_company.name, 'test')
 
-
+    @amomock.activate
+    def test_editing_company(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()
