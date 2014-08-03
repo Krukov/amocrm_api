@@ -68,9 +68,8 @@ class BaseModel(object):
                     result = field.object_type.objects.create_or_update(
                         **{mf: value}
                     )
-                if 'id' in result:
-                    self._data[field.field] = result['id']
-                    setattr(getattr(self, name), 'id', result['id'])
+                self._data[field.field] = result
+                setattr(getattr(self, name), 'id', result)
 
     def save(self, update_if_exists=True):
         self._save_fk()
@@ -85,8 +84,7 @@ class BaseModel(object):
         else:
             method = self.objects.create
         result = method(**_send_data)
-        if 'id' in result:
-            self._data['id'] = result['id']
+        self._data['id'] = result
 
     def _get_field_by_name(self, name):
         result = [v for k, v in self._fields.items() if v.field == name]
@@ -99,6 +97,7 @@ class BaseModel(object):
     last_modified = fields.DateTimeField('last_modified')
     tags = fields.CommaSepField('tags', 'name')
     rui = fields.Field('responsible_user_id')
+    deleted = fields.BooleanField('deleted')
 
 
 class Company(BaseModel):
@@ -130,13 +129,10 @@ class Task(BaseModel):
 class Contact(BaseModel):
 
     type = fields.ConstantField('type', 'contact')
-    email = fields.Field('email')
     company = fields.ForeignField(Company, 'linked_company_id',
                                   auto_created=False,
                                   links={'name': 'company_name'})
     created_user = fields.Field('created_user')
-
-    deleted = fields.BooleanField('deleted')
 
     objects = ContactsManager()
 

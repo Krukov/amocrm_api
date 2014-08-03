@@ -8,6 +8,64 @@ from amocrm_tests.utils import amomock
 
 from_ts = datetime.fromtimestamp
 
+
+class TestCreations(unittest.TestCase):
+
+    def setUp(self):
+        amomock.set_login_params('test', 'test')
+        amo_settings.set('test', 'test', 'test')
+
+    @amomock.activate
+    def test_creating_contact(self):
+        contact = Contact(name='test', tags=['1', '2', 'frog'])
+        self.assertIsNone(contact.id)
+        self.assertEqual(contact.type, 'contact')
+        self.assertEqual(contact.name, 'test')
+        self.assertEqual(contact.tags, '1, 2, frog')
+        self.assertIsNone(contact.date_create)
+        self.assertIsNone(contact.last_modified)
+        self.assertIsNone(contact.rui)
+
+        contact.save()
+        self.assertEqual(contact.id, 1)
+        self.assertIsNotNone(contact.last_modified)
+        self.assertIsNotNone(contact.date_create)
+
+        _contact = Contact.objects.get(contact.id)
+        self.assertEqual(_contact.id, 1)
+        self.assertEqual(_contact.type, 'contact')
+        self.assertEqual(_contact.name, 'test')
+        self.assertEqual(_contact.tags, '1, 2, frog')
+        self.assertIsNotNone(contact.last_modified)
+        self.assertIsNotNone(contact.date_create)
+        self.assertEqual(_contact.date_create.date(), datetime.now().date())
+        self.assertEqual(_contact.rui, '99')
+
+
+    @amomock.activate
+    def test_creating_company(self):
+        company = Company(name='test', tags=['1', '2', 'frog'])
+        self.assertIsNone(company.id)
+        self.assertEqual(company.type, 'company')
+        self.assertEqual(company.name, 'test')
+        self.assertEqual(company.tags, '1, 2, frog')
+        self.assertIsNone(company.last_modified)
+        self.assertIsNone(company.date_create)
+
+        company.save()
+        self.assertEqual(company.id, 1)
+        self.assertIsNotNone(company.last_modified)
+        self.assertIsNotNone(company.date_create)
+
+        _company = Company.objects.get(company.id)
+        self.assertEqual(_company.id, 1)
+        self.assertEqual(_company.type, 'company')
+        self.assertEqual(_company.name, 'test')
+        self.assertEqual(_company.tags, '1, 2, frog')
+        self.assertIsNotNone(company.last_modified)
+        self.assertIsNotNone(company.date_create)
+
+
 class TestContacts(unittest.TestCase):
 
     def setUp(self):
@@ -16,20 +74,17 @@ class TestContacts(unittest.TestCase):
 
     @amomock.activate
     def test_creating_contact(self):
-        contact = Contact(name='test', email='test@test.ru')
+        contact = Contact(name='test')
         self.assertEqual(contact.name, 'test')
-        self.assertEqual(contact.email, 'test@test.ru')
 
         contact.save()
 
         _contact = Contact.objects.get(contact.id)
         self.assertEqual(_contact.name, 'test')
-        self.assertEqual(_contact.email, 'test@test.ru')
         self.assertEqual(_contact.date_create.date(), datetime.now().date())
 
     def create_contact(self, **kwargs):
-        kw = dict(name='test_name', deleted=False, tags=['1', '2', '3'],
-                  email='test@mail.com', created_user=731)
+        kw = dict(name='test_name', deleted=False, tags=['1', '2', '3'], created_user=731)
         kw.update(**kwargs)
         Contact(**kw).save()
 
@@ -112,14 +167,6 @@ class TestContacts(unittest.TestCase):
         self.assertEquals(contact.company.id, 1)
 
     ## TESTS COMPANY API
-    @amomock.activate
-    def test_creating_company(self):
-        company = Company(name='test')
-        company.save()
-
-        _company = Company.objects.get(company.id)
-        self.assertEqual(_company.name, 'test')
-
     @amomock.activate
     def test_editing_company(self):
         pass

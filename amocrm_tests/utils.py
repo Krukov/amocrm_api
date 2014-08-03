@@ -31,7 +31,7 @@ class FakeApi(object):
     """docstring for FakeApi"""
     def __init__(self):
         self.login, self.hash = None, None
-        self._data = {'contacts': [], 'accounts': {}, 'company': []}
+        self._data = {'contacts': [], 'account': {'users': [{'id': '99', 'name': 'test'}]}, 'company': []}
 
     def _check_auth(self, params):
         login = params.pop('USER_LOGIN', None)
@@ -93,7 +93,7 @@ class FakeApi(object):
 
     @check_auth
     def _current(self, obj, params):
-        return json.dumps({'response': {obj: self._data[obj]}})
+        return json.dumps({'response': {obj[:-1]: self._data.get(obj, self._data.get(obj[:-1]))}})
 
 
 class AmoApiMock(RequestsMock):

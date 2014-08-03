@@ -32,18 +32,26 @@ class BaseAmoManager(object):
     _base_path = '/private/api/v2/%(format)s%(name)s%(path)s'
     _methods = {
         'account_info': {
-            'path': 'current', 'result': ['account'], 'name': 'accounts'
+            'path': 'current',
+            'result': ['account'],
+            'name': 'accounts',
         },
         'list': {
-            'path': 'list', 'result': True
+            'path': 'list',
+            'result': True,
         },
         'add': {
-            'path': 'set', 'method': 'post', 'result': ['add', 0, 'id'],
-                    'container': ['add']
+            'path': 'set',
+            'method': 'post',
+            'result': ['add', 0, 'id'],
+            'container': ['add'],
         },
         'update': {
-            'path': 'set', 'method': 'post',
-                    'container': ['update'], 'timestamp': True
+            'path': 'set',
+            'method': 'post',
+            'container': ['update'],
+            'result': ['update', 0, 'id'],
+            'timestamp': True,
         },
     }
     _amo_model_class = None
@@ -91,7 +99,7 @@ class BaseAmoManager(object):
     def account_info(self):
         return self.get_account_info()
 
-    @lazy_dict_property
+    @lazy_property
     def rui(self):
         if isinstance(self.responsible_user, int):
             return self.responsible_user
@@ -99,7 +107,7 @@ class BaseAmoManager(object):
             filter_func = lambda _: _.get('login') == self.responsible_user or \
                                     _.get('name') == self.responsible_user
             user = filter(filter_func, self.account_info.get('users', [])).pop()
-            if not user:
+            if user is None:
                 raise Exception(u'Can not get responsible user id')
             return user.get('id')
 
@@ -142,11 +150,11 @@ class BaseAmoManager(object):
     def _modify_response(self, response, result):
         if isinstance(result, (list, tuple)):
             result = ['response', self.name] + result
-            try:
-                for key in result:
+            for key in result:
+                try:
                     response = response[key]
-            except (TypeError, KeyError):
-                pass
+                except (TypeError, KeyError):
+                    pass
         elif result:
             try:
                 response = response['response'][self.name]

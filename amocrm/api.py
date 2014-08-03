@@ -16,6 +16,10 @@ class NotesManager(BlankMixin, BaseAmoManager):
 class ContactsManager(BlankMixin, BaseAmoManager):
     name = 'contacts'
 
+    def add_data(self, **kwargs):
+        kwargs.setdefault('responsible_user_id', self.rui)
+        return super(ContactsManager, self).add_data(**kwargs)
+
 
 class CompanyManager(BlankMixin, BaseAmoManager):
     name = 'company'
