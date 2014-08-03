@@ -31,7 +31,7 @@ class FakeApi(object):
     """docstring for FakeApi"""
     def __init__(self):
         self.login, self.hash = None, None
-        self._data = json.loads(open(FILE_DIR).read())
+        self._data = {'contacts': [], 'accounts': {}, 'company': []}
 
     def _check_auth(self, params):
         login = params.pop('USER_LOGIN', None)

@@ -129,6 +129,7 @@ class CommaSepField(Field):
 
     def on_get(self, data, instance):
         if isinstance(data, basestring):
+            instance._data[self.field] = self.on_set('')
             return data
         items = []
         for item in data:
