@@ -9,38 +9,46 @@ from amocrm_tests.utils import amomock
 from_ts = datetime.fromtimestamp
 
 
-class TestCreations(unittest.TestCase):
+class AmoSettingsMixin(object):
 
     def setUp(self):
         amomock.set_login_params('test', 'test')
         amo_settings.set('test', 'test', 'test')
 
+
+class TestCreations(AmoSettingsMixin, unittest.TestCase):
+
     @amomock.activate
     def test_creating_contact(self):
-        contact = Contact(name='test', tags=['1', '2', 'frog'])
+        contact = Contact(name='test', tags=['1', '2', 'frog'], created_user=1)
         self.assertIsNone(contact.id)
         self.assertEqual(contact.type, 'contact')
         self.assertEqual(contact.name, 'test')
         self.assertEqual(contact.tags, '1, 2, frog')
+        self.assertEqual(contact.created_user, 1)
         self.assertIsNone(contact.date_create)
         self.assertIsNone(contact.last_modified)
         self.assertIsNone(contact.rui)
+        self.assertFalse(contact.deleted)
 
         contact.save()
         self.assertEqual(contact.id, 1)
         self.assertIsNotNone(contact.last_modified)
         self.assertIsNotNone(contact.date_create)
+        self.assertEqual(contact.created_user, 1)
+        self.assertFalse(contact.deleted)
 
         _contact = Contact.objects.get(contact.id)
         self.assertEqual(_contact.id, 1)
         self.assertEqual(_contact.type, 'contact')
         self.assertEqual(_contact.name, 'test')
         self.assertEqual(_contact.tags, '1, 2, frog')
+        self.assertEqual(_contact.created_user, 1)
         self.assertIsNotNone(contact.last_modified)
         self.assertIsNotNone(contact.date_create)
         self.assertEqual(_contact.date_create.date(), datetime.now().date())
         self.assertEqual(_contact.rui, '99')
-
+        self.assertFalse(_contact.deleted)
 
     @amomock.activate
     def test_creating_company(self):
@@ -51,11 +59,13 @@ class TestCreations(unittest.TestCase):
         self.assertEqual(company.tags, '1, 2, frog')
         self.assertIsNone(company.last_modified)
         self.assertIsNone(company.date_create)
+        self.assertFalse(company.deleted)
 
         company.save()
         self.assertEqual(company.id, 1)
         self.assertIsNotNone(company.last_modified)
         self.assertIsNotNone(company.date_create)
+        self.assertFalse(company.deleted)
 
         _company = Company.objects.get(company.id)
         self.assertEqual(_company.id, 1)
@@ -64,24 +74,19 @@ class TestCreations(unittest.TestCase):
         self.assertEqual(_company.tags, '1, 2, frog')
         self.assertIsNotNone(company.last_modified)
         self.assertIsNotNone(company.date_create)
-
-
-class TestContacts(unittest.TestCase):
-
-    def setUp(self):
-        amomock.set_login_params('test', 'test')
-        amo_settings.set('test', 'test', 'testcentrobit')
+        self.assertFalse(_company.deleted)
 
     @amomock.activate
-    def test_creating_contact(self):
-        contact = Contact(name='test')
-        self.assertEqual(contact.name, 'test')
+    def test_lead_create(self):
+        lead = Lead(status=1, price=10000.00)
 
-        contact.save()
+    @amomock.activate
+    def test_task_create(self):
+        # task = Task(element=)
+        pass
 
-        _contact = Contact.objects.get(contact.id)
-        self.assertEqual(_contact.name, 'test')
-        self.assertEqual(_contact.date_create.date(), datetime.now().date())
+
+class TestContacts(AmoSettingsMixin, unittest.TestCase):
 
     def create_contact(self, **kwargs):
         kw = dict(name='test_name', deleted=False, tags=['1', '2', '3'], created_user=731)

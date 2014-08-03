@@ -145,3 +145,14 @@ class CommaSepField(Field):
 
 class CustomField(Field):
     _parent = 'custom_fields'
+
+
+class StatusField(Field):
+
+    def __init__(self, field=None, status=None):
+        super(StatusField, self).__init__(field)
+        self.status = status
+
+    def on_get(self, data, instance):
+        _statuses = instance.objects.leads_statuses
+

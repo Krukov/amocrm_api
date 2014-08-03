@@ -6,6 +6,12 @@ from . import fields
 from .api import *
 
 
+ELEMENT_TYPES = {
+    'contact': 1,
+    'lead': 2,
+}
+
+
 class ModelMeta(type):
     def __new__(cls, name, bases, attrs):
         attrs.setdefault('_fields', {})
@@ -109,16 +115,16 @@ class Company(BaseModel):
 
 class Lead(BaseModel):
 
-    status = fields.Field('status_id')
+    status = fields.Field('status_id')  # TODO: status field
     price = fields.Field('price')
 
     objects = LeadsManager()
 
 
-class Task(BaseModel):
+class LeadTask(BaseModel):
 
-    element = fields.Field('element_id')
-    element_type = fields.Field('element_type')
+    contact = fields.ForeignField(Lead, 'element_id')
+    _element_type = fields.ConstantField('element_type', ELEMENT_TYPES['lead'])
     type = fields.Field('task_type')
     text = fields.Field('text')
     complete_till = fields.DateTimeField('complete_till')
@@ -137,3 +143,12 @@ class Contact(BaseModel):
     objects = ContactsManager()
 
 
+class ContactTask(BaseModel):
+
+    contact = fields.ForeignField(Contact, 'element_id')
+    _element_type = fields.ConstantField('element_type', ELEMENT_TYPES['contact'])
+    type = fields.Field('task_type')
+    text = fields.Field('text')
+    complete_till = fields.DateTimeField('complete_till')
+
+    objects = TasksManager()
