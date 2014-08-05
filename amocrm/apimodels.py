@@ -6,12 +6,6 @@ from . import fields
 from .api import *
 
 
-ELEMENT_TYPES = {
-    'contact': 1,
-    'lead': 2,
-}
-
-
 class ModelMeta(type):
     def __new__(cls, name, bases, attrs):
         attrs.setdefault('_fields', {})
@@ -42,11 +36,12 @@ class BaseModel(object):
             for name, field in self._fields.items():
                 val = self._init_data.get(name, None)
                 if isinstance(field, fields.ForeignField) and name in self._init_data:
+                    mf = field.object_type.objects._main_field
                     if isinstance(self._init_data[name], field.object_type):
                         pass
-                    mf = field.object_type.objects._main_field
-                    self._data[field.links[mf]] = self._init_data[name]
-                    self._changed_fields.append(field.field)
+                    elif mf in field.links.keys():
+                        self._data[field.links[mf]] = self._init_data[name]
+                        self._changed_fields.append(field.field)
                 else:
                     if val is not None:
                         self._data[field.field] = val
@@ -120,16 +115,23 @@ class Lead(BaseModel):
 
     objects = LeadsManager()
 
+class _BaseTask(BaseModel):
+    ELEMENT_TYPES = {
+        'contact': 1,
+        'lead': 2,
+    }
 
-class LeadTask(BaseModel):
-
-    contact = fields.ForeignField(Lead, 'element_id')
-    _element_type = fields.ConstantField('element_type', ELEMENT_TYPES['lead'])
     type = fields.Field('task_type')
     text = fields.Field('text')
     complete_till = fields.DateTimeField('complete_till')
 
     objects = TasksManager()
+
+class LeadTask(_BaseTask):
+
+    contact = fields.ForeignField(Lead, 'element_id')
+    _element_type = fields.ConstantField('element_type',
+                                         _BaseTask.ELEMENT_TYPES['lead'])
 
 
 class Contact(BaseModel):
@@ -142,13 +144,14 @@ class Contact(BaseModel):
 
     objects = ContactsManager()
 
+    def create_task(self, text, task_type=None, complete_till=None):
+        task = ContactTask(contact=self, type=task_type , text=text, complete_till=complete_till)
+        task.save()
+        return task
 
-class ContactTask(BaseModel):
+class ContactTask(_BaseTask):
 
     contact = fields.ForeignField(Contact, 'element_id')
-    _element_type = fields.ConstantField('element_type', ELEMENT_TYPES['contact'])
-    type = fields.Field('task_type')
-    text = fields.Field('text')
-    complete_till = fields.DateTimeField('complete_till')
-
-    objects = TasksManager()
+    _element_type = fields.ConstantField('element_type',
+                                         _BaseTask.ELEMENT_TYPES['contact'])
+    

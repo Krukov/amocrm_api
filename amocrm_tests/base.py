@@ -78,12 +78,35 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
 
     @amomock.activate
     def test_lead_create(self):
-        lead = Lead(status=1, price=10000.00)
+        statuses = Lead.objects.leads_statuses
+        lead = Lead(name='test', status='test', price=10000.00)
+        self.assertEqual(lead.name, 'test')
+        self.assertEqual(lead.status, 'test')
+        self.assertEqual(lead.price, 10000)
+        self.assertIsNone(lead.id)
+
+        lead.save()
+        self.assertEqual(lead.name, 'test')
+        self.assertEqual(lead.status, 'test')
+        self.assertEqual(lead.price, 10000)
+        self.assertEqual(lead.id, 1)
+        
+        _lead = Lead.objects.get(lead.id)
+        self.assertEqual(_lead.name, 'test')
+        self.assertEqual(_lead.status, 'test')
+        self.assertEqual(_lead.price, 10000)
+        self.assertEqual(_lead.id, 1)
 
     @amomock.activate
-    def test_task_create(self):
-        # task = Task(element=)
-        pass
+    def test_contact_task_create(self):
+        contact = Contact(name='test')
+        contact.save()
+
+        task = ContactTask(contact=contact, text='test task text')
+        self.assertEqual(task.contact.name, 'test')
+        self.assertEqual(task.contact.id, contact.id)
+        self.assertEqual(task.text, 'test task text')
+
 
 
 class TestContacts(AmoSettingsMixin, unittest.TestCase):

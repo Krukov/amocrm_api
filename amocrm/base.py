@@ -114,6 +114,10 @@ class BaseAmoManager(object):
     @lazy_property
     def leads_statuses(self):
         return self.account_info.get('leads_statuses')
+    
+    @lazy_property
+    def task_types(self):
+        return self.account_info.get('task_types')
 
     def _request(self, path, method, data):
         method = method.lower()

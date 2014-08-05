@@ -31,7 +31,17 @@ class FakeApi(object):
     """docstring for FakeApi"""
     def __init__(self):
         self.login, self.hash = None, None
-        self._data = {'contacts': [], 'account': {'users': [{'id': '99', 'name': 'test'}]}, 'company': []}
+        self._data = {
+            'contacts': [],
+            'account': {'users': [{'id': '99', 'name': 'test'}]},
+            'company': [],
+            'leads': [],
+            'tasks': [],
+            'leads_statuses': [
+                {'name': 'new', 'id': 1},
+                {'name': 'test', 'id': 2},
+            ],
+        }
 
     def _check_auth(self, params):
         login = params.pop('USER_LOGIN', None)
