@@ -25,10 +25,9 @@ tree = lambda: defaultdict(tree)
 class BaseAmoManager(object):
     __metaclass__ = ABCMeta
 
-    methods = {}
     format_ = 'json'
 
-    object_type = None
+    _object_type = None
     _base_path = '/private/api/v2/%(format)s%(name)s%(path)s'
     _methods = {
         'account_info': {
@@ -60,10 +59,8 @@ class BaseAmoManager(object):
     def __init__(self, user_login=None, user_hash=None,
                  domain=None, responsible_user=None):
         if user_login is not None:
-           settings.set(user_login, user_hash, domain,
-                        responsible_user)
-        self.methods = deepcopy(self.methods)
-        self.methods.update(self._methods)
+            settings.set(user_login, user_hash, domain,
+                         responsible_user)
 
     @property
     def domain(self):
@@ -79,17 +76,18 @@ class BaseAmoManager(object):
     def responsible_user(self):
         return settings.responsible_user or settings.user_login
 
+    @classmethod
     @abstractproperty
     def name(cls):
         pass
 
-    def convert_to_obj(cls, result):
+    def convert_to_obj(self, result):
         if result:
-            if not cls._amo_model_class:
+            if not self._amo_model_class:
                 return result
             if isinstance(result, (tuple, list)):
-                return [cls._amo_model_class(obj, _loaded=True) for obj in result]
-            return cls._amo_model_class(result, _loaded=True)
+                return [self._amo_model_class(obj, _loaded=True) for obj in result]
+            return self._amo_model_class(result, _loaded=True)
 
     @lazy_dict_property
     def custom_fields(self):
@@ -104,8 +102,8 @@ class BaseAmoManager(object):
         if isinstance(self.responsible_user, int):
             return self.responsible_user
         else:
-            filter_func = lambda _: _.get('login') == self.responsible_user or \
-                                    _.get('name') == self.responsible_user
+            filter_func = lambda _: self.responsible_user == _.get('login') or \
+                                    self.responsible_user == _.get('name')
             user = filter(filter_func, self.account_info.get('users', [])).pop()
             if user is None:
                 raise Exception(u'Can not get responsible user id')
@@ -114,7 +112,7 @@ class BaseAmoManager(object):
     @lazy_property
     def leads_statuses(self):
         return self.account_info.get('leads_statuses')
-    
+
     @lazy_property
     def task_types(self):
         return self.account_info.get('task_types')  # ['LETTER', 'MEETING', 'CALL', 'OTHER']
@@ -168,7 +166,7 @@ class BaseAmoManager(object):
 
     def request(self, method, data=None):
         path = self.get_path(method)
-        method = self.methods[method]
+        method = self._methods[method]
         method_type = method.get('method', 'get')
         timestamp, container, result = method.get('timestamp'), method.get('container'), method.get('result')
 
@@ -181,8 +179,8 @@ class BaseAmoManager(object):
         return self._modify_response(response, result)
 
     def get_path(self, method_name):
-        name = self.methods[method_name].get('name', self.name)
-        path = self.methods[method_name]['path']
+        name = self._methods[method_name].get('name', self.name)
+        path = self._methods[method_name]['path']
         if not name.startswith('/'):
             name = '/' + name
         if not name.endswith('/') and not path.startswith('/'):
@@ -218,7 +216,7 @@ class BaseAmoManager(object):
 
     def search(self, query):
         query = {
-            'type': self.object_type or self.name[:-1],
+            'type': self._object_type or self.name[:-1],
             'query': query
         }
         results = self.all(limit=1, query=query)
@@ -245,19 +243,18 @@ class BaseAmoManager(object):
         return kwargs
 
     @abstractmethod
-    def create_or_update_data(self, **kwargs):
-        query = kwargs.get(self._main_field)
+    def create_or_update_data(self, **data):
+        query = data.get(self._main_field)
         obj = self.search(query) if query else {}
-        data = self.merge_data(kwargs, obj)
         if obj:
-            data['id'] = obj['id']
+            data = self.merge_data(data, obj)
             return self.update(**data)
         else:
             return self.add(**data)
 
     @staticmethod
     def merge_data(new, old):
-        return new
+        return new.update(old)
 
 
 class BlankMixin(object):
@@ -273,10 +270,10 @@ class BlankMixin(object):
 
 
 def Helper(_class, name):
-
     class Mixin(object):
         def __init__(self, *args, **kwargs):
             super(Mixin, self).__init__(*args, **kwargs)
             setattr(self, name, _class(*args, **kwargs))
             setattr(getattr(self, name), '_account_info', self.account_info)
+
     return Mixin

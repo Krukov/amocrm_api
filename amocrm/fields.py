@@ -6,7 +6,7 @@ from copy import deepcopy
 from .decorators import lazy_dict_property
 
 
-class BaseField(object):
+class _BaseField(object):
     _parent = None
 
     def __init__(self, field=None):
@@ -38,7 +38,7 @@ class BaseField(object):
         return data
 
 
-class Field(BaseField):
+class Field(_BaseField):
     pass
 
 

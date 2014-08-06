@@ -2,6 +2,9 @@
 from functools import wraps
 
 
+__all__ = ['amo_request', 'lazy_dict_property', 'lazy_property']
+
+
 empty = type('empty', (), {})
 
 
@@ -55,7 +58,8 @@ class lazy_dict_property(object):
             meth = self.__dispatch(method_name)
             setattr(empty, method_name, meth)
 
-    def __dispatch(self, name):
+    @staticmethod
+    def __dispatch(name):
         def __wrapper(*args, **kwargs):
             args = list(reversed(args))
             this = args.pop()

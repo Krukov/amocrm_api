@@ -1,26 +1,29 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import time
+import six
 
 from . import fields
 from .api import *
 
 
-class ModelMeta(type):
-    def __new__(cls, name, bases, attrs):
+__all__ = ['Company', 'Contact', 'ContactTask', 'LeadTask', 'Lead']
+
+
+class _ModelMeta(type):
+    def __new__(mcs, name, bases, attrs):
         attrs.setdefault('_fields', {})
         [attrs.update(getattr(base, '_fields', {})) for base in bases]
         attrs['_fields'].update({name: instance for name, instance in attrs.items()
-                            if isinstance(instance, fields.BaseField)})
-        super_new = super(ModelMeta, cls).__new__(cls, name, bases, attrs)
+                                 if isinstance(instance, fields._BaseField)})
+        super_new = super(_ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         _manager = getattr(super_new, 'objects', None)
         if _manager:
-            _manager._amo_model_class = super(ModelMeta, cls).__new__(cls, name, bases, attrs)
+            _manager._amo_model_class = super(_ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         return super_new
 
 
-class _BaseModel(object):
-    __metaclass__ = ModelMeta
+class _BaseModel(six.with_metaclass(_ModelMeta)):
 
     _fields = {}
 
@@ -36,11 +39,11 @@ class _BaseModel(object):
             for name, field in self._fields.items():
                 value = self._init_data.get(name, None)
                 if isinstance(field, fields.ForeignField) and name in self._init_data:
-                    mf = field.object_type.objects._main_field
+                    main_field = field.object_type.objects._main_field
                     if isinstance(self._init_data[name], field.object_type):
                         setattr(self, name, self._init_data[name])
-                    elif mf in field.links.keys():
-                        self._data[field.links[mf]] = self._init_data[name]
+                    elif main_field in field.links.keys():
+                        self._data[field.links[main_field]] = self._init_data[name]
                         self._changed_fields.append(field.field)
                 else:
                     if value is not None:
@@ -152,7 +155,7 @@ class Contact(_BaseModel):
     objects = ContactsManager()
 
     def create_task(self, text, task_type=None, complete_till=None):
-        task = ContactTask(contact=self, type=task_type , text=text, complete_till=complete_till)
+        task = ContactTask(contact=self, type=task_type, text=text, complete_till=complete_till)
         task.save()
         return task
 

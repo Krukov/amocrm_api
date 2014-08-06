@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 import copy
 import unittest
+import time
 from datetime import datetime
 
 from amocrm import *
@@ -10,14 +11,14 @@ from amocrm_tests.utils import amomock
 from_ts = datetime.fromtimestamp
 
 
-class AmoSettingsMixin:
+class AmoSettingsMixin(object):
 
     def setUp(self):
         amomock.set_login_params('test', 'test')
         amo_settings.set('test', 'test', 'test')
 
 
-class CreateObjMixin:
+class CreateObjMixin(object):
     object_type = None
     create_param = {}
 
@@ -139,7 +140,6 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(_task.contact.id, contact.id)
         self.assertEqual(_task.text, 'test task text')
         self.assertEqual(_task._element_type, ContactTask.ELEMENT_TYPES['contact'])
-
 
     @amomock.activate
     def test_lead_task_create(self):
@@ -295,8 +295,7 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_searching_task(self):
-        pass #  TODO: Tasks have not search ability
-
+        pass  # TODO: Tasks have not search ability
 
     @amomock.activate
     def test_edit_task(self):

@@ -3,6 +3,8 @@ from __future__ import absolute_import, unicode_literals
 import sys
 import logging
 
+__all__ = ['logger']
+
 
 logger = logging.getLogger(__name__)
 

@@ -3,6 +3,9 @@ from __future__ import absolute_import, unicode_literals
 from .base import BlankMixin, BaseAmoManager, Helper
 
 
+__all__ = ['AmoApi', 'NotesManager', 'ContactsManager', 'CompanyManager', 'LeadsManager', 'TasksManager']
+
+
 class NotesManager(BlankMixin, BaseAmoManager):
     name = 'notes'
 
@@ -17,7 +20,7 @@ class ContactsManager(BlankMixin, BaseAmoManager):
 
 class CompanyManager(BlankMixin, BaseAmoManager):
     name = 'company'
-    object_type = name
+    _object_type = name
     _main_field = 'name'
 
 
