@@ -31,14 +31,28 @@ class TestUtils(unittest.TestCase):
                             data=self.login_data).json()
         self.assertNotIn('auth', resp)
         self.assertIn('response', resp)
-        info = resp['response']['accounts']
+        info = resp['response']['account']
         self.assertIn('id', info)
         self.assertIn('users', info)
         self.assertIn('id', info['users'].pop())
         self.assertIn('custom_fields', info)
+        self.assertIn('leads_statuses', info)
+        self.assertEqual(len(info['leads_statuses']), 2)
 
     @amomock.activate
     def test_contacts_getting(self):
+        contact = {'name': 'Frog', 'company_name': 'TestsCo'}
+        _data = {'add': json.dumps(contact)}
+        _data.update(self.login_data)
+        requests.post('http://test.amocrm/private/api/contacts/set',
+                      data=_data).json()
+
+        contact = {'name': 'SOme', 'company_name': 'SomeCo'}
+        _data = {'add': json.dumps(contact)}
+        _data.update(self.login_data)
+        requests.post('http://test.amocrm/private/api/contacts/set',
+                      data=_data).json()
+
         data = {'limit_rows': 2}
         data.update(self.login_data)
         resp = requests.get('http://test.amocrm/private/api/contacts/list',
@@ -51,7 +65,13 @@ class TestUtils(unittest.TestCase):
 
     @amomock.activate
     def test_contacts_search(self):
-        data = {'limit_rows': 1, 'query': 'Molina Chapman'}
+        contact = {'name': 'Frog', 'company_name': 'TestsCo'}
+        _data = {'add': json.dumps(contact)}
+        _data.update(self.login_data)
+        requests.post('http://test.amocrm/private/api/contacts/set',
+                             data=_data).json()
+
+        data = {'limit_rows': 1, 'query': 'Frog'}
         data.update(self.login_data)
         resp = requests.get('http://test.amocrm/private/api/contacts/list',
                             data=data).json()
@@ -59,7 +79,7 @@ class TestUtils(unittest.TestCase):
         self.assertIn('response', resp)
         contacts = resp['response']['contacts']
         self.assertEquals(len(contacts), 1)
-        self.assertEquals('Molina Chapman', contacts.pop()['name'])
+        self.assertEquals('Frog', contacts.pop()['name'])
 
     @amomock.activate
     def test_contact_add(self):

@@ -44,7 +44,10 @@ class _BaseModel(object):
                         self._changed_fields.append(field.field)
                 else:
                     if value is not None:
-                        self._data[field.field] = value
+                        if isinstance(field, fields.StatusField):
+                            setattr(self, name, value)
+                        else:
+                            self._data[field.field] = value  # TODO: do anyway setattr(self, name, value)
                         self._changed_fields.append(field.field)
 
     def __getitem__(self, item):
@@ -112,10 +115,11 @@ class Company(_BaseModel):
 
 class Lead(_BaseModel):
 
-    status = fields.Field('status_id')  # TODO: status field
+    status = fields.StatusField('status_id', choices='leads_statuses')
     price = fields.Field('price')
 
     objects = LeadsManager()
+
 
 class _BaseTask(_BaseModel):
     ELEMENT_TYPES = {
@@ -123,7 +127,7 @@ class _BaseTask(_BaseModel):
         'lead': 2,
     }
 
-    type = fields.Field('task_type')
+    type = fields.StatusField('task_type', 'task_types')
     text = fields.Field('text')
     complete_till = fields.DateTimeField('complete_till')
 
@@ -151,6 +155,7 @@ class Contact(_BaseModel):
         task = ContactTask(contact=self, type=task_type , text=text, complete_till=complete_till)
         task.save()
         return task
+
 
 class ContactTask(_BaseTask):
 

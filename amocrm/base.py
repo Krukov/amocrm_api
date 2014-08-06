@@ -117,7 +117,7 @@ class BaseAmoManager(object):
     
     @lazy_property
     def task_types(self):
-        return self.account_info.get('task_types')
+        return self.account_info.get('task_types')  # ['LETTER', 'MEETING', 'CALL', 'OTHER']
 
     def _request(self, path, method, data):
         method = method.lower()

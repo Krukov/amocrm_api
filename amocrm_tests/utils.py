@@ -33,18 +33,26 @@ class FakeApi(object):
         self.login, self.hash = None, None
         self._data = {
             'contacts': [],
-            'account': {'users': [{'id': '99', 'name': 'test'}]},
+            'account': {
+                'id': 1,
+                'custom_fields': [
+
+                ],
+                'users': [
+                    {'id': 99, 'name': 'test'}
+                ],
+                'task_types': [
+                    {'name': 'do', 'id': 1},
+                    {'name': 'to_test', 'id': 2},
+                ],
+                'leads_statuses': [
+                    {'name': 'new', 'id': 1},
+                    {'name': 'test', 'id': 2},
+                ],
+            },
             'company': [],
             'leads': [],
             'tasks': [],
-            'task_types': [
-                {'name': 'do', 'id': 1},
-                {'name': 'to_test', 'id': 2},
-            ],
-            'leads_statuses': [
-                {'name': 'new', 'id': 1},
-                {'name': 'test', 'id': 2},
-            ],
         }
 
     def _check_auth(self, params):

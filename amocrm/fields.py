@@ -132,6 +132,8 @@ class CommaSepField(Field):
         if isinstance(data, basestring):
             instance._data[self.field] = self.on_set('')
             return data
+        if data is None:
+            return
         items = []
         for item in data:
             if isinstance(item, basestring):
@@ -150,10 +152,18 @@ class CustomField(Field):
 
 class StatusField(Field):
 
-    def __init__(self, field=None, status=None):
+    def __init__(self, field=None, choices=None):
         super(StatusField, self).__init__(field)
-        self.status = status
+        self.choices = choices
 
     def on_get(self, data, instance):
-        _statuses = instance.objects.leads_statuses
+        if data and str(data).isdigit():
+            _statuses = {item['id']: item for item in deepcopy(getattr(instance.objects, self.choices))}
+            data = _statuses.get(data)['name']
+        return data
 
+    def on_set(self, value, instance):
+        _statuses = deepcopy(getattr(instance.objects, self.choices))
+        if _statuses:
+            _statuses = {item.pop('name'): item for item in _statuses}
+            return _statuses[value]['id'] # TODO: raise Exception
