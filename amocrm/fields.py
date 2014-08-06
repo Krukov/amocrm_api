@@ -88,14 +88,15 @@ class ForeignField(BaseForeignField):
         self.links['id'] = field
 
     def on_get(self, data, instance):
-        wrap = lambda this: this.get(data)
-        obj = lazy_dict_property(wrap).__get__(self.object_type.objects)
+        obj = self.object_type()
+        obj._fields_data['id'] = instance._data.get(self.field)
         [setattr(obj, name, instance._data.get(value))
             for name, value in self.links.items()]
         return obj
 
     def on_set(self, val, instance):
         if isinstance(instance._get_field_by_name(self.field), self.__class__):
+            instance._fields_data[self.field] = val
             return val.id
         elif str(val).isdigit():
             return int(val)

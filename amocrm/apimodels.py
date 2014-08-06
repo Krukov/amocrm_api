@@ -19,7 +19,7 @@ class ModelMeta(type):
         return super_new
 
 
-class BaseModel(object):
+class _BaseModel(object):
     __metaclass__ = ModelMeta
 
     _fields = {}
@@ -34,43 +34,57 @@ class BaseModel(object):
             self._init_data = data or kwargs
         if not self._loaded:
             for name, field in self._fields.items():
-                val = self._init_data.get(name, None)
+                value = self._init_data.get(name, None)
                 if isinstance(field, fields.ForeignField) and name in self._init_data:
                     mf = field.object_type.objects._main_field
                     if isinstance(self._init_data[name], field.object_type):
-                        pass
+                        setattr(self, name, self._init_data[name])
                     elif mf in field.links.keys():
                         self._data[field.links[mf]] = self._init_data[name]
                         self._changed_fields.append(field.field)
                 else:
-                    if val is not None:
-                        self._data[field.field] = val
+                    if value is not None:
+                        self._data[field.field] = value
                         self._changed_fields.append(field.field)
 
     def __getitem__(self, item):
         return self.__getattribute__(item)
 
+    def __getattribute__(self, name):
+        value = super(_BaseModel, self).__getattribute__(name)
+        if value is None \
+                and not self._loaded \
+                and name != 'id'\
+                and self.id is not None \
+                and self._fields[name].field not in self._changed_fields:
+            self.__init__(self.objects.get(self.id)._data)
+        return value or super(_BaseModel, self).__getattribute__(name)
+
     def _save_fk(self):
         for name, field in self._fields.items():
             if not isinstance(field, fields.ForeignField):
                 continue
-            mf = field.object_type.objects._main_field
-            value = getattr(getattr(self, name), mf)
-            self._data[field.links[mf]] = value
+            main_field = field.object_type.objects._main_field
+            if main_field is not None:
+                value = getattr(getattr(self, name), main_field)
+                self._data[field.links[main_field]] = value
+            else:
+                value = None
             if getattr(field, 'auto', None):
                 continue
             if (field.field in self._changed_fields or not self._loaded)\
                     and (name in self._data or name in self._init_data):
                 if getattr(self, name).id is not None:
-                    result = field.object_type.objects.update(
-                        **{mf: value, 'id': getattr(self, name).id}
-                    )
+                    data = {'id': getattr(self, name).id}
+                    if main_field and value is not None:
+                        data.update({main_field: value})
+                    result = field.object_type.objects.update(**data)
                 else:
                     result = field.object_type.objects.create_or_update(
-                        **{mf: value}
+                        **{main_field: value}
                     )
                 self._data[field.field] = result
-                setattr(getattr(self, name), 'id', result)
+                getattr(self, name)._fields_data['id'] = result
 
     def save(self, update_if_exists=True):
         self._save_fk()
@@ -101,21 +115,21 @@ class BaseModel(object):
     deleted = fields.BooleanField('deleted')
 
 
-class Company(BaseModel):
+class Company(_BaseModel):
 
     type = fields.ConstantField('type', 'company')
 
     objects = CompanyManager()
 
 
-class Lead(BaseModel):
+class Lead(_BaseModel):
 
     status = fields.Field('status_id')  # TODO: status field
     price = fields.Field('price')
 
     objects = LeadsManager()
 
-class _BaseTask(BaseModel):
+class _BaseTask(_BaseModel):
     ELEMENT_TYPES = {
         'contact': 1,
         'lead': 2,
@@ -125,7 +139,6 @@ class _BaseTask(BaseModel):
     text = fields.Field('text')
     complete_till = fields.DateTimeField('complete_till')
 
-    objects = TasksManager()
 
 class LeadTask(_BaseTask):
 
@@ -133,8 +146,10 @@ class LeadTask(_BaseTask):
     _element_type = fields.ConstantField('element_type',
                                          _BaseTask.ELEMENT_TYPES['lead'])
 
+    objects = TasksManager()
 
-class Contact(BaseModel):
+
+class Contact(_BaseModel):
 
     type = fields.ConstantField('type', 'contact')
     company = fields.ForeignField(Company, 'linked_company_id',
@@ -154,4 +169,4 @@ class ContactTask(_BaseTask):
     contact = fields.ForeignField(Contact, 'element_id')
     _element_type = fields.ConstantField('element_type',
                                          _BaseTask.ELEMENT_TYPES['contact'])
-    
+    objects = TasksManager()
