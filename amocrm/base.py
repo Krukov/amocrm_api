@@ -4,7 +4,7 @@ import json
 from abc import *
 from collections import defaultdict
 from time import time
-from copy import copy, deepcopy
+from copy import copy
 import six
 
 import requests
