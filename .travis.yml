@@ -4,19 +4,13 @@ python:
   - "2.7"
   - "3.2"
   - "3.3"
+  - "3.4"
 
 install:
   - pip install coverage nose coveralls
   - pip install .
 
 script: nosetests --cover-package=amocrm_api
-
-matrix:
-    include:
-        - python: 2.6
-          env: NO_COMPILER="true"
-        - python: 3.3
-          env: NO_COMPILER="true"
 
 after_success:
   - coveralls

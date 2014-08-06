@@ -176,7 +176,7 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         self.assertEqual(contact.name, 'test_name')
         self.assertEqual(contact.id, 1)
         self.assertEquals(contact.deleted, False)
-        self.assertSetEqual(set(contact.tags), {'1', '2', '3'})
+        self.assertSetEqual(set(contact.tags), set(['1', '2', '3']))
         self.assertEquals(contact.date_create.date(), from_ts(int(time.time())).date())
         self.assertEquals(contact.last_modified.date(), from_ts(int(time.time())).date())
 
