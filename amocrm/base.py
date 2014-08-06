@@ -14,18 +14,20 @@ from .decorators import (amo_request, lazy_dict_property,
                          to_amo_obj, lazy_property)
 from .logger import logger
 
-AMO_LOGIN_PATH = '/private/api/auth.php'
-REQUEST_PARAMS = {
+__all__ = []
+
+_AMO_LOGIN_PATH = '/private/api/auth.php'
+_REQUEST_PARAMS = {
     'headers': {'User-Agent': 'Amocrm API module. Python powered'},
     'timeout': 3,
 }
 
-tree = lambda: defaultdict(tree)
+_tree = lambda: defaultdict(_tree)
 
 
-class BaseAmoManager(six.with_metaclass(ABCMeta)):
+class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
-    __slots__ = ['name']
+    __slots__ = []
     format_ = 'json'
 
     _object_type = None
@@ -130,7 +132,7 @@ class BaseAmoManager(six.with_metaclass(ABCMeta)):
         logger.debug('Data: %s \n Params: %s' % (data, params))
 
         req_method = getattr(requests, method, 'get')
-        req = req_method(self.url(path), data=json.dumps(data), params=params)
+        req = req_method(self.url(path), data=json.dumps(data), params=params, **_REQUEST_PARAMS)
         logger.debug('Url: %s', req.url)
         if not req.ok:
             logger.error('Something went wrong')
@@ -142,7 +144,7 @@ class BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def _create_container(self, container, data):
         container = ['request', self.name] + container
-        _container = _ = tree()
+        _container = _ = _tree()
         for i, elem in enumerate(container):
             if i + 1 == len(container):
                 _[elem] = data
@@ -258,19 +260,19 @@ class BaseAmoManager(six.with_metaclass(ABCMeta)):
         return new.update(old)
 
 
-class BlankMixin(object):
+class _BlankMixin(object):
 
     def add_data(self, **kwargs):
-        return super(BlankMixin, self).add_data(**kwargs)
+        return super(_BlankMixin, self).add_data(**kwargs)
 
     def update_data(self, **kwargs):
-        return super(BlankMixin, self).update_data(**kwargs)
+        return super(_BlankMixin, self).update_data(**kwargs)
 
     def create_or_update_data(self, **kwargs):
-        return super(BlankMixin, self).create_or_update_data(**kwargs)
+        return super(_BlankMixin, self).create_or_update_data(**kwargs)
 
 
-def Helper(_class, name):
+def _Helper(_class, name):
     class Mixin(object):
         def __init__(self, *args, **kwargs):
             super(Mixin, self).__init__(*args, **kwargs)

@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from .base import BlankMixin, BaseAmoManager, Helper
+from .base import _BlankMixin, _BaseAmoManager, _Helper
 
 
 __all__ = ['AmoApi', 'NotesManager', 'ContactsManager', 'CompanyManager', 'LeadsManager', 'TasksManager']
 
 
-class NotesManager(BlankMixin, BaseAmoManager):
+class NotesManager(_BlankMixin, _BaseAmoManager):
     name = 'notes'
 
 
-class ContactsManager(BlankMixin, BaseAmoManager):
+class ContactsManager(_BlankMixin, _BaseAmoManager):
     name = 'contacts'
 
     def add_data(self, **kwargs):
@@ -18,22 +18,22 @@ class ContactsManager(BlankMixin, BaseAmoManager):
         return super(ContactsManager, self).add_data(**kwargs)
 
 
-class CompanyManager(BlankMixin, BaseAmoManager):
+class CompanyManager(_BlankMixin, _BaseAmoManager):
     name = 'company'
     _object_type = name
     _main_field = 'name'
 
 
-class LeadsManager(BlankMixin, BaseAmoManager):
+class LeadsManager(_BlankMixin, _BaseAmoManager):
     name = 'leads'
 
 
-class TasksManager(BlankMixin, BaseAmoManager):
+class TasksManager(_BlankMixin, _BaseAmoManager):
     name = 'tasks'
 
 
-class AmoApi(Helper(ContactsManager, 'contacts'), Helper(CompanyManager, 'company'),
-             Helper(NotesManager, 'notes'), Helper(LeadsManager, 'leads'), Helper(TasksManager, 'tasks'),
-             BlankMixin, BaseAmoManager):
+class AmoApi(_Helper(ContactsManager, 'contacts'), _Helper(CompanyManager, 'company'),
+             _Helper(NotesManager, 'notes'), _Helper(LeadsManager, 'leads'), _Helper(TasksManager, 'tasks'),
+             _BlankMixin, _BaseAmoManager):
     name = 'accounts'
 
