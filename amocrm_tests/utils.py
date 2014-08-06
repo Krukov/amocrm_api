@@ -97,8 +97,8 @@ class FakeApi(object):
                     if isinstance(update, str) else update
                 update['last_modified'] = time.time()
                 target_id = update['id']
-                update_obj = (i for i in self._data[obj]
-                              if i['id'] == target_id).next()
+                update_obj = next(i for i in self._data[obj]
+                              if i['id'] == target_id)
                 update_obj.update(update)
                 resp = {'update': {'id': target_id}}
             elif 'add' in params:
@@ -150,7 +150,7 @@ class AmoApiMock(RequestsMock):
         method = method.split('.')[0]
         body = getattr(self._faker, '_%s' % method)(obj, url_qsl)
         return {
-            'body': body,
+            'body': bytearray(body, 'UTF-8'),
             'content_type': 'text/plain',
             'status': 200,
             'adding_headers': None,

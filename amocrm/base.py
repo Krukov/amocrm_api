@@ -105,9 +105,9 @@ class BaseAmoManager(six.with_metaclass(ABCMeta)):
         else:
             filter_func = lambda _: self.responsible_user == _.get('login') or \
                                     self.responsible_user == _.get('name')
-            user = filter(filter_func, self.account_info.get('users', [])).pop()
+            user = list(filter(filter_func, self.account_info.get('users', []))).pop()
             if user is None:
-                raise Exception(u'Can not get responsible user id')
+                raise Exception('Can not get responsible user id')
             return user.get('id')
 
     @lazy_property
@@ -172,7 +172,7 @@ class BaseAmoManager(six.with_metaclass(ABCMeta)):
         timestamp, container, result = method.get('timestamp'), method.get('container'), method.get('result')
 
         if timestamp:
-            _time = timestamp if isinstance(timestamp, (str, unicode)) else 'last_modified'
+            _time = timestamp if isinstance(timestamp, str) else 'last_modified'
             data.setdefault(_time, int(time()))
         if container is not None:
             data = self._create_container(container, data)

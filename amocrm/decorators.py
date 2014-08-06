@@ -36,7 +36,7 @@ class lazy_property(object):
             return self
         value = self._calculate(obj)
         if value is not None:
-            setattr(obj, self._calculate.func_name, value)
+            setattr(obj, self._calculate.__name__, value)
         return value
 
 
@@ -64,6 +64,6 @@ class lazy_dict_property(object):
             args = list(reversed(args))
             this = args.pop()
             value = this._calculate(this._obj)
-            setattr(this._obj, this._calculate.func_name, value)
+            setattr(this._obj, this._calculate.__name__, value)
             return getattr(value, name)(*list(reversed(args)), **kwargs)
         return __wrapper
