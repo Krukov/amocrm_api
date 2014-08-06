@@ -4,7 +4,7 @@ import unittest
 import json
 import requests
 
-from utils import amomock
+from amocrm.test_utils import amomock
 
 
 class TestUtils(unittest.TestCase):

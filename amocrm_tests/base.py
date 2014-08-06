@@ -2,11 +2,11 @@
 from __future__ import absolute_import, unicode_literals
 import copy
 import unittest
-import time
 from datetime import datetime
 
 from amocrm import *
-from amocrm_tests.utils import amomock
+from amocrm.utils import amomock
+
 
 from_ts = datetime.fromtimestamp
 
