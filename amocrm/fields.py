@@ -122,28 +122,17 @@ class ManyForeignField(BaseForeignField):
         return items
 
 
-class CommaSepField(Field):
+class TagsField(Field):
 
     def __init__(self, field=None, key=None):
-        super(CommaSepField, self).__init__(field)
+        super(TagsField, self).__init__(field)
         self.key = key
 
     def on_get(self, data, instance):
-        if isinstance(data, basestring):
-            instance._data[self.field] = self.on_set('')
-            return data
-        if data is None:
-            return
-        items = []
-        for item in data:
-            if isinstance(item, basestring):
-                items.append(item)
-            elif isinstance(item, dict):
-                items.append(item[self.key])
-        return ', '.join(items)
+        return data.replace(', ', ',').split(',')
 
     def on_set(self, value, *args):
-        return value.split(', ')
+        return ', '.join(value)
 
 
 class CustomField(Field):

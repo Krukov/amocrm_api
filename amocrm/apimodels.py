@@ -24,7 +24,6 @@ class _ModelMeta(type):
 
 
 class _BaseModel(six.with_metaclass(_ModelMeta)):
-
     _fields = {}
 
     def __init__(self, data=None, **kwargs):
@@ -38,32 +37,29 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         if not self._loaded:
             for name, field in self._fields.items():
                 value = self._init_data.get(name, None)
+                if value is None:
+                    continue
                 if isinstance(field, fields.ForeignField) and name in self._init_data:
                     main_field = field.object_type.objects._main_field
-                    if isinstance(self._init_data[name], field.object_type):
-                        setattr(self, name, self._init_data[name])
+                    if isinstance(value, field.object_type):
+                        setattr(self, name, value)
                     elif main_field in field.links.keys():
                         self._data[field.links[main_field]] = self._init_data[name]
                         self._changed_fields.append(field.field)
                 else:
-                    if value is not None:
-                        if isinstance(field, fields.StatusField):
-                            setattr(self, name, value)
-                        else:
-                            self._data[field.field] = value  # TODO: do anyway setattr(self, name, value)
-                        self._changed_fields.append(field.field)
+                    if isinstance(field, fields.UneditableField):
+                        self._data[field.field] = value
+                    setattr(self, name, value)
+                    self._changed_fields.append(field.field)
 
     def __getitem__(self, item):
         return self.__getattribute__(item)
 
     def __getattribute__(self, name):
         value = super(_BaseModel, self).__getattribute__(name)
-        if value is None \
-                and not self._loaded \
-                and name != 'id'\
-                and self.id is not None \
-                and self._fields[name].field not in self._changed_fields:
-            self.__init__(self.objects.get(self.id)._data)
+        if (value is None and not self._loaded and name != 'id' and self.id is not None
+                and self._fields[name].field not in self._changed_fields):
+            self.__init__(self.objects.get(self.id)._data)  # trying to get info from crm
         return value or super(_BaseModel, self).__getattribute__(name)
 
     def _save_fk(self):
@@ -76,7 +72,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 self._data[field.links[main_field]] = value
             if getattr(field, 'auto', None):
                 continue
-            if (field.field in self._changed_fields or not self._loaded)\
+            if (field.field in self._changed_fields or not self._loaded) \
                     and (name in self._data or name in self._init_data):
                 getattr(self, name).save()
                 self._data[field.field] = getattr(self, name).id
@@ -104,20 +100,18 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     linked_leads = fields.ManyForeignField('linked_leads_id')
     date_create = fields.DateTimeField('date_create')
     last_modified = fields.DateTimeField('last_modified')
-    tags = fields.CommaSepField('tags', 'name')
+    tags = fields.TagsField('tags', 'name')
     rui = fields.Field('responsible_user_id')
     deleted = fields.BooleanField('deleted')
 
 
 class Company(_BaseModel):
-
     type = fields.ConstantField('type', 'company')
 
     objects = CompanyManager()
 
 
 class Lead(_BaseModel):
-
     status = fields.StatusField('status_id', choices='leads_statuses')
     price = fields.Field('price')
 
@@ -136,7 +130,6 @@ class _BaseTask(_BaseModel):
 
 
 class LeadTask(_BaseTask):
-
     lead = fields.ForeignField(Lead, 'element_id')
     _element_type = fields.ConstantField('element_type',
                                          _BaseTask.ELEMENT_TYPES['lead'])
@@ -145,7 +138,6 @@ class LeadTask(_BaseTask):
 
 
 class Contact(_BaseModel):
-
     type = fields.ConstantField('type', 'contact')
     company = fields.ForeignField(Company, 'linked_company_id',
                                   auto_created=False,
@@ -161,7 +153,6 @@ class Contact(_BaseModel):
 
 
 class ContactTask(_BaseTask):
-
     contact = fields.ForeignField(Contact, 'element_id')
     _element_type = fields.ConstantField('element_type',
                                          _BaseTask.ELEMENT_TYPES['contact'])

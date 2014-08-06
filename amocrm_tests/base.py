@@ -43,7 +43,7 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertIsNone(contact.id)
         self.assertEqual(contact.type, 'contact')
         self.assertEqual(contact.name, 'test')
-        self.assertEqual(contact.tags, '1, 2, frog')
+        self.assertEqual(contact.tags, ['1', '2', 'frog'])
         self.assertEqual(contact.created_user, 1)
         self.assertIsNone(contact.date_create)
         self.assertIsNone(contact.last_modified)
@@ -61,7 +61,7 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(_contact.id, 1)
         self.assertEqual(_contact.type, 'contact')
         self.assertEqual(_contact.name, 'test')
-        self.assertEqual(_contact.tags, '1, 2, frog')
+        self.assertEqual(_contact.tags, ['1', '2', 'frog'])
         self.assertEqual(_contact.created_user, 1)
         self.assertIsNotNone(contact.last_modified)
         self.assertIsNotNone(contact.date_create)
@@ -75,7 +75,7 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertIsNone(company.id)
         self.assertEqual(company.type, 'company')
         self.assertEqual(company.name, 'test')
-        self.assertEqual(company.tags, '1, 2, frog')
+        self.assertEqual(company.tags, ['1', '2', 'frog'])
         self.assertIsNone(company.last_modified)
         self.assertIsNone(company.date_create)
         self.assertFalse(company.deleted)
@@ -90,7 +90,7 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(_company.id, 1)
         self.assertEqual(_company.type, 'company')
         self.assertEqual(_company.name, 'test')
-        self.assertEqual(_company.tags, '1, 2, frog')
+        self.assertEqual(_company.tags, ['1', '2', 'frog'])
         self.assertIsNotNone(company.last_modified)
         self.assertIsNotNone(company.date_create)
         self.assertFalse(_company.deleted)
@@ -175,8 +175,7 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         self.assertEqual(contact.name, 'test_name')
         self.assertEqual(contact.id, 1)
         self.assertEquals(contact.deleted, False)
-        self.assertSetEqual(set(contact.tags.replace(', ', ',').split(',')),
-                            {'1', '2', '3'})
+        self.assertSetEqual(set(contact.tags), {'1', '2', '3'})
         self.assertEquals(contact.date_create.date(), from_ts(int(time.time())).date())
         self.assertEquals(contact.last_modified.date(), from_ts(int(time.time())).date())
 
@@ -205,12 +204,12 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         self.create_object(tags=['Tag2', 'Tag1'])
 
         _contact = Contact.objects.search('test_name')
-        self.assertEqual(_contact.tags, 'Tag2, Tag1')
+        self.assertEqual(_contact.tags, ['Tag2', 'Tag1'])
 
-        _contact.tags += ', frog'
+        _contact.tags += ['frog']
         _contact.save()
         _contact = Contact.objects.search('test_name')
-        self.assertEqual(_contact.tags, 'Tag2, Tag1, frog')
+        self.assertEqual(_contact.tags, ['Tag2', 'Tag1', 'frog'])
 
     @amomock.activate
     def test_creating_company_by_contact(self):

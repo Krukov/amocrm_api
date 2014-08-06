@@ -5,6 +5,7 @@ from abc import *
 from collections import defaultdict
 from time import time
 from copy import copy, deepcopy
+import six
 
 import requests
 
@@ -22,9 +23,9 @@ REQUEST_PARAMS = {
 tree = lambda: defaultdict(tree)
 
 
-class BaseAmoManager(object):
-    __metaclass__ = ABCMeta
+class BaseAmoManager(six.with_metaclass(ABCMeta)):
 
+    __slots__ = ['name']
     format_ = 'json'
 
     _object_type = None
@@ -115,7 +116,7 @@ class BaseAmoManager(object):
 
     @lazy_property
     def task_types(self):
-        return self.account_info.get('task_types')  # ['LETTER', 'MEETING', 'CALL', 'OTHER']
+        return self.account_info.get('task_types')  # [{'name': name, 'id': name} for name in ['LETTER', 'MEETING', 'CALL', 'OTHER']]
 
     def _request(self, path, method, data):
         method = method.lower()
