@@ -37,6 +37,10 @@ class FakeApi(object):
             'company': [],
             'leads': [],
             'tasks': [],
+            'task_types': [
+                {'name': 'do', 'id': 1},
+                {'name': 'to_test', 'id': 2},
+            ],
             'leads_statuses': [
                 {'name': 'new', 'id': 1},
                 {'name': 'test', 'id': 2},

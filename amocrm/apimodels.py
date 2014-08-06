@@ -129,7 +129,7 @@ class _BaseTask(BaseModel):
 
 class LeadTask(_BaseTask):
 
-    contact = fields.ForeignField(Lead, 'element_id')
+    lead = fields.ForeignField(Lead, 'element_id')
     _element_type = fields.ConstantField('element_type',
                                          _BaseTask.ELEMENT_TYPES['lead'])
 

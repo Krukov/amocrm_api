@@ -107,6 +107,38 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(task.contact.id, contact.id)
         self.assertEqual(task.text, 'test task text')
 
+        task.save()
+        self.assertEqual(task.contact.name, 'test')
+        self.assertEqual(task.contact.id, contact.id)
+        self.assertEqual(task.text, 'test task text')
+
+        _task = ContactTask.objects.get(task.id)
+        self.assertEqual(_task.contact.name, 'test')
+        self.assertEqual(_task.contact.id, contact.id)
+        self.assertEqual(_task.text, 'test task text')
+        self.assertEqual(_task._element_type, ContactTask.ELEMENT_TYPES['contact'])
+
+
+    @amomock.activate
+    def test_lead_task_create(self):
+        lead = Lead(name='test')
+        lead.save()
+
+        task = LeadTask(lead=lead, text='test task text')
+        self.assertEqual(task.lead.name, 'test')
+        self.assertEqual(task.lead.id, lead.id)
+        self.assertEqual(task.text, 'test task text')
+
+        task.save()
+        self.assertEqual(task.lead.name, 'test')
+        self.assertEqual(task.lead.id, lead.id)
+        self.assertEqual(task.text, 'test task text')
+
+        _task = LeadTask.objects.get(task.id)
+        self.assertEqual(_task.lead.name, 'test')
+        self.assertEqual(_task.lead.id, lead.id)
+        self.assertEqual(_task.text, 'test task text')
+        self.assertEqual(_task._element_type, LeadTask.ELEMENT_TYPES['lead'])
 
 
 class TestContacts(AmoSettingsMixin, unittest.TestCase):
