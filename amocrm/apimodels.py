@@ -68,37 +68,25 @@ class _BaseModel(object):
             if main_field is not None:
                 value = getattr(getattr(self, name), main_field)
                 self._data[field.links[main_field]] = value
-            else:
-                value = None
             if getattr(field, 'auto', None):
                 continue
             if (field.field in self._changed_fields or not self._loaded)\
                     and (name in self._data or name in self._init_data):
-                if getattr(self, name).id is not None:
-                    data = {'id': getattr(self, name).id}
-                    if main_field and value is not None:
-                        data.update({main_field: value})
-                    result = field.object_type.objects.update(**data)
-                else:
-                    result = field.object_type.objects.create_or_update(
-                        **{main_field: value}
-                    )
-                self._data[field.field] = result
-                getattr(self, name)._fields_data['id'] = result
+                getattr(self, name).save()
+                self._data[field.field] = getattr(self, name).id
 
     def save(self, update_if_exists=True):
         self._save_fk()
         if self.date_create is None:
             self.date_create = time.time()
         self.last_modified = time.time()
-        _send_data = {k: v for k, v in self._data.items()}
         if self.id is not None:
             method = self.objects.update
         elif update_if_exists:
             method = self.objects.create_or_update
         else:
             method = self.objects.create
-        result = method(**_send_data)
+        result = method(**{k: v for k, v in self._data.items()})
         self._data['id'] = result
 
     def _get_field_by_name(self, name):
