@@ -157,6 +157,51 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(_task.text, 'test task text')
         self.assertEqual(_task._element_type, LeadTask._ELEMENT_TYPES['lead'])
 
+    @amomock.activate
+    def test_contact_note_create(self):
+        contact = BaseContact(name='test')
+        contact.save()
+
+        statuses = copy.deepcopy(BaseContact.objects.note_types)
+        status = statuses.pop()
+
+        note = ContactNote(contact=contact, text='test note text', type=status['name'])
+        self.assertEqual(note.contact.name, 'test')
+        self.assertEqual(note.contact.id, contact.id)
+        self.assertEqual(note.text, 'test note text')
+
+        note.save()
+        self.assertEqual(note.contact.name, 'test')
+        self.assertEqual(note.contact.id, contact.id)
+        self.assertEqual(note.text, 'test note text')
+
+        _task = ContactTask.objects.get(note.id)
+        self.assertEqual(_task.contact.name, 'test')
+        self.assertEqual(_task.contact.id, contact.id)
+        self.assertEqual(_task.text, 'test note text')
+        self.assertEqual(_task._element_type, ContactTask._ELEMENT_TYPES['contact'])
+
+    @amomock.activate
+    def test_lead_note_create(self):
+        lead = BaseLead(name='test')
+        lead.save()
+
+        note = LeadNote(lead=lead, text='test note text')
+        self.assertEqual(note.lead.name, 'test')
+        self.assertEqual(note.lead.id, lead.id)
+        self.assertEqual(note.text, 'test note text')
+
+        note.save()
+        self.assertEqual(note.lead.name, 'test')
+        self.assertEqual(note.lead.id, lead.id)
+        self.assertEqual(note.text, 'test note text')
+
+        _task = LeadTask.objects.get(note.id)
+        self.assertEqual(_task.lead.name, 'test')
+        self.assertEqual(_task.lead.id, lead.id)
+        self.assertEqual(_task.text, 'test note text')
+        self.assertEqual(_task._element_type, LeadTask._ELEMENT_TYPES['lead'])
+
 
 class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     create_param = dict(name='test_name', tags=['1', '2', '3'], created_user=731)

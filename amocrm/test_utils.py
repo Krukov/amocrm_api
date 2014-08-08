@@ -49,6 +49,10 @@ class FakeApi(object):
                     {'name': 'new', 'id': 1},
                     {'name': 'test', 'id': 2},
                 ],
+                'note_types': [
+                    {'name': 'new', 'id': 1},
+                    {'name': 'test', 'id': 2},
+                ],
             },
             'company': [],
             'leads': [],

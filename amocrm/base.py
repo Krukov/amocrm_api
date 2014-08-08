@@ -117,6 +117,10 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return self.account_info.get('leads_statuses')
 
     @lazy_property
+    def note_types(self):
+        return self.account_info.get('note_types')
+
+    @lazy_property
     def task_types(self):
         return self.account_info.get('task_types')  # [{'name': name, 'id': name} for name in ['LETTER', 'MEETING', 'CALL', 'OTHER']]
 

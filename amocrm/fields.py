@@ -145,10 +145,10 @@ class CustomField(Field):
     _parent = 'custom_fields'
 
 
-class StatusField(Field):
+class TypeStatusField(Field):
 
     def __init__(self, field=None, choices=None):
-        super(StatusField, self).__init__(field)
+        super(TypeStatusField, self).__init__(field)
         self.choices = choices
 
     def on_get(self, data, instance):

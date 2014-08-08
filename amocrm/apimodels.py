@@ -7,7 +7,7 @@ from . import fields
 from .api import *
 
 
-__all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead']
+__all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead', 'ContactNote', 'LeadNote']
 
 
 class _ModelMeta(type):
@@ -120,7 +120,7 @@ class BaseCompany(_AbstractaNamedModel):
 
 
 class BaseLead(_AbstractaNamedModel):
-    status = fields.StatusField('status_id', choices='leads_statuses')
+    status = fields.TypeStatusField('status_id', choices='leads_statuses')
     price = fields.Field('price')
 
     objects = LeadsManager()
@@ -142,7 +142,7 @@ class BaseContact(_AbstractaNamedModel):
 
 
 class _AbstractTaskModel(_BaseModel):
-    type = fields.StatusField('task_type', 'task_types')
+    type = fields.TypeStatusField('task_type', 'task_types')
     text = fields.Field('text')
     complete_till = fields.DateTimeField('complete_till')
 
@@ -156,6 +156,27 @@ class LeadTask(_AbstractTaskModel):
 
 
 class ContactTask(_AbstractTaskModel):
+    contact = fields.ForeignField(BaseContact, 'element_id')
+    _element_type = fields.ConstantField('element_type',
+                                         _BaseModel._ELEMENT_TYPES['contact'])
+
+    objects = TasksManager()
+
+
+class _AbstractNoteModel(_BaseModel):
+    type = fields.TypeStatusField('note_type', 'note_types')
+    text = fields.Field('text')
+
+
+class LeadNote(_AbstractNoteModel):
+    lead = fields.ForeignField(BaseLead, 'element_id')
+    _element_type = fields.ConstantField('element_type',
+                                         _BaseModel._ELEMENT_TYPES['lead'])
+
+    objects = TasksManager()
+
+
+class ContactNote(_AbstractNoteModel):
     contact = fields.ForeignField(BaseContact, 'element_id')
     _element_type = fields.ConstantField('element_type',
                                          _BaseModel._ELEMENT_TYPES['contact'])
