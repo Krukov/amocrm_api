@@ -7,7 +7,7 @@ from . import fields
 from .api import *
 
 
-__all__ = ['Company', 'Contact', 'ContactTask', 'LeadTask', 'Lead']
+__all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead']
 
 
 class _ModelMeta(type):
@@ -113,22 +113,22 @@ class _AbstractaNamedModel(_BaseModel):
     rui = fields.Field('responsible_user_id')
 
 
-class Company(_AbstractaNamedModel):
+class BaseCompany(_AbstractaNamedModel):
     type = fields.ConstantField('type', 'company')
 
     objects = CompanyManager()
 
 
-class Lead(_AbstractaNamedModel):
+class BaseLead(_AbstractaNamedModel):
     status = fields.StatusField('status_id', choices='leads_statuses')
     price = fields.Field('price')
 
     objects = LeadsManager()
 
 
-class Contact(_AbstractaNamedModel):
+class BaseContact(_AbstractaNamedModel):
     type = fields.ConstantField('type', 'contact')
-    company = fields.ForeignField(Company, 'linked_company_id',
+    company = fields.ForeignField(BaseCompany, 'linked_company_id',
                                   auto_created=False,
                                   links={'name': 'company_name'})
     created_user = fields.UneditableField('created_user')
@@ -148,7 +148,7 @@ class _AbstractTaskModel(_BaseModel):
 
 
 class LeadTask(_AbstractTaskModel):
-    lead = fields.ForeignField(Lead, 'element_id')
+    lead = fields.ForeignField(BaseLead, 'element_id')
     _element_type = fields.ConstantField('element_type',
                                          _BaseModel._ELEMENT_TYPES['lead'])
 
@@ -156,7 +156,7 @@ class LeadTask(_AbstractTaskModel):
 
 
 class ContactTask(_AbstractTaskModel):
-    contact = fields.ForeignField(Contact, 'element_id')
+    contact = fields.ForeignField(BaseContact, 'element_id')
     _element_type = fields.ConstantField('element_type',
                                          _BaseModel._ELEMENT_TYPES['contact'])
 
