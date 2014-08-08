@@ -1,5 +1,9 @@
 .idea/
 .bin/
 .env/
+.tox/
+dist/
+build/
 .coverage
-*.pyc
+*.pyc*
+*.egg*

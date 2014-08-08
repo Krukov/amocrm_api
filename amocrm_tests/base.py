@@ -49,14 +49,12 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertIsNone(contact.date_create)
         self.assertIsNone(contact.last_modified)
         self.assertIsNone(contact.rui)
-        self.assertFalse(contact.deleted)
 
         contact.save()
         self.assertEqual(contact.id, 1)
         self.assertIsNotNone(contact.last_modified)
         self.assertIsNotNone(contact.date_create)
         self.assertEqual(contact.created_user, 1)
-        self.assertFalse(contact.deleted)
 
         _contact = Contact.objects.get(contact.id)
         self.assertEqual(_contact.id, 1)
@@ -68,7 +66,6 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertIsNotNone(contact.date_create)
         self.assertEqual(_contact.date_create.date(), datetime.now().date())
         self.assertEqual(int(_contact.rui), int(99))
-        self.assertFalse(_contact.deleted)
 
     @amomock.activate
     def test_creating_company(self):
@@ -79,13 +76,11 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(company.tags, ['1', '2', 'frog'])
         self.assertIsNone(company.last_modified)
         self.assertIsNone(company.date_create)
-        self.assertFalse(company.deleted)
 
         company.save()
         self.assertEqual(company.id, 1)
         self.assertIsNotNone(company.last_modified)
         self.assertIsNotNone(company.date_create)
-        self.assertFalse(company.deleted)
 
         _company = Company.objects.get(company.id)
         self.assertEqual(_company.id, 1)
@@ -94,7 +89,6 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(_company.tags, ['1', '2', 'frog'])
         self.assertIsNotNone(company.last_modified)
         self.assertIsNotNone(company.date_create)
-        self.assertFalse(_company.deleted)
 
     @amomock.activate
     def test_lead_create(self):
@@ -140,7 +134,7 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(_task.contact.name, 'test')
         self.assertEqual(_task.contact.id, contact.id)
         self.assertEqual(_task.text, 'test task text')
-        self.assertEqual(_task._element_type, ContactTask.ELEMENT_TYPES['contact'])
+        self.assertEqual(_task._element_type, ContactTask._ELEMENT_TYPES['contact'])
 
     @amomock.activate
     def test_lead_task_create(self):
@@ -161,11 +155,11 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(_task.lead.name, 'test')
         self.assertEqual(_task.lead.id, lead.id)
         self.assertEqual(_task.text, 'test task text')
-        self.assertEqual(_task._element_type, LeadTask.ELEMENT_TYPES['lead'])
+        self.assertEqual(_task._element_type, LeadTask._ELEMENT_TYPES['lead'])
 
 
 class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
-    create_param = dict(name='test_name', deleted=False, tags=['1', '2', '3'], created_user=731)
+    create_param = dict(name='test_name', tags=['1', '2', '3'], created_user=731)
     object_type = Contact
 
     @amomock.activate
@@ -175,7 +169,6 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
         self.assertEqual(contact.name, 'test_name')
         self.assertEqual(contact.id, 1)
-        self.assertEquals(contact.deleted, False)
         self.assertSetEqual(set(contact.tags), set(['1', '2', '3']))
         self.assertEquals(contact.date_create.date(), from_ts(int(time.time())).date())
         self.assertEquals(contact.last_modified.date(), from_ts(int(time.time())).date())
@@ -252,7 +245,6 @@ class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
         self.assertEqual(company.name, 'test_name')
         self.assertEqual(company.id, 1)
-        self.assertEquals(company.deleted, False)
         self.assertEquals(company.date_create.date(), from_ts(int(time.time())).date())
         self.assertEquals(company.last_modified.date(), from_ts(int(time.time())).date())
 
@@ -284,10 +276,8 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         self.create_object(contact=self.create_object(object=Contact), text='TEST TEST')
         task = self.object_type.objects.get(1)
 
-        self.assertEqual(task.name, 'test_name')
         self.assertEqual(task.id, 1)
         self.assertEqual(task.text, 'TEST TEST')
-        self.assertEquals(task.deleted, False)
         self.assertEquals(task.date_create.date(), from_ts(int(time.time())).date())
         self.assertEquals(task.last_modified.date(), from_ts(int(time.time())).date())
         self.assertEquals(task.contact.name, 'test_name')
@@ -301,12 +291,12 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     def test_edit_task(self):
         self.create_object()
         task = self.object_type.objects.get(1)
-        self.assertNotEqual(task.name, 'frog')
-        task.name = 'frog'
+        self.assertNotEqual(task.text, 'frog')
+        task.text = 'frog'
         task.save()
 
         _task = self.object_type.objects.get(1)
-        self.assertEqual(_task.name, 'frog')
+        self.assertEqual(_task.text, 'frog')
 
 
 class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
@@ -320,7 +310,6 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
         self.assertEqual(lead.name, 'test_name')
         self.assertEqual(lead.id, 1)
-        self.assertEquals(lead.deleted, False)
         self.assertEquals(lead.date_create.date(), from_ts(int(time.time())).date())
         self.assertEquals(lead.last_modified.date(), from_ts(int(time.time())).date())
 

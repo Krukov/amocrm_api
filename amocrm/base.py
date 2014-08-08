@@ -218,10 +218,9 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return results.pop()
 
     def search(self, query):
-        query = {
-            'type': self._object_type or self.name[:-1],
-            'query': query
-        }
+        query = {'query': query}
+        if self._object_type:
+            query.update({'type': self._object_type})
         results = self.all(limit=1, query=query)
 
         return results.pop() if results is not None else None

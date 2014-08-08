@@ -13,6 +13,8 @@ class _BaseField(object):
         self.field = field
 
     def __get__(self, instance, _=None):
+        if instance is None:
+            return self
         if instance._fields_data.get(self.field) is None:
             if self._parent:
                 _data = instance._data.get(self._parent, {}).get(self.field)
@@ -23,6 +25,8 @@ class _BaseField(object):
         return instance._fields_data[self.field]
 
     def __set__(self, instance, value):
+        if instance is None:
+            return
         instance._fields_data[self.field] = None
         value = self.on_set(value, instance)
         if not self._parent:
@@ -132,6 +136,8 @@ class TagsField(Field):
         return data.replace(', ', ',').split(',')
 
     def on_set(self, value, *args):
+        if value and value[0] and isinstance(value[0], dict):
+            value = (item['name'] for item in value)
         return ', '.join(value)
 
 

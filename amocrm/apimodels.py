@@ -26,6 +26,16 @@ class _ModelMeta(type):
 class _BaseModel(six.with_metaclass(_ModelMeta)):
     _fields = {}
 
+    _ELEMENT_TYPES = {
+        'contact': 1,
+        'lead': 2,
+    }
+
+    id = fields.UneditableField('id')
+    date_create = fields.DateTimeField('date_create')
+    last_modified = fields.DateTimeField('last_modified')
+    request = fields.Field('request_id')
+
     def __init__(self, data=None, **kwargs):
         self._data, self._init_data = {}, {}
         self._fields_data, self._changed_fields = {}, []
@@ -95,54 +105,33 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         result = [v for k, v in self._fields.items() if v.field == name]
         return result.pop()
 
-    id = fields.UneditableField('id')
+
+class _AbstractaNamedModel(_BaseModel):
     name = fields.Field('name')
     linked_leads = fields.ManyForeignField('linked_leads_id')
-    date_create = fields.DateTimeField('date_create')
-    last_modified = fields.DateTimeField('last_modified')
     tags = fields.TagsField('tags', 'name')
     rui = fields.Field('responsible_user_id')
-    deleted = fields.BooleanField('deleted')
 
 
-class Company(_BaseModel):
+class Company(_AbstractaNamedModel):
     type = fields.ConstantField('type', 'company')
 
     objects = CompanyManager()
 
 
-class Lead(_BaseModel):
+class Lead(_AbstractaNamedModel):
     status = fields.StatusField('status_id', choices='leads_statuses')
     price = fields.Field('price')
 
     objects = LeadsManager()
 
 
-class _BaseTask(_BaseModel):
-    ELEMENT_TYPES = {
-        'contact': 1,
-        'lead': 2,
-    }
-
-    type = fields.StatusField('task_type', 'task_types')
-    text = fields.Field('text')
-    complete_till = fields.DateTimeField('complete_till')
-
-
-class LeadTask(_BaseTask):
-    lead = fields.ForeignField(Lead, 'element_id')
-    _element_type = fields.ConstantField('element_type',
-                                         _BaseTask.ELEMENT_TYPES['lead'])
-
-    objects = TasksManager()
-
-
-class Contact(_BaseModel):
+class Contact(_AbstractaNamedModel):
     type = fields.ConstantField('type', 'contact')
     company = fields.ForeignField(Company, 'linked_company_id',
                                   auto_created=False,
                                   links={'name': 'company_name'})
-    created_user = fields.Field('created_user')
+    created_user = fields.UneditableField('created_user')
 
     objects = ContactsManager()
 
@@ -152,8 +141,23 @@ class Contact(_BaseModel):
         return task
 
 
-class ContactTask(_BaseTask):
+class _AbstractTaskModel(_BaseModel):
+    type = fields.StatusField('task_type', 'task_types')
+    text = fields.Field('text')
+    complete_till = fields.DateTimeField('complete_till')
+
+
+class LeadTask(_AbstractTaskModel):
+    lead = fields.ForeignField(Lead, 'element_id')
+    _element_type = fields.ConstantField('element_type',
+                                         _BaseModel._ELEMENT_TYPES['lead'])
+
+    objects = TasksManager()
+
+
+class ContactTask(_AbstractTaskModel):
     contact = fields.ForeignField(Contact, 'element_id')
     _element_type = fields.ConstantField('element_type',
-                                         _BaseTask.ELEMENT_TYPES['contact'])
+                                         _BaseModel._ELEMENT_TYPES['contact'])
+
     objects = TasksManager()
