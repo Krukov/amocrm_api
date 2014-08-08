@@ -6,6 +6,9 @@ from copy import deepcopy
 from .decorators import lazy_dict_property
 
 
+__all__ = ['CustomField', 'ForeignField', 'ManyForeignField']
+
+
 class _BaseField(object):
 
     def __init__(self, field=None):
@@ -55,11 +58,11 @@ class _ConstantField(_UneditableField):
         return self._data
 
 
-class _DateTimeField(_Field):
+class _DateTimeField(_UneditableField):
 
     def on_get(self, data, instance):
         if data is not None:
-            return datetime.fromtimestamp(float(data))
+            return datetime.utcfromtimestamp(float(data))
 
 
 class _BooleanField(_Field):

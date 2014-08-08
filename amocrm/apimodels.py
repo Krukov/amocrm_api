@@ -90,8 +90,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     def save(self, update_if_exists=True):
         self._save_fk()
         if self.date_create is None:
-            self.date_create = time.time()
-        self.last_modified = time.time()
+            self._data['date_create'] = time.time()
+        self._data['last_modified'] = time.time()
         if self.id is not None:
             method = self.objects.update
         elif update_if_exists:
@@ -139,6 +139,9 @@ class BaseContact(_AbstractaNamedModel):
         task = ContactTask(contact=self, type=task_type, text=text, complete_till=complete_till)
         task.save()
         return task
+
+    def create_note(self, text, note_type=None):
+        note = ContactNote(contact=self, type=note_type, text=text)
 
 
 class _AbstractTaskModel(_BaseModel):

@@ -377,5 +377,37 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         self.assertEqual(_lead.name, 'frog')
 
 
+class TestNote(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
+    object_type = ContactNote
+    create_param = {'name': 'test_name'}
+
+    @amomock.activate
+    def test_getting_note_by_id_and_data(self):
+        self.create_object(contact=self.create_object(object=BaseContact), text='TEST TEST')
+        note = self.object_type.objects.get(1)
+
+        self.assertEqual(note.id, 1)
+        self.assertEqual(note.text, 'TEST TEST')
+        self.assertEquals(note.date_create.date(), from_ts(int(time.time())).date())
+        self.assertEquals(note.last_modified.date(), from_ts(int(time.time())).date())
+        self.assertEquals(note.contact.name, 'test_name')
+        self.assertEquals(note.contact.id, 1)
+
+    @amomock.activate
+    def test_searching_note(self):
+        pass  # TODO: Note have not search ability
+
+    @amomock.activate
+    def test_edit_note(self):
+        self.create_object()
+        note = self.object_type.objects.get(1)
+        self.assertNotEqual(note.text, 'frog')
+        note.text = 'frog'
+        note.save()
+
+        _note = self.object_type.objects.get(1)
+        self.assertEqual(_note.text, 'frog')
+
+
 if __name__ == '__main__':
     unittest.main()

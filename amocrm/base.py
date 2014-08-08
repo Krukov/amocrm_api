@@ -92,6 +92,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                 return [self._amo_model_class(obj, _loaded=True) for obj in result]
             return self._amo_model_class(result, _loaded=True)
 
+    def create(self, **kwargs):
+        obj = self._amo_model_class(kwargs)
+        obj.save()
+        return obj
+
     @lazy_dict_property
     def custom_fields(self):
         return self.get_custom_fields(to=self.name)
