@@ -10,7 +10,7 @@ setup(
     author='Dmitry Krukov',
     author_email='frog-king69@yandex.ru',
     description='Python (Django like) API for Amocrm',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
 
     requires=[
         'requests (>=2.3)',
