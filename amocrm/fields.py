@@ -7,7 +7,6 @@ from .decorators import lazy_dict_property
 
 
 class _BaseField(object):
-    _parent = None
 
     def __init__(self, field=None):
         self.field = field
@@ -16,10 +15,7 @@ class _BaseField(object):
         if instance is None:
             return self
         if instance._fields_data.get(self.field) is None:
-            if self._parent:
-                _data = instance._data.get(self._parent, {}).get(self.field)
-            else:
-                _data = instance._data.get(self.field)
+            _data = instance._data.get(self.field)
             _data = self.on_get(_data, instance)
             instance._fields_data[self.field] = _data
         return instance._fields_data[self.field]
@@ -29,10 +25,7 @@ class _BaseField(object):
             return
         instance._fields_data[self.field] = None
         value = self.on_set(value, instance)
-        if not self._parent:
-            instance._data[self.field] = value
-        else:
-            instance._data[self._parent][self.field] = value
+        instance._data[self.field] = value
         instance._changed_fields.append(self.field)
 
     def on_set(self, value, instance):
@@ -157,8 +150,47 @@ class _TypeStatusField(_Field):
         _statuses = deepcopy(getattr(instance.objects, self.choices))
         if _statuses:
             _statuses = {item.pop('name'): item for item in _statuses}
-            return _statuses[value]['id'] # TODO: raise Exception
+            return _statuses[value]['id']  # TODO: raise Exception
 
 
-class CustomField(_BaseField):
-    _parent = 'custom_fields'
+class CustomField(object):
+    _field = 'custom_fields'
+
+    def __init__(self, custom_field, enum=None):
+        self.field = '%s_%s' % (self._field, custom_field)
+        self.custom_field, self.enum = custom_field, enum
+
+    def __get__(self, instance, _=None):
+        if instance is None:
+            return self
+        if instance._fields_data.get(self.field) is None:
+            _data = instance._data.get(self._field)
+            _id = instance.objects.custom_fields[self.custom_field]['id']
+            _data = [item['values'] for item in _data if item['id'] == _id]
+            _data = _data.pop() if _data else None
+
+            if self.enum is not None:
+                _data = [item for item in _data if item['enum'] == self.enum]
+            instance._fields_data[self.field] = _data.pop()['value']
+
+        return instance._fields_data[self.field]
+
+    def __set__(self, instance, value):
+        if instance is None:
+            return
+        instance._fields_data[self.field] = None
+
+        _id = instance.objects.custom_fields[self.custom_field]['id']
+        field = [_field for _field in instance._data.setdefault(self._field, []) if _field['id'] == _id]
+        if field:
+            field_vals = field.pop()['values']
+            if self.enum is not None:
+                field_vals = [item for item in field_vals if item['enum'] == self.enum]
+            field_vals.pop()['value'] = value
+        else:
+            full_data = {'id': _id, 'values': {'value': value}}
+            if self.enum is not None:
+                full_data['enum'] = self.enum
+            instance._data[self._field].append(full_data)
+        instance._changed_fields.append(self.field)
+

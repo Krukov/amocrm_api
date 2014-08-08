@@ -199,7 +199,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def get_custom_fields(self, to):
         custom_fields = self.account_info['custom_fields'][to]
-        return {field['name']: field.get('id') for field in custom_fields}
+        return {field['name']: field for field in custom_fields}
 
     @amo_request(method='account_info')
     def get_account_info(self):
