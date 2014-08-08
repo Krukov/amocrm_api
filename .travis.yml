@@ -9,7 +9,7 @@ install:
   - pip install coverage nose coveralls
   - pip install .
 
-script: nosetests --cover-package=amocrm_api
+script: nosetests --with-coverage --cover-package=amocrm
 
 after_success:
   - coveralls
