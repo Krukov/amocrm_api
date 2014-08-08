@@ -42,48 +42,48 @@ class _BaseField(object):
         return data
 
 
-class Field(_BaseField):
+class _Field(_BaseField):
     pass
 
 
-class UneditableField(Field):
+class _UneditableField(_Field):
 
     def __set__(self, instance, value):
         pass
 
 
-class ConstantField(UneditableField):
+class _ConstantField(_UneditableField):
 
     def __init__(self, field=None, value=None):
-        super(ConstantField, self).__init__(field)
+        super(_ConstantField, self).__init__(field)
         self._data = value
 
     def on_get(self, data, instance):
         return self._data
 
 
-class DateTimeField(Field):
+class _DateTimeField(_Field):
 
     def on_get(self, data, instance):
         if data is not None:
             return datetime.fromtimestamp(float(data))
 
 
-class BooleanField(Field):
+class _BooleanField(_Field):
 
     def on_get(self, data, instance):
         data = int(data) if str(data).isdigit() else data
         return bool(data)
 
 
-class BaseForeignField(Field):
+class _BaseForeignField(_Field):
 
     def __init__(self, object_type=None, field=None):
-        super(BaseForeignField, self).__init__(field)
+        super(_BaseForeignField, self).__init__(field)
         self.object_type = object_type
 
 
-class ForeignField(BaseForeignField):
+class ForeignField(_BaseForeignField):
 
     def __init__(self, object_type=None, field=None, auto_created=False,
                  links={}):
@@ -106,7 +106,7 @@ class ForeignField(BaseForeignField):
             return int(val)
 
 
-class ManyForeignField(BaseForeignField):
+class ManyForeignField(_BaseForeignField):
 
     def __init__(self, objects_type=None, field=None, key=None):
         super(ManyForeignField, self).__init__(field=field,
@@ -126,10 +126,10 @@ class ManyForeignField(BaseForeignField):
         return items
 
 
-class TagsField(Field):
+class _TagsField(_Field):
 
     def __init__(self, field=None, key=None):
-        super(TagsField, self).__init__(field)
+        super(_TagsField, self).__init__(field)
         self.key = key
 
     def on_get(self, data, instance):
@@ -141,14 +141,10 @@ class TagsField(Field):
         return ', '.join(value)
 
 
-class CustomField(Field):
-    _parent = 'custom_fields'
-
-
-class TypeStatusField(Field):
+class _TypeStatusField(_Field):
 
     def __init__(self, field=None, choices=None):
-        super(TypeStatusField, self).__init__(field)
+        super(_TypeStatusField, self).__init__(field)
         self.choices = choices
 
     def on_get(self, data, instance):
@@ -162,3 +158,7 @@ class TypeStatusField(Field):
         if _statuses:
             _statuses = {item.pop('name'): item for item in _statuses}
             return _statuses[value]['id'] # TODO: raise Exception
+
+
+class CustomField(_BaseField):
+    _parent = 'custom_fields'
