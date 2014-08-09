@@ -92,23 +92,22 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
 
     @amomock.activate
     def test_lead_create(self):
-        statuses = copy.deepcopy(BaseLead.objects.leads_statuses)
-        status = statuses.pop()
-        lead = BaseLead(name='test', status=status['name'], price=10000.00)
+
+        lead = BaseLead(name='test', status='test2', price=10000.00)
         self.assertEqual(lead.name, 'test')
-        self.assertEqual(lead.status, 'test')
+        self.assertEqual(lead.status, 'test2')
         self.assertEqual(lead.price, 10000)
         self.assertIsNone(lead.id)
 
         lead.save()
         self.assertEqual(lead.name, 'test')
-        self.assertEqual(lead.status, 'test')
+        self.assertEqual(lead.status, 'test2')
         self.assertEqual(lead.price, 10000)
         self.assertEqual(lead.id, 1)
         
         _lead = BaseLead.objects.get(lead.id)
         self.assertEqual(_lead.name, 'test')
-        self.assertEqual(_lead.status, 'test')
+        self.assertEqual(_lead.status, 'test2')
         self.assertEqual(_lead.price, 10000)
         self.assertEqual(_lead.id, 1)
 
@@ -117,10 +116,7 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         contact = BaseContact(name='test')
         contact.save()
 
-        statuses = copy.deepcopy(BaseContact.objects.task_types)
-        status = statuses.pop()
-
-        task = ContactTask(contact=contact, text='test task text', type=status['name'])
+        task = ContactTask(contact=contact, text='test task text', type='Call')
         self.assertEqual(task.contact.name, 'test')
         self.assertEqual(task.contact.id, contact.id)
         self.assertEqual(task.text, 'test task text')
@@ -162,10 +158,7 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         contact = BaseContact(name='test')
         contact.save()
 
-        statuses = copy.deepcopy(BaseContact.objects.note_types)
-        status = statuses.pop()
-
-        note = ContactNote(contact=contact, text='test note text', type=status['name'])
+        note = ContactNote(contact=contact, text='test note text', type='COMMON')
         self.assertEqual(note.contact.name, 'test')
         self.assertEqual(note.contact.id, contact.id)
         self.assertEqual(note.text, 'test note text')
@@ -330,7 +323,7 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_searching_task(self):
-        pass  # TODO: Tasks have not search ability
+        self.assertRaises(Exception, self.object_type.objects.search)
 
     @amomock.activate
     def test_edit_task(self):
@@ -395,7 +388,7 @@ class TestNote(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_searching_note(self):
-        pass  # TODO: Note have not search ability
+        self.assertRaises(Exception, self.object_type.objects.search)
 
     @amomock.activate
     def test_edit_note(self):
@@ -408,6 +401,36 @@ class TestNote(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _note = self.object_type.objects.get(1)
         self.assertEqual(_note.text, 'frog')
 
+
+class TestCustomFields(AmoSettingsMixin, unittest.TestCase):
+    @amomock.activate
+    def test_contact_cf(self):
+
+        class Contact(BaseContact):
+            phone = fields.CustomField(u'Телефон')
+            mobile_phone = fields.CustomField(u'Телефон', enum='MOB')
+            home_phone = fields.CustomField(u'Телефон', enum='HOME')
+            email = fields.CustomField(u'Email')
+
+        contact = Contact(phone='8-888-888-88-88', mobile_phone='100',
+                          home_phone='7-777-777-77-77', email='test@email.com')
+        self.assertEqual(contact.phone, '8-888-888-88-88')
+        self.assertEqual(contact.mobile_phone, '100')
+        self.assertEqual(contact.home_phone, '7-777-777-77-77')
+        self.assertEqual(contact.email, 'test@email.com')
+
+        contact.save()
+        self.assertEqual(contact.id, 1)
+        self.assertEqual(contact.phone, '8-888-888-88-88')
+        self.assertEqual(contact.mobile_phone, '100')
+        self.assertEqual(contact.home_phone, '7-777-777-77-77')
+        self.assertEqual(contact.email, 'test@email.com')
+
+        contact = Contact.objects.get(contact.id)
+        self.assertEqual(contact.phone, '8-888-888-88-88')
+        self.assertEqual(contact.mobile_phone, '100')
+        self.assertEqual(contact.home_phone, '7-777-777-77-77')
+        self.assertEqual(contact.email, 'test@email.com')
 
 if __name__ == '__main__':
     unittest.main()

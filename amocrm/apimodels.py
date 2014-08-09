@@ -15,7 +15,7 @@ class _ModelMeta(type):
         attrs.setdefault('_fields', {})
         [attrs.update(getattr(base, '_fields', {})) for base in bases]
         attrs['_fields'].update({name: instance for name, instance in attrs.items()
-                                 if isinstance(instance, fields._BaseField)})
+                                 if isinstance(instance, fields._BaseField) or isinstance(instance, fields.CustomField)})
         super_new = super(_ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         _manager = getattr(super_new, 'objects', None)
         if _manager:
@@ -142,6 +142,8 @@ class BaseContact(_AbstractaNamedModel):
 
     def create_note(self, text, note_type=None):
         note = ContactNote(contact=self, type=note_type, text=text)
+        note.save()
+        return note
 
 
 class _AbstractTaskModel(_BaseModel):

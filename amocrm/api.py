@@ -9,14 +9,17 @@ __all__ = ['AmoApi', 'NotesManager', 'ContactsManager', 'CompanyManager', 'Leads
 class NotesManager(_BlankMixin, _BaseAmoManager):
     name = 'notes'
 
+    def search(self, query):
+        raise Exception('Amocrm havn\'t note search ability ')
+
 
 class ContactsManager(_BlankMixin, _BaseAmoManager):
     name = 'contacts'
     _object_type = 'contact'
 
-    def add_data(self, **kwargs):
+    def _add_data(self, **kwargs):
         kwargs.setdefault('responsible_user_id', self.rui)
-        return super(ContactsManager, self).add_data(**kwargs)
+        return super(ContactsManager, self)._add_data(**kwargs)
 
 
 class CompanyManager(_BlankMixin, _BaseAmoManager):
@@ -31,6 +34,9 @@ class LeadsManager(_BlankMixin, _BaseAmoManager):
 
 class TasksManager(_BlankMixin, _BaseAmoManager):
     name = 'tasks'
+
+    def search(self, query):
+        raise Exception('Amocrm havn\'t task search ability ')
 
 
 class AmoApi(_Helper(ContactsManager, 'contacts'), _Helper(CompanyManager, 'company'),

@@ -66,17 +66,17 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                          responsible_user)
 
     @property
-    def domain(self):
+    def _domain(self):
         return settings.domain
 
     @property
-    def login_data(self):
+    def _login_data(self):
         if settings.user_login:
             return {'USER_LOGIN': settings.user_login,
                     'USER_HASH': settings.user_hash, 'type': 'json'}
 
     @lazy_property
-    def responsible_user(self):
+    def _responsible_user(self):
         return settings.responsible_user or settings.user_login
 
     @classmethod
@@ -84,7 +84,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     def name(cls):
         pass
 
-    def convert_to_obj(self, result):
+    def _convert_to_obj(self, result):
         if result:
             if not self._amo_model_class:
                 return result
@@ -98,7 +98,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return obj
 
     @lazy_dict_property
-    def custom_fields(self):
+    def _custom_fields(self):
         return self.get_custom_fields(to=self.name)
 
     @lazy_dict_property
@@ -107,11 +107,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @lazy_property
     def rui(self):
-        if isinstance(self.responsible_user, int):
-            return self.responsible_user
+        if isinstance(self._responsible_user, int):
+            return self._responsible_user
         else:
-            filter_func = lambda _: self.responsible_user == _.get('login') or \
-                                    self.responsible_user == _.get('name')
+            filter_func = lambda _: self._responsible_user == _.get('login') or \
+                                    self._responsible_user == _.get('name')
             user = list(filter(filter_func, self.account_info.get('users', []))).pop()
             if user is None:
                 raise Exception('Can not get responsible user id')
@@ -119,19 +119,19 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @lazy_property
     def leads_statuses(self):
-        return self.account_info.get('leads_statuses')
+        return {item.pop('name'): item for item in self.account_info.get('leads_statuses')}
 
     @lazy_property
     def note_types(self):
-        return self.account_info.get('note_types')
+        return {item.pop('code'): item for item in self.account_info.get('note_types')}
 
     @lazy_property
     def task_types(self):
-        return self.account_info.get('task_types')  # [{'name': name, 'id': name} for name in ['LETTER', 'MEETING', 'CALL', 'OTHER']]
+        return {item.pop('name'): item for item in self.account_info.get('task_types')}  # 'LETTER', 'MEETING', 'CALL'
 
-    def _request(self, path, method, data):
+    def _make_request(self, path, method, data):
         method = method.lower()
-        params = copy(self.login_data) or {}
+        params = copy(self._login_data) or {}
         if method != 'post':
             params.update(data)
             data = None
@@ -141,7 +141,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         logger.debug('Data: %s \n Params: %s' % (data, params))
 
         req_method = getattr(requests, method, 'get')
-        req = req_method(self.url(path), data=json.dumps(data), params=params, **_REQUEST_PARAMS)
+        req = req_method(self._url(path), data=json.dumps(data), params=params, **_REQUEST_PARAMS)
         logger.debug('Url: %s', req.url)
         if not req.ok:
             logger.error('Something went wrong')
@@ -176,8 +176,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                 pass
         return response
 
-    def request(self, method, data=None):
-        path = self.get_path(method)
+    def _request(self, method, data=None):
+        path = self._get_path(method)
         method = self._methods[method]
         method_type = method.get('method', 'get')
         timestamp, container, result = method.get('timestamp'), method.get('container'), method.get('result')
@@ -187,10 +187,10 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             data.setdefault(_time, int(time()))
         if container is not None:
             data = self._create_container(container, data)
-        response = self._request(path=path, method=method_type, data=data)
+        response = self._make_request(path=path, method=method_type, data=data)
         return self._modify_response(response, result)
 
-    def get_path(self, method_name):
+    def _get_path(self, method_name):
         name = self._methods[method_name].get('name', self.name)
         path = self._methods[method_name]['path']
         if not name.startswith('/'):
@@ -199,8 +199,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             name += '/'
         return self._base_path % {'path': path, 'format': self.format_, 'name': name}
 
-    def url(self, path):
-        return 'https://%(domain)s.amocrm.ru%(path)s' % {'domain': self.domain, 'path': path}
+    def _url(self, path):
+        return 'https://%(domain)s.amocrm.ru%(path)s' % {'domain': self._domain, 'path': path}
 
     def get_custom_fields(self, to):
         custom_fields = self.account_info['custom_fields'][to]
@@ -214,6 +214,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     @amo_request(method='list')
     def all(self, limit=100, limit_offset=None, query=None):
         request = query or {}
+        if self._object_type:
+            request.update({'type': self._object_type})
         if limit is not None:
             request['limit_rows'] = limit
         if limit_offset is not None:
@@ -228,56 +230,54 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def search(self, query):
         query = {'query': query}
-        if self._object_type:
-            query.update({'type': self._object_type})
         results = self.all(limit=1, query=query)
 
         return results.pop() if results is not None else None
 
     @amo_request('add')
     def add(self, **kwargs):
-        return self.add_data(**kwargs)
+        return self._add_data(**kwargs)
 
     @amo_request('update')
     def update(self, **kwargs):
-        return self.update_data(**kwargs)
+        return self._update_data(**kwargs)
 
     def create_or_update(self, **kwargs):
-        return self.create_or_update_data(**kwargs)
+        return self._create_or_update_data(**kwargs)
 
     @abstractmethod
-    def add_data(self, **kwargs):
+    def _add_data(self, **kwargs):
         return kwargs
 
     @abstractmethod
-    def update_data(self, **kwargs):
+    def _update_data(self, **kwargs):
         return kwargs
 
     @abstractmethod
-    def create_or_update_data(self, **data):
+    def _create_or_update_data(self, **data):
         query = data.get(self._main_field)
         obj = self.search(query) if query else {}
         if obj:
-            data = self.merge_data(data, obj)
+            data = self._merge_data(data, obj)
             return self.update(**data)
         else:
             return self.add(**data)
 
     @staticmethod
-    def merge_data(new, old):
+    def _merge_data(new, old):
         return new.update(old)
 
 
 class _BlankMixin(object):
 
-    def add_data(self, **kwargs):
-        return super(_BlankMixin, self).add_data(**kwargs)
+    def _add_data(self, **kwargs):
+        return super(_BlankMixin, self)._add_data(**kwargs)
 
-    def update_data(self, **kwargs):
-        return super(_BlankMixin, self).update_data(**kwargs)
+    def _update_data(self, **kwargs):
+        return super(_BlankMixin, self)._update_data(**kwargs)
 
-    def create_or_update_data(self, **kwargs):
-        return super(_BlankMixin, self).create_or_update_data(**kwargs)
+    def _create_or_update_data(self, **kwargs):
+        return super(_BlankMixin, self)._create_or_update_data(**kwargs)
 
 
 def _Helper(_class, name):

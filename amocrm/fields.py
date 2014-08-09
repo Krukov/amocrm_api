@@ -145,14 +145,13 @@ class _TypeStatusField(_Field):
 
     def on_get(self, data, instance):
         if data and str(data).isdigit():
-            _statuses = {item['id']: item for item in deepcopy(getattr(instance.objects, self.choices))}
-            data = _statuses.get(data)['name']
+            _statuses = {item['id']: key for key, item in getattr(instance.objects, self.choices).items()}
+            data = _statuses.get(data)
         return data
 
     def on_set(self, value, instance):
         _statuses = deepcopy(getattr(instance.objects, self.choices))
         if _statuses:
-            _statuses = {item.pop('name'): item for item in _statuses}
             return _statuses[value]['id']  # TODO: raise Exception
 
 
@@ -160,7 +159,7 @@ class CustomField(object):
     _field = 'custom_fields'
 
     def __init__(self, custom_field, enum=None):
-        self.field = '%s_%s' % (self._field, custom_field)
+        self.field = '%s_%s_%s' % (self._field, custom_field, enum)
         self.custom_field, self.enum = custom_field, enum
 
     def __get__(self, instance, _=None):
@@ -168,12 +167,11 @@ class CustomField(object):
             return self
         if instance._fields_data.get(self.field) is None:
             _data = instance._data.get(self._field)
-            _id = instance.objects.custom_fields[self.custom_field]['id']
+            _id = instance.objects._custom_fields[self.custom_field]['id']
             _data = [item['values'] for item in _data if item['id'] == _id]
             _data = _data.pop() if _data else None
 
-            if self.enum is not None:
-                _data = [item for item in _data if item['enum'] == self.enum]
+            _data = [item for item in _data if item.get('enum') == self.enum]
             instance._fields_data[self.field] = _data.pop()['value']
 
         return instance._fields_data[self.field]
@@ -183,17 +181,22 @@ class CustomField(object):
             return
         instance._fields_data[self.field] = None
 
-        _id = instance.objects.custom_fields[self.custom_field]['id']
+        _id = instance.objects._custom_fields[self.custom_field]['id']
         field = [_field for _field in instance._data.setdefault(self._field, []) if _field['id'] == _id]
         if field:
-            field_vals = field.pop()['values']
-            if self.enum is not None:
-                field_vals = [item for item in field_vals if item['enum'] == self.enum]
-            field_vals.pop()['value'] = value
+            field_vals = field[0]['values']
+            enum_field_vals = [item for item in field_vals if item.get('enum') == self.enum]
+            if enum_field_vals:
+                enum_field_vals[0]['value'] = value
+            else:
+                new_elem = {'value': value}
+                if self.enum:
+                    new_elem['enum'] = self.enum
+                field_vals.append(new_elem)
         else:
-            full_data = {'id': _id, 'values': {'value': value}}
+            full_data = {'id': _id, 'values': [{'value': value}]}
             if self.enum is not None:
-                full_data['enum'] = self.enum
+                full_data['values'][0]['enum'] = self.enum
             instance._data[self._field].append(full_data)
         instance._changed_fields.append(self.field)
 

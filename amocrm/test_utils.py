@@ -35,23 +35,30 @@ class FakeApi(object):
             'contacts': [],
             'account': {
                 'id': 1,
-                'custom_fields': [
+                'custom_fields': {
+                    'contacts': [
+                        {'id': 1, 'name': 'Телефон', 'enums': ['WORK', 'HOME']},
+                        {'id': 2, 'name': 'Email'},
+                    ],
+                },
 
-                ],
                 'users': [
                     {'id': 99, 'name': 'test'}
                 ],
                 'task_types': [
-                    {'name': 'do', 'id': 1},
-                    {'name': 'to_test', 'id': 2},
+                    {u'code': u'CALL', u'id': 1, u'name': u'Call'},
+                    {u'code': u'MEETING', u'id': 2, u'name': u'Meeting'},
+                    {u'code': u'LETTER', u'id': 3, u'name': u'Letter'},
                 ],
                 'leads_statuses': [
-                    {'name': 'new', 'id': 1},
-                    {'name': 'test', 'id': 2},
+                    {u'color': u'#99CCFF', u'sort': u'10', u'editable': u'N', u'name': u'test1', u'id': u'7495620'},
+                    {u'color': u'#FFFF99', u'sort': u'20', u'editable': u'N', u'name': u'test2', u'id': u'7495622'},
                 ],
                 'note_types': [
-                    {'name': 'new', 'id': 1},
-                    {'name': 'test', 'id': 2},
+                    {u'code': u'DEAL_CREATED', u'editable': u'N', u'id': 1, u'name': u''},
+                    {u'code': u'CONTACT_CREATED', u'editable': u'N', u'id': 2, u'name': u''},
+                    {u'code': u'DEAL_STATUS_CHANGED', u'editable': u'N', u'id': 3, u'name': u''},
+                    {u'code': u'COMMON', u'editable': u'Y', u'id': 4, u'name': u''},
                 ],
             },
             'company': [],
