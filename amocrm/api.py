@@ -6,13 +6,6 @@ from .base import _BlankMixin, _BaseAmoManager, _Helper
 __all__ = ['AmoApi', 'NotesManager', 'ContactsManager', 'CompanyManager', 'LeadsManager', 'TasksManager']
 
 
-class NotesManager(_BlankMixin, _BaseAmoManager):
-    name = 'notes'
-
-    def search(self, query):
-        raise Exception('Amocrm havn\'t note search ability ')
-
-
 class ContactsManager(_BlankMixin, _BaseAmoManager):
     name = 'contacts'
     _object_type = 'contact'
@@ -34,9 +27,12 @@ class LeadsManager(_BlankMixin, _BaseAmoManager):
 
 class TasksManager(_BlankMixin, _BaseAmoManager):
     name = 'tasks'
+    _main_field = 'element_id'
 
-    def search(self, query):
-        raise Exception('Amocrm havn\'t task search ability ')
+
+class NotesManager(_BlankMixin, _BaseAmoManager):
+    name = 'notes'
+    _main_field = 'element_id'
 
 
 class AmoApi(_Helper(ContactsManager, 'contacts'), _Helper(CompanyManager, 'company'),

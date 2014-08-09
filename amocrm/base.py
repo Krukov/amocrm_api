@@ -184,7 +184,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
         if timestamp:
             _time = timestamp if isinstance(timestamp, str) else 'last_modified'
-            data.setdefault(_time, int(time()))
+            data[0].setdefault(_time, int(time()))
         if container is not None:
             data = self._create_container(container, data)
         response = self._make_request(path=path, method=method_type, data=data)
@@ -236,11 +236,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @amo_request('add')
     def add(self, **kwargs):
-        return self._add_data(**kwargs)
+        return [self._add_data(**kwargs)]
 
     @amo_request('update')
     def update(self, **kwargs):
-        return self._update_data(**kwargs)
+        return [self._update_data(**kwargs)]
 
     def create_or_update(self, **kwargs):
         return self._create_or_update_data(**kwargs)
@@ -254,18 +254,16 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return kwargs
 
     @abstractmethod
-    def _create_or_update_data(self, **data):
-        query = data.get(self._main_field)
+    def _create_or_update_data(self, on_field=None, **data):
+        query = data.get(on_field or self._main_field)
         obj = self.search(query) if query else {}
         if obj:
-            data = self._merge_data(data, obj)
-            return self.update(**data)
+            if any(obj.get(key) != data[key] for key in data.keys()):
+                obj.update(data)
+                self.update(**obj)
+            return obj['id']
         else:
             return self.add(**data)
-
-    @staticmethod
-    def _merge_data(new, old):
-        return new.update(old)
 
 
 class _BlankMixin(object):

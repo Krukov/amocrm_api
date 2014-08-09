@@ -104,8 +104,8 @@ class FakeApi(object):
         if params:
             if 'update' in params:
                 update = params['update']
-                update = json.loads(update) \
-                    if isinstance(update, str) else update
+                update = json.loads(update)[0] \
+                    if isinstance(update, str) else update[0]
                 update['last_modified'] = time.time()
                 target_id = update['id']
                 update_obj = next(i for i in self._data[obj]
@@ -114,7 +114,7 @@ class FakeApi(object):
                 resp = {'update': {'id': target_id}}
             elif 'add' in params:
                 add = params['add']
-                add = json.loads(add) if isinstance(add, str) else add
+                add = json.loads(add)[0] if isinstance(add, str) else add[0]
                 add['last_modified'] = time.time()
                 max_id = max(map(lambda x: int(x['id']), self._data[obj]))\
                             if self._data[obj] else 0

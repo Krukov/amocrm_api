@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 from datetime import datetime
+from calendar import timegm
 from copy import deepcopy
 
 from .decorators import lazy_dict_property
@@ -58,11 +59,19 @@ class _ConstantField(_UneditableField):
         return self._data
 
 
-class _DateTimeField(_UneditableField):
+class _DateTimeField(_Field):
 
     def on_get(self, data, instance):
         if data is not None:
             return datetime.utcfromtimestamp(float(data))
+
+    def on_set(self, value, instance):
+        if isinstance(value, datetime):
+            return timegm(value.utctimetuple())
+
+
+class _StaticDateTimeField(_UneditableField, _DateTimeField):
+    pass
 
 
 class _BooleanField(_Field):
@@ -129,7 +138,8 @@ class _TagsField(_Field):
         self.key = key
 
     def on_get(self, data, instance):
-        return data.replace(', ', ',').split(',')
+        if data:
+            return data.replace(', ', ',').split(',')
 
     def on_set(self, value, *args):
         if value and value[0] and isinstance(value[0], dict):
@@ -167,6 +177,8 @@ class CustomField(object):
             return self
         if instance._fields_data.get(self.field) is None:
             _data = instance._data.get(self._field)
+            if _data is None:
+                return
             _id = instance.objects._custom_fields[self.custom_field]['id']
             _data = [item['values'] for item in _data if item['id'] == _id]
             _data = _data.pop() if _data else None

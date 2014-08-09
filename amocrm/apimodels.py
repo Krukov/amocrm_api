@@ -32,8 +32,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     }
 
     id = fields._UneditableField('id')
-    date_create = fields._DateTimeField('date_create')
-    last_modified = fields._DateTimeField('last_modified')
+    date_create = fields._StaticDateTimeField('date_create')
+    last_modified = fields._StaticDateTimeField('last_modified')
     request = fields._Field('request_id')
 
     def __init__(self, data=None, **kwargs):
@@ -46,7 +46,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             self._init_data = data or kwargs
         if not self._loaded:
             for name, field in self._fields.items():
-                value = self._init_data.get(name, None)
+                value = self._init_data.get(name, None) or getattr(self, name)
                 if value is None:
                     continue
                 if isinstance(field, fields.ForeignField) and name in self._init_data:
@@ -90,8 +90,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     def save(self, update_if_exists=True):
         self._save_fk()
         if self.date_create is None:
-            self._data['date_create'] = time.time()
-        self._data['last_modified'] = time.time()
+            self._data['date_create'] = int(time.time())
+        self._data['last_modified'] = int(time.time())
         if self.id is not None:
             method = self.objects.update
         elif update_if_exists:
@@ -129,7 +129,7 @@ class BaseLead(_AbstractaNamedModel):
 class BaseContact(_AbstractaNamedModel):
     type = fields._ConstantField('type', 'contact')
     company = fields.ForeignField(BaseCompany, 'linked_company_id',
-                                  auto_created=False,
+                                  auto_created=True,
                                   links={'name': 'company_name'})
     created_user = fields._UneditableField('created_user')
 

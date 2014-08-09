@@ -42,13 +42,13 @@ class TestUtils(unittest.TestCase):
     @amomock.activate
     def test_contacts_getting(self):
         contact = {'name': 'Frog', 'company_name': 'TestsCo'}
-        _data = {'add': json.dumps(contact)}
+        _data = {'add': json.dumps([contact])}
         _data.update(self.login_data)
         requests.post('http://test.amocrm/private/api/contacts/set',
                       data=_data).json()
 
         contact = {'name': 'SOme', 'company_name': 'SomeCo'}
-        _data = {'add': json.dumps(contact)}
+        _data = {'add': json.dumps([contact])}
         _data.update(self.login_data)
         requests.post('http://test.amocrm/private/api/contacts/set',
                       data=_data).json()
@@ -66,7 +66,7 @@ class TestUtils(unittest.TestCase):
     @amomock.activate
     def test_contacts_search(self):
         contact = {'name': 'Frog', 'company_name': 'TestsCo'}
-        _data = {'add': json.dumps(contact)}
+        _data = {'add': json.dumps([contact])}
         _data.update(self.login_data)
         requests.post('http://test.amocrm/private/api/contacts/set',
                              data=_data).json()
@@ -84,7 +84,7 @@ class TestUtils(unittest.TestCase):
     @amomock.activate
     def test_contact_add(self):
         contact = {'name': 'Frog', 'company_name': 'TestsCo'}
-        data = {'add': json.dumps(contact)}
+        data = {'add': json.dumps([contact])}
         data.update(self.login_data)
         resp = requests.post('http://test.amocrm/private/api/contacts/set',
                              data=data).json()
