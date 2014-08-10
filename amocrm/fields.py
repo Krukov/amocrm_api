@@ -189,6 +189,7 @@ class CustomField(object):
         return instance._fields_data[self.field]
 
     def __set__(self, instance, value):
+        # TODO: Raise exception if enum value invalid (check account info of custom field
         if instance is None:
             return
         instance._fields_data[self.field] = None

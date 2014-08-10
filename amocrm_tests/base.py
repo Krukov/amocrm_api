@@ -167,11 +167,11 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(note.contact.id, contact.id)
         self.assertEqual(note.text, 'test note text')
 
-        _task = ContactTask.objects.get(note.id)
-        self.assertEqual(_task.contact.name, 'test')
-        self.assertEqual(_task.contact.id, contact.id)
-        self.assertEqual(_task.text, 'test note text')
-        self.assertEqual(_task._element_type, ContactTask._ELEMENT_TYPES['contact'])
+        _note = ContactNote.objects.get(note.id)
+        self.assertEqual(_note.contact.name, 'test')
+        self.assertEqual(_note.contact.id, contact.id)
+        self.assertEqual(_note.text, 'test note text')
+        self.assertEqual(_note._element_type, ContactTask._ELEMENT_TYPES['contact'])
 
     @amomock.activate
     def test_lead_note_create(self):
@@ -188,11 +188,11 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(note.lead.id, lead.id)
         self.assertEqual(note.text, 'test note text')
 
-        _task = LeadTask.objects.get(note.id)
-        self.assertEqual(_task.lead.name, 'test')
-        self.assertEqual(_task.lead.id, lead.id)
-        self.assertEqual(_task.text, 'test note text')
-        self.assertEqual(_task._element_type, LeadTask._ELEMENT_TYPES['lead'])
+        _note = LeadTask.objects.get(note.id)
+        self.assertEqual(_note.lead.name, 'test')
+        self.assertEqual(_note.lead.id, lead.id)
+        self.assertEqual(_note.text, 'test note text')
+        self.assertEqual(_note._element_type, LeadTask._ELEMENT_TYPES['lead'])
 
 
 class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
@@ -367,10 +367,10 @@ class TestCustomFields(AmoSettingsMixin, unittest.TestCase):
     def test_contact_cf(self):
 
         class Contact(BaseContact):
-            phone = fields.CustomField(u'Телефон')
-            mobile_phone = fields.CustomField(u'Телефон', enum='MOB')
-            home_phone = fields.CustomField(u'Телефон', enum='HOME')
-            email = fields.CustomField(u'Email')
+            phone = fields.CustomField('Телефон')
+            mobile_phone = fields.CustomField('Телефон', enum='MOB')
+            home_phone = fields.CustomField('Телефон', enum='HOME')
+            email = fields.CustomField('Email')
 
         contact = Contact(phone='8-888-888-88-88', mobile_phone='100',
                           home_phone='7-777-777-77-77', email='test@email.com')

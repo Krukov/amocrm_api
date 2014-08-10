@@ -222,10 +222,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             request['limit_offset'] = limit_offset
         return request
 
-    def get(self, id_):
-        results = self.all(limit=1, query={'id': id_, 'type': self.name[:-1]})
+    def get(self, id):
+        # TODO: refactor function signature, ..get(id=1)
+        results = self.all(limit=1, query={'id': id, 'type': self.name[:-1]})
         if results is None:
-            raise ValueError('Object with id %s not founded' % id_)
+            raise ValueError('Object with id %s not founded' % id)
         return results.pop()
 
     def search(self, query):

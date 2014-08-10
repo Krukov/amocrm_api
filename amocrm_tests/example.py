@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import datetime
 
 # LOW level API
@@ -23,13 +23,13 @@ amo_settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'tes
 
 
 class Contact(BaseContact):
-    position = fields.CustomField(u'Должность')
-    site = fields.CustomField(u'Сайт')
-    phone = fields.CustomField(u'Телефон', enum='WORK')
+    position = fields.CustomField('Должность')
+    site = fields.CustomField('Сайт')
+    phone = fields.CustomField('Телефон', enum='WORK')
 
 new_contact = Contact(name='Example2', company='ExampleCorp2', position='QA')
 new_contact.site = 'http://example.com'
-# new_contact.save()
+new_contact.save()
 
 #===================
 
@@ -37,5 +37,7 @@ contact = Contact.objects.get(new_contact.id)
 contact_search = Contact.objects.search('Example2')
 assert contact.id == contact_search.id
 
-contact.create_task('New task, yeee', task_type=u'Звонок',
+contact.create_task('New task, yeee', task_type='Звонок',
                  complete_till=datetime.datetime.now()+datetime.timedelta(days=3))
+print(contact.notes)
+print(contact.tasks)

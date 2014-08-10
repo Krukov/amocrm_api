@@ -25,14 +25,32 @@ class LeadsManager(_BlankMixin, _BaseAmoManager):
     name = 'leads'
 
 
-class TasksManager(_BlankMixin, _BaseAmoManager):
+class _ObjectIdMixin(object):
+    def __init__(self, object_type=None, *args, **kwargs):
+        super(_ObjectIdMixin, self).__init__(*args, **kwargs)
+        self._object_type = object_type
+
+
+class TasksManager(_ObjectIdMixin, _BlankMixin, _BaseAmoManager):
     name = 'tasks'
     _main_field = 'element_id'
 
+    def search(self, query):
+            raise Exception('Amocrm havn\'t task search ability ')
 
-class NotesManager(_BlankMixin, _BaseAmoManager):
+    def _create_or_update_data(self, **data):
+        return self.add(**data)
+
+
+class NotesManager(_ObjectIdMixin, _BlankMixin, _BaseAmoManager):
     name = 'notes'
     _main_field = 'element_id'
+
+    def search(self, query):
+        raise Exception('Amocrm havn\'t note search ability ')
+
+    def _create_or_update_data(self, **data):
+        return self.add(**data)
 
 
 class AmoApi(_Helper(ContactsManager, 'contacts'), _Helper(CompanyManager, 'company'),

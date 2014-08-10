@@ -5,6 +5,7 @@ import six
 
 from . import fields
 from .api import *
+from .decorators import lazy_property
 
 
 __all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead', 'ContactNote', 'LeadNote']
@@ -140,10 +141,18 @@ class BaseContact(_AbstractaNamedModel):
         task.save()
         return task
 
+    @lazy_property
+    def tasks(self):
+        return ContactTask.objects.all()
+
     def create_note(self, text, note_type=None):
         note = ContactNote(contact=self, type=note_type, text=text)
         note.save()
         return note
+
+    @lazy_property
+    def notes(self):
+        return ContactNote.objects.all(query={'element_id': self.id})
 
 
 class _AbstractTaskModel(_BaseModel):
@@ -157,7 +166,7 @@ class LeadTask(_AbstractTaskModel):
     _element_type = fields._ConstantField('element_type',
                                          _BaseModel._ELEMENT_TYPES['lead'])
 
-    objects = TasksManager()
+    objects = TasksManager(object_type='lead')
 
 
 class ContactTask(_AbstractTaskModel):
@@ -165,7 +174,7 @@ class ContactTask(_AbstractTaskModel):
     _element_type = fields._ConstantField('element_type',
                                          _BaseModel._ELEMENT_TYPES['contact'])
 
-    objects = TasksManager()
+    objects = TasksManager(object_type='contact')
 
 
 class _AbstractNoteModel(_BaseModel):
@@ -178,7 +187,7 @@ class LeadNote(_AbstractNoteModel):
     _element_type = fields._ConstantField('element_type',
                                          _BaseModel._ELEMENT_TYPES['lead'])
 
-    objects = TasksManager()
+    objects = TasksManager(object_type='lead')
 
 
 class ContactNote(_AbstractNoteModel):
@@ -186,4 +195,4 @@ class ContactNote(_AbstractNoteModel):
     _element_type = fields._ConstantField('element_type',
                                          _BaseModel._ELEMENT_TYPES['contact'])
 
-    objects = TasksManager()
+    objects = NotesManager(object_type='contact')

@@ -33,6 +33,7 @@ class FakeApi(object):
         self.login, self.hash = None, None
         self._data = {
             'contacts': [],
+            'notes': [],
             'account': {
                 'id': 1,
                 'custom_fields': {
@@ -46,19 +47,19 @@ class FakeApi(object):
                     {'id': 99, 'name': 'test'}
                 ],
                 'task_types': [
-                    {u'code': u'CALL', u'id': 1, u'name': u'Call'},
-                    {u'code': u'MEETING', u'id': 2, u'name': u'Meeting'},
-                    {u'code': u'LETTER', u'id': 3, u'name': u'Letter'},
+                    {'code': 'CALL', 'id': 1, 'name': 'Call'},
+                    {'code': 'MEETING', 'id': 2, 'name': 'Meeting'},
+                    {'code': 'LETTER', 'id': 3, 'name': 'Letter'},
                 ],
                 'leads_statuses': [
-                    {u'color': u'#99CCFF', u'sort': u'10', u'editable': u'N', u'name': u'test1', u'id': u'7495620'},
-                    {u'color': u'#FFFF99', u'sort': u'20', u'editable': u'N', u'name': u'test2', u'id': u'7495622'},
+                    {'color': '#99CCFF', 'sort': '10', 'editable': 'N', 'name': 'test1', 'id': '7495620'},
+                    {'color': '#FFFF99', 'sort': '20', 'editable': 'N', 'name': 'test2', 'id': '7495622'},
                 ],
                 'note_types': [
-                    {u'code': u'DEAL_CREATED', u'editable': u'N', u'id': 1, u'name': u''},
-                    {u'code': u'CONTACT_CREATED', u'editable': u'N', u'id': 2, u'name': u''},
-                    {u'code': u'DEAL_STATUS_CHANGED', u'editable': u'N', u'id': 3, u'name': u''},
-                    {u'code': u'COMMON', u'editable': u'Y', u'id': 4, u'name': u''},
+                    {'code': 'DEAL_CREATED', 'editable': 'N', 'id': 1, 'name': ''},
+                    {'code': 'CONTACT_CREATED', 'editable': 'N', 'id': 2, 'name': ''},
+                    {'code': 'DEAL_STATUS_CHANGED', 'editable': 'N', 'id': 3, 'name': ''},
+                    {'code': 'COMMON', 'editable': 'Y', 'id': 4, 'name': ''},
                 ],
             },
             'company': [],
@@ -84,6 +85,8 @@ class FakeApi(object):
         if params is None:
             return json.dumps({'status': 'error'})
         _id, query = params.get('id'), params.get('query')
+        if 'type' in params:
+            params.pop('type')
         if _id is not None:
             resp = [i for i in self._data[obj] if int(i['id']) == int(_id)]
         elif query:
