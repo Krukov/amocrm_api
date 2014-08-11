@@ -5,6 +5,7 @@ from abc import *
 from collections import defaultdict
 from time import time
 from copy import copy
+import logging
 import six
 
 import requests
@@ -12,7 +13,7 @@ import requests
 from .settings import settings
 from .decorators import (amo_request, lazy_dict_property,
                          to_amo_obj, lazy_property)
-from .logger import logger
+logger = logging.getLogger('amocrm')
 
 __all__ = []
 

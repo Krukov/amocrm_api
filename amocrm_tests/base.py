@@ -3,12 +3,14 @@ from __future__ import absolute_import, unicode_literals
 import copy
 import unittest
 import time
+import logging
 from datetime import datetime
 
 from amocrm import *
 from amocrm.test_utils import amomock
 
-
+logger = logging.getLogger('amocrm')
+logger.setLevel(logging.ERROR)
 from_ts = datetime.fromtimestamp
 
 
