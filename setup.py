@@ -10,14 +10,16 @@ setup(
     author='Dmitry Krukov',
     author_email='frog-king69@yandex.ru',
     description='Python (Django like) API for Amocrm',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
 
     requires=[
         'requests (>=2.3)',
         'responses (>=0.2.2)',
+        'six (>=1.7.3)',
     ],
     install_requires=[
         'requests >=2.3',
         'responses >=0.2.2',
+        'six >=1.7.3',
     ]
 )
