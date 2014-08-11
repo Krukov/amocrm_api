@@ -70,7 +70,9 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         value = super(_BaseModel, self).__getattribute__(name)
         if (value is None and not self._loaded and name != 'id' and self.id is not None
                 and self._fields[name].field not in self._changed_fields):
-            self.__init__(self.objects.get(self.id)._data)  # trying to get info from crm
+            amo_data = self.objects.get(self.id)  # trying to get info from crm
+            if amo_data:
+                self.__init__(amo_data._data, _loaded=True)
         return value or super(_BaseModel, self).__getattribute__(name)
 
     def _save_fk(self):
