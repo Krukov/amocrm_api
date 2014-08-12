@@ -15,37 +15,41 @@ Installation
 ============
 
 ::
+
     pip install -e git+https://github.com/Krukov/amocrm_api#egg=amocrm
 
-=====
+
 Usage
 =====
 
 
 There 7 abstraction of 5 AmoCRM objects:
 
-# Контакт - BaseContact
-# Компания  - BaseCompany
-# Сделка - BaseLead
-# Задача - (LeadTask, ContactTask)
-# Событие - (LeadNote, ContactNote)
+- Контакт - BaseContact
+- Компания  - BaseCompany
+- Сделка - BaseLead
+- Задача - (LeadTask, ContactTask)
+- Событие - (LeadNote, ContactNote)
 
 Settings
 --------
 
 First of all you need to define settings
 Example::
+
     from amocrm import BaseContact, amo_settings, fields
     amo_settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
 
 
 Custom field
 ------------
+
 One of the features of AmoCRM in the presence of custom fields in a contact, company, lead objects
 
 To define your custom field you need describe it
 
 Example::
+
     from amocrm import BaseContact, amo_settings, fields
     amo_settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
 
@@ -57,6 +61,7 @@ Example::
 Ok it is ready to use, now you can get, create and edit contacts
 
 Example::
+
     new_contact = Contact(name='Example2', company='ExampleCorp2', position='QA', phone='0001')
     new_contact.site = 'http://example.com'
     new_contact.save()
