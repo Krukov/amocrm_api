@@ -369,28 +369,23 @@ class TestCustomFields(AmoSettingsMixin, unittest.TestCase):
     def test_contact_cf(self):
 
         class Contact(BaseContact):
-            phone = fields.CustomField('Телефон')
-            mobile_phone = fields.CustomField('Телефон', enum='MOB')
+            phone = fields.CustomField('Телефон', enum='WORK')
             home_phone = fields.CustomField('Телефон', enum='HOME')
             email = fields.CustomField('Email')
 
-        contact = Contact(phone='8-888-888-88-88', mobile_phone='100',
-                          home_phone='7-777-777-77-77', email='test@email.com')
+        contact = Contact(phone='8-888-888-88-88', home_phone='7-777-777-77-77', email='test@email.com')
         self.assertEqual(contact.phone, '8-888-888-88-88')
-        self.assertEqual(contact.mobile_phone, '100')
         self.assertEqual(contact.home_phone, '7-777-777-77-77')
         self.assertEqual(contact.email, 'test@email.com')
 
         contact.save()
         self.assertEqual(contact.id, 1)
         self.assertEqual(contact.phone, '8-888-888-88-88')
-        self.assertEqual(contact.mobile_phone, '100')
         self.assertEqual(contact.home_phone, '7-777-777-77-77')
         self.assertEqual(contact.email, 'test@email.com')
 
         contact = Contact.objects.get(contact.id)
         self.assertEqual(contact.phone, '8-888-888-88-88')
-        self.assertEqual(contact.mobile_phone, '100')
         self.assertEqual(contact.home_phone, '7-777-777-77-77')
         self.assertEqual(contact.email, 'test@email.com')
 

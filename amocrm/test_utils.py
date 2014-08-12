@@ -39,9 +39,9 @@ class FakeApi(object):
                 'custom_fields': {
                     'contacts': [
                         {'id': 1, 'name': 'Телефон', 'enums': {
-                                u'1842438': u'WORK',
-                                u'1842446': u'HOME',
-                                u'1842448': u'OTHER'}
+                                '1': 'WORK',
+                                '2': 'HOME',
+                                '3': 'OTHER'}
                             },
                         {'id': 2, 'name': 'Email'},
                     ],

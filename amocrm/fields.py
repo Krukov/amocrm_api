@@ -174,7 +174,7 @@ class CustomField(object):
             _data = [item['values'] for item in _data if item['id'] == _id]
             _data = _data.pop() if _data else None
 
-            enum = {enum: _id for _id, enum in custom_field_info['enums'].items()}.get(self.enum)
+            enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
             _data = [item for item in _data if item.get('enum') == enum]
             self._check_field(instance)
             instance._fields_data[self.field] = _data.pop()['value'] if _data else None
@@ -189,9 +189,9 @@ class CustomField(object):
         custom_field_info = instance.objects._custom_fields[self.custom_field]
         _id = custom_field_info['id']
         field = [_field for _field in instance._data.setdefault(self._field, []) if _field['id'] == _id]
+        enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
         if field:
             field_vals = field[0]['values']
-            enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
             enum_field_vals = [item for item in field_vals if item.get('enum') == enum]
             if enum_field_vals:
                 enum_field_vals[0]['value'] = value
@@ -203,7 +203,7 @@ class CustomField(object):
         else:
             full_data = {'id': _id, 'values': [{'value': value}]}
             if self.enum is not None:
-                full_data['values'][0]['enum'] = self.enum
+                full_data['values'][0]['enum'] = enum
             instance._data[self._field].append(full_data)
         instance._changed_fields.append(self.field)
 
