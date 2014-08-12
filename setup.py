@@ -21,5 +21,17 @@ setup(
         'requests >=2.3',
         'responses >=0.2.2',
         'six >=1.7.3',
-    ]
+    ],
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ],
 )

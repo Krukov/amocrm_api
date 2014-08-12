@@ -11,7 +11,6 @@ __all__ = ['CustomField', 'ForeignField', 'ManyForeignField']
 
 
 class _BaseField(object):
-
     def __init__(self, field=None):
         self.field = field
 
@@ -44,13 +43,11 @@ class _Field(_BaseField):
 
 
 class _UneditableField(_Field):
-
     def __set__(self, instance, value):
         pass
 
 
 class _ConstantField(_UneditableField):
-
     def __init__(self, field=None, value=None):
         super(_ConstantField, self).__init__(field)
         self._data = value
@@ -60,7 +57,6 @@ class _ConstantField(_UneditableField):
 
 
 class _DateTimeField(_Field):
-
     def on_get(self, data, instance):
         if data is not None:
             return datetime.utcfromtimestamp(float(data))
@@ -75,21 +71,18 @@ class _StaticDateTimeField(_UneditableField, _DateTimeField):
 
 
 class _BooleanField(_Field):
-
     def on_get(self, data, instance):
         data = int(data) if str(data).isdigit() else data
         return bool(data)
 
 
 class _BaseForeignField(_Field):
-
     def __init__(self, object_type=None, field=None):
         super(_BaseForeignField, self).__init__(field)
         self.object_type = object_type
 
 
 class ForeignField(_BaseForeignField):
-
     def __init__(self, object_type=None, field=None, auto_created=False,
                  links={}):
         super(ForeignField, self).__init__(object_type, field)
@@ -100,7 +93,7 @@ class ForeignField(_BaseForeignField):
         obj = self.object_type()
         obj._fields_data['id'] = instance._data.get(self.field)
         [setattr(obj, name, instance._data.get(value))
-            for name, value in self.links.items()]
+         for name, value in self.links.items()]
         return obj
 
     def on_set(self, val, instance):
@@ -112,7 +105,6 @@ class ForeignField(_BaseForeignField):
 
 
 class ManyForeignField(_BaseForeignField):
-
     def __init__(self, objects_type=None, field=None, key=None):
         super(ManyForeignField, self).__init__(field=field,
                                                object_type=objects_type)
@@ -132,7 +124,6 @@ class ManyForeignField(_BaseForeignField):
 
 
 class _TagsField(_Field):
-
     def __init__(self, field=None, key=None):
         super(_TagsField, self).__init__(field)
         self.key = key
@@ -148,7 +139,6 @@ class _TagsField(_Field):
 
 
 class _TypeStatusField(_Field):
-
     def __init__(self, field=None, choices=None):
         super(_TypeStatusField, self).__init__(field)
         self.choices = choices
@@ -179,32 +169,36 @@ class CustomField(object):
             _data = instance._data.get(self._field)
             if _data is None:
                 return
-            _id = instance.objects._custom_fields[self.custom_field]['id']
+            custom_field_info = instance.objects._custom_fields[self.custom_field]
+            _id = custom_field_info['id']
             _data = [item['values'] for item in _data if item['id'] == _id]
             _data = _data.pop() if _data else None
 
-            _data = [item for item in _data if item.get('enum') == self.enum]
-            instance._fields_data[self.field] = _data.pop()['value']
+            enum = {enum: _id for _id, enum in custom_field_info['enums'].items()}.get(self.enum)
+            _data = [item for item in _data if item.get('enum') == enum]
+            self._check_field(instance)
+            instance._fields_data[self.field] = _data.pop()['value'] if _data else None
 
         return instance._fields_data[self.field]
 
     def __set__(self, instance, value):
-        # TODO: Raise exception if enum value invalid (check account info of custom field
         if instance is None:
             return
+        self._check_field(instance)
         instance._fields_data[self.field] = None
-
-        _id = instance.objects._custom_fields[self.custom_field]['id']
+        custom_field_info = instance.objects._custom_fields[self.custom_field]
+        _id = custom_field_info['id']
         field = [_field for _field in instance._data.setdefault(self._field, []) if _field['id'] == _id]
         if field:
             field_vals = field[0]['values']
-            enum_field_vals = [item for item in field_vals if item.get('enum') == self.enum]
+            enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
+            enum_field_vals = [item for item in field_vals if item.get('enum') == enum]
             if enum_field_vals:
                 enum_field_vals[0]['value'] = value
             else:
                 new_elem = {'value': value}
                 if self.enum:
-                    new_elem['enum'] = self.enum
+                    new_elem['enum'] = enum
                 field_vals.append(new_elem)
         else:
             full_data = {'id': _id, 'values': [{'value': value}]}
@@ -213,3 +207,12 @@ class CustomField(object):
             instance._data[self._field].append(full_data)
         instance._changed_fields.append(self.field)
 
+    def _check_field(self, instance):
+        if self.custom_field not in instance.objects._custom_fields:
+            raise Exception('%s hasn\'t field "%s"' % (instance.name, self.custom_field))
+        custom_field_info = instance.objects._custom_fields[self.custom_field]
+        if custom_field_info.get('enums') and self.enum is None:
+            raise Exception('Custom field "%s" must have enum' % self.custom_field)
+        if self.enum is not None \
+                and {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum) is None:
+            raise Exception('There is no enum "%s" for field "%s"' % (self.enum, self.custom_field))

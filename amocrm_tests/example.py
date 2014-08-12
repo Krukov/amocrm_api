@@ -2,6 +2,11 @@
 from __future__ import print_function, unicode_literals
 import datetime
 
+import logging
+
+logging.getLogger('amocrm').setLevel(logging.DEBUG)
+
+
 # LOW level API
 from amocrm import AmoApi
 
@@ -27,7 +32,7 @@ class Contact(BaseContact):
     site = fields.CustomField('Сайт')
     phone = fields.CustomField('Телефон', enum='WORK')
 
-new_contact = Contact(name='Example2', company='ExampleCorp2', position='QA')
+new_contact = Contact(name='Example2', company='ExampleCorp2', position='QA', phone='0001')
 new_contact.site = 'http://example.com'
 new_contact.save()
 
@@ -36,7 +41,9 @@ new_contact.save()
 contact = Contact.objects.get(new_contact.id)
 contact_search = Contact.objects.search('Example2')
 assert contact.id == contact_search.id
-
+print(contact.phone)
+contact.phone = '8-800-00000000'
+contact.save()
 contact.create_task('New task, yeee', task_type='Звонок',
                  complete_till=datetime.datetime.now()+datetime.timedelta(days=3))
 print(contact.notes)
