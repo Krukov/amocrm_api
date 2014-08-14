@@ -8,7 +8,7 @@ AmoCRM python API
 .. image:: https://img.shields.io/coveralls/Krukov/amocrm_api.svg
     :target: https://coveralls.io/r/Krukov/amocrm_api
 
-Django like python AmoCRM API (http://www.amocrm.ru/) (human interface for easy using )
+Python AmoCRM API (http://www.amocrm.ru/) (human interface for easy using )
 
 
 Installation
@@ -23,7 +23,7 @@ Usage
 =====
 
 
-There 7 abstraction of 5 AmoCRM objects:
+There are 7 abstraction of 5 AmoCRM objects:
 
 - Контакт - BaseContact
 - Компания  - BaseCompany
@@ -44,7 +44,7 @@ Example::
 Custom field
 ------------
 
-One of the features of AmoCRM in the presence of custom fields in a contact, company, lead objects
+One of the features of AmoCRM in the presence of custom fields in a contact, company and lead objects
 
 To define your custom field you need describe it
 
@@ -58,7 +58,7 @@ Example::
         site = fields.CustomField(u'Сайт')
         phone = fields.CustomField(u'Телефон', enum='WORK')
 
-Ok it is ready to use, now you can get, create and edit contacts
+Ok, now it is ready to use and you can get, create or edit contacts
 
 Example::
 
