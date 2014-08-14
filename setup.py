@@ -3,9 +3,10 @@ from setuptools import setup
 
 setup(
     name='amocrm_api',
-    version='0.0.1',
+    version='0.1.0',
     packages=['amocrm'],
     url='https://github.com/Krukov/amocrm_api',
+    download_url='https://github.com/Krukov/amocrm_api/tarball/0.1',
     license='MIT license',
     author='Dmitry Krukov',
     author_email='frog-king69@yandex.ru',
