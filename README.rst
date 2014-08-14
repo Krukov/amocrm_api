@@ -16,7 +16,7 @@ Installation
 
 ::
 
-    pip install -e git+https://github.com/Krukov/amocrm_api#egg=amocrm
+    pip install amocrm_api
 
 
 Usage
