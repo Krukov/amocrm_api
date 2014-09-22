@@ -48,3 +48,16 @@ contact.create_task('New task, yeee', task_type='Звонок',
                  complete_till=datetime.datetime.now()+datetime.timedelta(days=3))
 print(contact.notes)
 print(contact.tasks)
+
+#===================
+
+from amocrm import BaseLead, LeadTask, amo_settings
+
+amo_settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
+
+lead = BaseLead(name=u'some name')
+lead.save()
+task = LeadTask(lead=lead, text='123', type=u'Звонок',
+                complete_till=datetime.datetime.now()+datetime.timedelta(days=3))
+task.save()
+print(task.id)
