@@ -7,6 +7,12 @@ AmoCRM python API
     :target: https://travis-ci.org/Krukov/amocrm_api
 .. image:: https://img.shields.io/coveralls/Krukov/amocrm_api.svg
     :target: https://coveralls.io/r/Krukov/amocrm_api
+.. image:: https://pypip.in/download/amocrm_api/badge.svg
+    :target: https://pypi.python.org/pypi//amocrm_api/
+    :alt: Downloads
+.. image:: https://pypip.in/version/amocrm_api/badge.svg
+    :target: https://pypi.python.org/pypi/amocrm_api/
+    :alt: Latest Version
 
 Python AmoCRM API (http://www.amocrm.ru/) (human interface for easy using )
 
