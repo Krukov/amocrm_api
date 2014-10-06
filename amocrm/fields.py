@@ -11,8 +11,9 @@ __all__ = ['CustomField', 'ForeignField', 'ManyForeignField']
 
 
 class _BaseField(object):
-    def __init__(self, field=None):
+    def __init__(self, field=None, required=False):
         self.field = field
+        self.required = required
 
     def __get__(self, instance, _=None):
         if instance is None:
@@ -77,15 +78,15 @@ class _BooleanField(_Field):
 
 
 class _BaseForeignField(_Field):
-    def __init__(self, object_type=None, field=None):
-        super(_BaseForeignField, self).__init__(field)
+    def __init__(self, object_type=None, field=None, required=False):
+        super(_BaseForeignField, self).__init__(field, required=required)
         self.object_type = object_type
 
 
 class ForeignField(_BaseForeignField):
     def __init__(self, object_type=None, field=None, auto_created=False,
-                 links={}):
-        super(ForeignField, self).__init__(object_type, field)
+                 links={}, required=False):
+        super(ForeignField, self).__init__(object_type, field, required=required)
         self.auto, self.links = auto_created, deepcopy(links)
         self.links['id'] = field
 
@@ -105,9 +106,10 @@ class ForeignField(_BaseForeignField):
 
 
 class ManyForeignField(_BaseForeignField):
-    def __init__(self, objects_type=None, field=None, key=None):
+    def __init__(self, objects_type=None, field=None, key=None, required=False):
         super(ManyForeignField, self).__init__(field=field,
-                                               object_type=objects_type)
+                                               object_type=objects_type,
+                                               required=required)
         self.key = key
 
     def on_get(self, data, instance):
@@ -124,8 +126,8 @@ class ManyForeignField(_BaseForeignField):
 
 
 class _TagsField(_Field):
-    def __init__(self, field=None, key=None):
-        super(_TagsField, self).__init__(field)
+    def __init__(self, field=None, key=None, required=False):
+        super(_TagsField, self).__init__(field, required=required)
         self.key = key
 
     def on_get(self, data, instance):
@@ -139,8 +141,8 @@ class _TagsField(_Field):
 
 
 class _TypeStatusField(_Field):
-    def __init__(self, field=None, choices=None):
-        super(_TypeStatusField, self).__init__(field)
+    def __init__(self, field=None, choices=None, required=False):
+        super(_TypeStatusField, self).__init__(field, required=required)
         self.choices = choices
 
     def on_get(self, data, instance):

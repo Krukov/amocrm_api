@@ -90,11 +90,18 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 getattr(self, name).save()
                 self._data[field.field] = getattr(self, name).id
 
-    def save(self, update_if_exists=True):
-        self._save_fk()
+    def _pre_save(self):
         if self.date_create is None:
             self._data['date_create'] = int(time.time())
         self._data['last_modified'] = int(time.time())
+        if not self._loaded:
+            for name, field in self._fields.items():
+                if isinstance(field, fields._BaseField) and field.required and getattr(self, name, None) is None:
+                    raise ValueError('Da da')
+
+    def save(self, update_if_exists=True):
+        self._save_fk()
+        self._pre_save()
         if self.id is not None:
             method = self.objects.update
         elif update_if_exists:
