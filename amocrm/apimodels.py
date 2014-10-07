@@ -90,11 +90,19 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 getattr(self, name).save()
                 self._data[field.field] = getattr(self, name).id
 
-    def save(self, update_if_exists=True):
-        self._save_fk()
+    def _pre_save(self):
         if self.date_create is None:
             self._data['date_create'] = int(time.time())
         self._data['last_modified'] = int(time.time())
+        if not self._loaded:
+            for name, field in self._fields.items():
+                if (isinstance(field, fields._BaseField) and
+                        field.required and getattr(self, name, None) is None):
+                    raise ValueError('{} is required'.format(name))
+
+    def save(self, update_if_exists=True):
+        self._save_fk()
+        self._pre_save()
         if self.id is not None:
             method = self.objects.update
         elif update_if_exists:
@@ -110,7 +118,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
 
 
 class _AbstractaNamedModel(_BaseModel):
-    name = fields._Field('name')
+    name = fields._Field('name', required=True)
     linked_leads = fields.ManyForeignField('linked_leads_id')
     tags = fields._TagsField('tags', 'name')
     rui = fields._Field('responsible_user_id')
@@ -123,7 +131,7 @@ class BaseCompany(_AbstractaNamedModel):
 
 
 class BaseLead(_AbstractaNamedModel):
-    status = fields._TypeStatusField('status_id', choices='leads_statuses')
+    status = fields._TypeStatusField('status_id', choices='leads_statuses', required=True)
     price = fields._Field('price')
 
     objects = LeadsManager()
@@ -158,9 +166,9 @@ class BaseContact(_AbstractaNamedModel):
 
 
 class _AbstractTaskModel(_BaseModel):
-    type = fields._TypeStatusField('task_type', 'task_types')
-    text = fields._Field('text')
-    complete_till = fields._DateTimeField('complete_till')
+    type = fields._TypeStatusField('task_type', 'task_types', required=True)
+    text = fields._Field('text', required=True)
+    complete_till = fields._DateTimeField('complete_till', required=True)
 
 
 class LeadTask(_AbstractTaskModel):
@@ -180,8 +188,8 @@ class ContactTask(_AbstractTaskModel):
 
 
 class _AbstractNoteModel(_BaseModel):
-    type = fields._TypeStatusField('note_type', 'note_types')
-    text = fields._Field('text')
+    type = fields._TypeStatusField('note_type', 'note_types', required=True)
+    text = fields._Field('text', required=True)
 
 
 class LeadNote(_AbstractNoteModel):
