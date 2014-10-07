@@ -253,7 +253,7 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         contact = self.object_type()
         with self.assertRaises(ValueError) as context:
             contact.save()
-        self.assertEqual('name is required', context.exception.message)
+        self.assertEqual('name is required', str(context.exception))
 
 
 class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
@@ -290,7 +290,7 @@ class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         company = self.object_type()
         with self.assertRaises(ValueError) as context:
             company.save()
-        self.assertEqual('name is required', context.exception.message)
+        self.assertEqual('name is required', str(context.exception))
 
 
 class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
@@ -328,19 +328,19 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
         with self.assertRaises(ValueError) as context:
             task.save()
-        self.assertEqual('type is required', context.exception.message)
+        self.assertEqual('type is required', str(context.exception))
 
         task.complete_till = None
         task.type = 'Call'
         with self.assertRaises(ValueError) as context:
             task.save()
-        self.assertEqual('complete_till is required', context.exception.message)
+        self.assertEqual('complete_till is required', str(context.exception))
 
         task.text = None
         task.complete_till = datetime.now()
         with self.assertRaises(ValueError) as context:
             task.save()
-        self.assertEqual('text is required', context.exception.message)
+        self.assertEqual('text is required', str(context.exception))
 
 
 class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
@@ -378,13 +378,13 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
         with self.assertRaises(ValueError) as context:
             lead.save()
-        self.assertEqual('status is required', context.exception.message)
+        self.assertEqual('status is required', str(context.exception))
 
         lead.status = 'test1'
         lead.name = None
         with self.assertRaises(ValueError) as context:
             lead.save()
-        self.assertEqual('name is required', context.exception.message)
+        self.assertEqual('name is required', str(context.exception))
 
 
 class TestNote(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
