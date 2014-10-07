@@ -2,9 +2,8 @@
 from __future__ import absolute_import, unicode_literals
 import copy
 import unittest
-import time
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from amocrm import *
 from amocrm.test_utils import amomock
@@ -117,42 +116,51 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         contact = BaseContact(name='test')
         contact.save()
 
-        task = ContactTask(contact=contact, text='test task text', type='Call')
+        complete_date = datetime.now()+timedelta(days=3)
+        task = ContactTask(contact=contact, text='test task text', type='Call',
+                           complete_till=complete_date)
         self.assertEqual(task.contact.name, 'test')
         self.assertEqual(task.contact.id, contact.id)
         self.assertEqual(task.text, 'test task text')
+        self.assertEqual(task.complete_till.date(), complete_date.date())
 
         task.save()
         self.assertEqual(task.contact.name, 'test')
         self.assertEqual(task.contact.id, contact.id)
         self.assertEqual(task.text, 'test task text')
+        self.assertEqual(task.complete_till.date(), complete_date.date())
 
         _task = ContactTask.objects.get(task.id)
         self.assertEqual(_task.contact.name, 'test')
         self.assertEqual(_task.contact.id, contact.id)
         self.assertEqual(_task.text, 'test task text')
         self.assertEqual(_task._element_type, ContactTask._ELEMENT_TYPES['contact'])
+        self.assertEqual(_task.complete_till.date(), complete_date.date())
 
     @amomock.activate
     def test_lead_task_create(self):
-        lead = BaseLead(name='test')
+        lead = BaseLead(name='test', status='test1')
         lead.save()
 
-        task = LeadTask(lead=lead, text='test task text')
+        complete_date = datetime.now()+timedelta(days=3)
+        task = LeadTask(lead=lead, text='test task text', type='Call', complete_till=complete_date)
         self.assertEqual(task.lead.name, 'test')
         self.assertEqual(task.lead.id, lead.id)
         self.assertEqual(task.text, 'test task text')
+        self.assertEqual(task.complete_till.date(), complete_date.date())
 
         task.save()
         self.assertEqual(task.lead.name, 'test')
         self.assertEqual(task.lead.id, lead.id)
         self.assertEqual(task.text, 'test task text')
+        self.assertEqual(task.complete_till.date(), complete_date.date())
 
         _task = LeadTask.objects.get(task.id)
         self.assertEqual(_task.lead.name, 'test')
         self.assertEqual(_task.lead.id, lead.id)
         self.assertEqual(_task.text, 'test task text')
         self.assertEqual(_task._element_type, LeadTask._ELEMENT_TYPES['lead'])
+        self.assertEqual(_task.complete_till.date(), complete_date.date())
 
     @amomock.activate
     def test_contact_note_create(self):
@@ -177,10 +185,10 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
 
     @amomock.activate
     def test_lead_note_create(self):
-        lead = BaseLead(name='test')
+        lead = BaseLead(name='test', status='test1')
         lead.save()
 
-        note = LeadNote(lead=lead, text='test note text')
+        note = LeadNote(lead=lead, text='test note text', type='DEAL_CREATED')
         self.assertEqual(note.lead.name, 'test')
         self.assertEqual(note.lead.id, lead.id)
         self.assertEqual(note.text, 'test note text')
@@ -241,6 +249,12 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _contact = BaseContact.objects.search('test_name')
         self.assertEqual(_contact.tags, ['Tag2', 'Tag1', 'frog'])
 
+    def test_required_fields(self):
+        contact = self.object_type()
+        with self.assertRaises(ValueError) as context:
+            contact.save()
+        self.assertEqual('name is required', context.exception.message)
+
 
 class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     object_type = BaseCompany
@@ -272,10 +286,17 @@ class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _company = self.object_type.objects.get(1)
         self.assertEqual(_company.name, 'frog')
 
+    def test_required_fields(self):
+        company = self.object_type()
+        with self.assertRaises(ValueError) as context:
+            company.save()
+        self.assertEqual('name is required', context.exception.message)
+
 
 class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     object_type = ContactTask
-    create_param = {'name': 'test_name'}
+    create_param = {'name': 'test_name', 'type': 'Call',
+                    'complete_till': datetime.now()+timedelta(days=3), 'text': 'text test'}
 
     @amomock.activate
     def test_getting_task_by_id_and_data(self):
@@ -302,10 +323,29 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _task = self.object_type.objects.get(1)
         self.assertEqual(_task.text, 'frog')
 
+    def test_required_fields(self):
+        task = self.object_type(text='x', complete_till=datetime.now())
+
+        with self.assertRaises(ValueError) as context:
+            task.save()
+        self.assertEqual('type is required', context.exception.message)
+
+        task.complete_till = None
+        task.type = 'Call'
+        with self.assertRaises(ValueError) as context:
+            task.save()
+        self.assertEqual('complete_till is required', context.exception.message)
+
+        task.text = None
+        task.complete_till = datetime.now()
+        with self.assertRaises(ValueError) as context:
+            task.save()
+        self.assertEqual('text is required', context.exception.message)
+
 
 class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     object_type = BaseLead
-    create_param = {'name': 'test_name', 'price': 100}
+    create_param = {'name': 'test_name', 'price': 100, 'status': 'test1'}
 
     @amomock.activate
     def test_getting_lead_by_id_and_data(self):
@@ -333,10 +373,23 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _lead = self.object_type.objects.get(1)
         self.assertEqual(_lead.name, 'frog')
 
+    def test_required_fields(self):
+        lead = self.object_type(name='test1')
+
+        with self.assertRaises(ValueError) as context:
+            lead.save()
+        self.assertEqual('status is required', context.exception.message)
+
+        lead.status = 'test1'
+        lead.name = None
+        with self.assertRaises(ValueError) as context:
+            lead.save()
+        self.assertEqual('name is required', context.exception.message)
+
 
 class TestNote(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     object_type = ContactNote
-    create_param = {'name': 'test_name'}
+    create_param = {'name': 'test_name', 'text': 'text test', 'type': 'COMMON'}
 
     @amomock.activate
     def test_getting_note_by_id_and_data(self):
@@ -374,20 +427,25 @@ class TestCustomFields(AmoSettingsMixin, unittest.TestCase):
             email = fields.CustomField('Email')
 
         contact = Contact(phone='8-888-888-88-88', home_phone='7-777-777-77-77', email='test@email.com')
+        contact.name = 'test'
         self.assertEqual(contact.phone, '8-888-888-88-88')
         self.assertEqual(contact.home_phone, '7-777-777-77-77')
         self.assertEqual(contact.email, 'test@email.com')
+        self.assertEqual(contact.name, 'test')
 
         contact.save()
         self.assertEqual(contact.id, 1)
         self.assertEqual(contact.phone, '8-888-888-88-88')
         self.assertEqual(contact.home_phone, '7-777-777-77-77')
         self.assertEqual(contact.email, 'test@email.com')
+        self.assertEqual(contact.name, 'test')
 
         contact = Contact.objects.get(contact.id)
         self.assertEqual(contact.phone, '8-888-888-88-88')
         self.assertEqual(contact.home_phone, '7-777-777-77-77')
         self.assertEqual(contact.email, 'test@email.com')
+        self.assertEqual(contact.name, 'test')
+
 
 if __name__ == '__main__':
     unittest.main()
