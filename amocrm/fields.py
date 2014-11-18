@@ -169,6 +169,7 @@ class CustomField(object):
             return self
         if instance._fields_data.get(self.field) is None:
             _data = instance._data.get(self._field)
+
             if _data is None:
                 return
             custom_field_info = instance.objects._custom_fields[self.custom_field]
@@ -176,6 +177,8 @@ class CustomField(object):
             _data = [item['values'] for item in _data if item['id'] == _id]
             _data = _data.pop() if _data else None
 
+            if _data is None:
+                return
             enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
             _data = [item for item in _data if item.get('enum') == enum]
             self._check_field(instance)

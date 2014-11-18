@@ -249,6 +249,7 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _contact = BaseContact.objects.search('test_name')
         self.assertEqual(_contact.tags, ['Tag2', 'Tag1', 'frog'])
 
+    @amomock.activate
     def test_required_fields(self):
         contact = self.object_type()
         with self.assertRaises(ValueError) as context:
@@ -286,6 +287,7 @@ class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _company = self.object_type.objects.get(1)
         self.assertEqual(_company.name, 'frog')
 
+    @amomock.activate
     def test_required_fields(self):
         company = self.object_type()
         with self.assertRaises(ValueError) as context:
@@ -323,6 +325,7 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _task = self.object_type.objects.get(1)
         self.assertEqual(_task.text, 'frog')
 
+    @amomock.activate
     def test_required_fields(self):
         task = self.object_type(text='x', complete_till=datetime.now())
 
@@ -373,6 +376,7 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         _lead = self.object_type.objects.get(1)
         self.assertEqual(_lead.name, 'frog')
 
+    @amomock.activate
     def test_required_fields(self):
         lead = self.object_type(name='test1')
 
@@ -385,6 +389,13 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             lead.save()
         self.assertEqual('name is required', str(context.exception))
+
+    @amomock.activate
+    def test_last_modified_since(self):
+        self.create_object()
+        lead = self.object_type.objects.all(modified_since=datetime.today()-timedelta(days=2))
+        call = amomock.calls[-1]
+        self.assertIn('if-modified-since', call[0].headers)
 
 
 class TestNote(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
