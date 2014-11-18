@@ -130,7 +130,12 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     def task_types(self):
         return {item.pop('name'): item for item in self.account_info.get('task_types')}  # 'LETTER', 'MEETING', 'CALL'
 
-    def _make_request(self, path, method, data):
+    def _make_request(self, path, method, data, headers=None):
+        headers = headers or {}
+
+        _req_params = copy(_REQUEST_PARAMS)
+        headers.update(_req_params.pop('headers'))
+
         method = method.lower()
         params = copy(self._login_data) or {}
         if method != 'post':
@@ -142,7 +147,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         logger.debug('Data: %s \n Params: %s' % (data, params))
 
         req_method = getattr(requests, method, 'get')
-        req = req_method(self._url(path), data=json.dumps(data), params=params, **_REQUEST_PARAMS)
+        req = req_method(self._url(path), data=json.dumps(data), params=params, headers=headers, **_req_params)
         logger.debug('Url: %s', req.url)
         if not req.ok:
             logger.error('Something went wrong')
@@ -168,7 +173,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             for key in result:
                 try:
                     response = response[key]
-                except (TypeError, KeyError):
+                except (TypeError, KeyError, IndexError):
                     pass
         elif result:
             try:
@@ -177,7 +182,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                 pass
         return response
 
-    def _request(self, method, data=None):
+    def _request(self, method, data=None, headers=None):
         path = self._get_path(method)
         method = self._methods[method]
         method_type = method.get('method', 'get')
@@ -188,7 +193,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             data[0].setdefault(_time, int(time()))
         if container is not None:
             data = self._create_container(container, data)
-        response = self._make_request(path=path, method=method_type, data=data)
+        response = self._make_request(path=path, method=method_type, data=data, headers=headers)
         return self._modify_response(response, result)
 
     def _get_path(self, method_name):
@@ -213,7 +218,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @to_amo_obj
     @amo_request(method='list')
-    def all(self, limit=100, limit_offset=None, query=None):
+    def all(self, limit=100, limit_offset=None, query=None, modified_since=None):
         request = query or {}
         if self._object_type:
             request.update({'type': self._object_type})
@@ -230,9 +235,9 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             raise ValueError('Object with id %s not founded' % id)
         return results.pop()
 
-    def search(self, query):
+    def search(self, query, modified_since=None):
         query = {'query': query}
-        results = self.all(limit=1, query=query)
+        results = self.all(limit=1, query=query, modified_since=modified_since)
 
         return results.pop() if results is not None else None
 

@@ -61,3 +61,5 @@ task = LeadTask(lead=lead, text='123', type=u'Звонок',
                 complete_till=datetime.datetime.now()+datetime.timedelta(days=3))
 task.save()
 print(task.id)
+
+leads = LeadTask.objects.all(modified_since=datetime.datetime.now()-datetime.timedelta(days=1))

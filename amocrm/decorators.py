@@ -13,7 +13,10 @@ def amo_request(method=None):
         @wraps(func)
         def call_func(*args, **kwargs):
             self = args[0]
-            return self._request(method, data=func(*args, **kwargs))
+            headers = None
+            if 'modified_since' in kwargs:
+                headers = {'if-modified-since': kwargs.pop('modified_since')}
+            return self._request(method, data=func(*args, **kwargs), headers=headers)
         return call_func
     return decor
 
