@@ -90,14 +90,6 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 getattr(self, name).save()
                 self._data[field.field] = getattr(self, name).id
 
-    def _save_mfk(self):
-        for name, field in self._fields.items():
-            if not isinstance(field, fields.ManyForeignField):
-                continue
-            items = getattr(self, name) or []
-            if field.field:
-                self._data[field.field] = [item.id for item in items]
-
     def _pre_save(self):
         if self.date_create is None:
             self._data['date_create'] = int(time.time())
@@ -109,6 +101,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                     raise ValueError('{} is required'.format(name))
 
     def save(self, update_if_exists=True):
+        self._save_fk()
+        self._pre_save()
         if self.id is not None:
             method = getattr(self.objects, 'update')
         elif update_if_exists:
