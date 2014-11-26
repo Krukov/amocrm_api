@@ -104,12 +104,12 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         self._save_fk()
         self._pre_save()
         if self.id is not None:
-            method = self.objects.update
+            method = getattr(self.objects, 'update')
         elif update_if_exists:
             method = self.objects.create_or_update
         else:
             method = self.objects.create
-        result = method(**{k: v for k, v in self._data.items()})
+        result = method(**self._data)
         self._data['id'] = result
 
     def _get_field_by_name(self, name):

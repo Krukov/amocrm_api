@@ -119,11 +119,19 @@ class ManyForeignField(_BaseForeignField):
             return data
         items = []
         for item in data:
-            wrap = lambda this: this.get(item)
-            item = lazy_dict_property(wrap).__get__(self.object_type.objects)
+            item = self.object_type().objects.get(item)
             items.append(item)
         return items
 
+    def on_set(self, value, instance):
+        if isinstance(value.__class__, instance._get_field_by_name(self.field).object_type):
+            value = [value]
+        if isinstance(value, list):
+            instance._fields_data[self.field] = [item for item in value]
+            return [item.id for item in value]
+        else:
+            instance._fields_data[self.field] = []
+            return []
 
 class _TagsField(_Field):
     def __init__(self, field=None, key=None, required=False):
