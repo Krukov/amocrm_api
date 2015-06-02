@@ -2,14 +2,12 @@
 from __future__ import absolute_import, unicode_literals
 import copy
 import unittest
-import logging
 from datetime import datetime, timedelta
 
-from amocrm import *
+from amocrm import amo_settings, BaseContact, BaseCompany, BaseLead, ContactTask,\
+    ContactNote, LeadTask, LeadNote, fields
 from amocrm.test_utils import amomock
 
-logger = logging.getLogger('amocrm')
-logger.setLevel(logging.ERROR)
 from_ts = datetime.fromtimestamp
 
 

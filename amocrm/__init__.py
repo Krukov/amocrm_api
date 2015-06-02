@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import sys
 import logging
@@ -14,10 +14,9 @@ __all__ = [
 
 ]
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('amocrm')
 
 if not logger.handlers:
-    logger.setLevel(logging.WARNING)
     formatter = logging.Formatter(
         '%(asctime)s.%(msecs)d %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S'
     )
@@ -25,3 +24,4 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
+    logger.setLevel(logging.WARNING)

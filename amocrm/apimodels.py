@@ -116,6 +116,11 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         result = [v for k, v in self._fields.items() if v.field == name]
         return result.pop()
 
+    def __str__(self):
+        return '{self.__class__.__name__}({self.id})'.format(self=self)
+
+    __repr__ = __str__
+
 
 class _AbstractaNamedModel(_BaseModel):
     name = fields._Field('name', required=True)
