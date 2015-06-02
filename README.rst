@@ -10,12 +10,7 @@ AmoCRM python API. Не поддерживается по причине пол�
 .. image:: https://pypip.in/py_versions/amocrm_api/badge.svg
     :target: https://pypi.python.org/pypi/amocrm_api/
     :alt: Supported Python versions
-.. image:: https://pypip.in/download/amocrm_api/badge.svg
-    :target: https://pypi.python.org/pypi//amocrm_api/
-    :alt: Downloads
-.. image:: https://pypip.in/version/amocrm_api/badge.svg
-    :target: https://pypi.python.org/pypi/amocrm_api/
-    :alt: Latest Version
+
 
 Python AmoCRM API (http://www.amocrm.ru/) (human interface for easy using )
 
