@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
+
+import logging
 from datetime import datetime
 from calendar import timegm
 from copy import deepcopy
 
-from .decorators import lazy_dict_property
-
 
 __all__ = ['CustomField', 'ForeignField', 'ManyForeignField']
+
+logger = logging.getLogger('amocrm')
 
 
 class _BaseField(object):
@@ -133,6 +135,7 @@ class ManyForeignField(_BaseForeignField):
             instance._fields_data[self.field] = []
             return []
 
+
 class _TagsField(_Field):
     def __init__(self, field=None, key=None, required=False):
         super(_TagsField, self).__init__(field, required=required)
@@ -183,14 +186,17 @@ class CustomField(object):
             custom_field_info = instance.objects._custom_fields[self.custom_field]
             _id = custom_field_info['id']
             _data = [item['values'] for item in _data if item['id'] == _id]
-            _data = _data.pop() if _data else None
 
-            if _data is None:
+            if not _data:
+                logger.warning('Object "%s" have not custom field "%s"', instance, self.custom_field)
                 return
-            enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
-            _data = [item for item in _data if item.get('enum') == enum]
+
+            _data = _data[-1] if _data else None
+            enum = {enum_name: _id for _id, enum_name in custom_field_info.get('enums', {}).items()}.get(self.enum)
+            if enum:
+                _data = [item for item in _data if item.get('enum') == enum]
             self._check_field(instance)
-            instance._fields_data[self.field] = _data.pop()['value'] if _data else None
+            instance._fields_data[self.field] = _data[-1]['value'] if _data else None
 
         return instance._fields_data[self.field]
 
@@ -224,8 +230,6 @@ class CustomField(object):
         if self.custom_field not in instance.objects._custom_fields:
             raise Exception('%s hasn\'t field "%s"' % (instance.name, self.custom_field))
         custom_field_info = instance.objects._custom_fields[self.custom_field]
-        if custom_field_info.get('enums') and self.enum is None:
-            raise Exception('Custom field "%s" must have enum' % self.custom_field)
         if self.enum is not None \
                 and {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum) is None:
             raise Exception('There is no enum "%s" for field "%s"' % (self.enum, self.custom_field))
