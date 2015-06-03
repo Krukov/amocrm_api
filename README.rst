@@ -1,15 +1,17 @@
 ==================
-AmoCRM python API. Не поддерживается по причине полной незаинтересованности со стороны AmoCRM (deprecated!!!)
+AmoCRM python API. 
 ==================
-
+------------------
+Не поддерживается по причине полной незаинтересованности со стороны AmoCRM (deprecated!!!)
+------------------
+------------------
+Могу оказать помощь по экспорту/импроту ваших данных из/в AmoCRM
+------------------
 
 .. image:: https://travis-ci.org/Krukov/amocrm_api.svg?branch=master
     :target: https://travis-ci.org/Krukov/amocrm_api
 .. image:: https://img.shields.io/coveralls/Krukov/amocrm_api.svg
     :target: https://coveralls.io/r/Krukov/amocrm_api
-.. image:: https://pypip.in/py_versions/amocrm_api/badge.svg
-    :target: https://pypi.python.org/pypi/amocrm_api/
-    :alt: Supported Python versions
 
 
 Python AmoCRM API (http://www.amocrm.ru/) (human interface for easy using )
