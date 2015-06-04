@@ -31,8 +31,9 @@ class _BaseField(object):
             return
         instance._fields_data[self.field] = None
         value = self.on_set(value, instance)
-        instance._data[self.field] = value
-        instance._changed_fields.append(self.field)
+        if self.field not in instance._data or instance._data[self.field] != value:
+            instance._data[self.field] = value
+            instance._changed_fields.append(self.field)
 
     def on_set(self, value, instance):
         return value
@@ -171,9 +172,9 @@ class _TypeStatusField(_Field):
 class CustomField(object):
     _field = 'custom_fields'
 
-    def __init__(self, custom_field, enum=None):
+    def __init__(self, custom_field, enum=None, subtypes=False):
         self.field = '%s_%s_%s' % (self._field, custom_field, enum)
-        self.custom_field, self.enum = custom_field, enum
+        self.custom_field, self.enum, self.subtypes = custom_field, enum, subtypes
 
     def __get__(self, instance, _=None):
         if instance is None:
@@ -183,6 +184,8 @@ class CustomField(object):
 
             if _data is None:
                 return
+            if self.custom_field not in instance.objects._custom_fields:
+                raise ValueError(u"%s have not custom field '%s'" % (instance.objects.name, self.custom_field))
             custom_field_info = instance.objects._custom_fields[self.custom_field]
             _id = custom_field_info['id']
             _data = [item['values'] for item in _data if item['id'] == _id]
@@ -196,7 +199,7 @@ class CustomField(object):
             if enum:
                 _data = [item for item in _data if item.get('enum') == enum]
             self._check_field(instance)
-            instance._fields_data[self.field] = _data[-1]['value'] if _data else None
+            instance._fields_data[self.field] = '; '.join(item['value'] for item in _data) if _data else None
 
         return instance._fields_data[self.field]
 
@@ -214,6 +217,9 @@ class CustomField(object):
             enum_field_vals = [item for item in field_vals if item.get('enum') == enum]
             if enum_field_vals:
                 enum_field_vals[0]['value'] = value
+                if self.subtypes:
+                    field[0]['values'] = [{'subtype': str(i),
+                                           'value': val.strip()} for i, val in enumerate(value.split(';'), start=1)]
             else:
                 new_elem = {'value': value}
                 if self.enum:
@@ -221,10 +227,13 @@ class CustomField(object):
                 field_vals.append(new_elem)
         else:
             full_data = {'id': _id, 'values': [{'value': value}]}
+            if self.subtypes:
+                full_data['values'] = [{'subtype': str(i),
+                                        'value': val.strip()} for i, val in enumerate(value.split(';'), start=1)]
             if self.enum is not None:
                 full_data['values'][0]['enum'] = enum
             instance._data[self._field].append(full_data)
-        instance._changed_fields.append(self.field)
+        instance._changed_fields.append(self._field)
 
     def _check_field(self, instance):
         if self.custom_field not in instance.objects._custom_fields:
