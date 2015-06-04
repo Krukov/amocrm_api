@@ -8,12 +8,15 @@ def get_version():
     metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", init_py))
     return metadata['version']
 
+version = get_version()
+
+
 setup(
     name='amocrm_api',
-    version=get_version(),
+    version=version,
     packages=['amocrm'],
     url='https://github.com/Krukov/amocrm_api',
-    download_url='https://github.com/Krukov/amocrm_api/tarball/0.2.0',
+    download_url='https://github.com/Krukov/amocrm_api/tarball/%s' % version,
     license='MIT license',
     author='Dmitry Krukov',
     author_email='glebov.ru@gmail.com',

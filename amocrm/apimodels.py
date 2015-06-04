@@ -108,7 +108,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             method = self.objects.update
             if not self._changed_fields:
                 return
-            data = dict([(key, value) for key, value in data.iteritems() if key in self._changed_fields or key == 'id'])
+            data = dict([(key, value) for key, value in data.items() if key in self._changed_fields or key == 'id'])
         elif update_if_exists:
             method = self.objects.create_or_update
         else:
