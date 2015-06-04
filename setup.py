@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 from setuptools import setup
+import re
+
+
+def get_version():
+    init_py = open('amocrm/__init__.py').read()
+    metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", init_py))
+    return metadata['version']
 
 setup(
     name='amocrm_api',
-    version='0.1.2',
+    version=get_version(),
     packages=['amocrm'],
     url='https://github.com/Krukov/amocrm_api',
-    download_url='https://github.com/Krukov/amocrm_api/tarball/0.1.2',
+    download_url='https://github.com/Krukov/amocrm_api/tarball/0.2.0',
     license='MIT license',
     author='Dmitry Krukov',
-    author_email='frog-king69@yandex.ru',
-    description='Python (Django like) API for Amocrm',
+    author_email='glebov.ru@gmail.com',
+    description='Python API for Amocrm',
     long_description=open('README.rst').read(),
 
     requires=[
