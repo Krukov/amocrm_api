@@ -209,7 +209,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return 'https://%(domain)s.amocrm.ru%(path)s' % {'domain': self._domain, 'path': path}
 
     def get_custom_fields(self, to):
-        custom_fields = self.account_info['custom_fields'][to]
+        custom_fields = self.account_info['custom_fields'].get(to, [])
         return {field['name']: field for field in custom_fields}
 
     @amo_request(method='account_info')
