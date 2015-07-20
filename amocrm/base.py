@@ -130,6 +130,10 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     def task_types(self):
         return {item.pop('name'): item for item in self.account_info.get('task_types')}  # 'LETTER', 'MEETING', 'CALL'
 
+    @lazy_property
+    def users(self):
+        return {item['name']: item for item in self.account_info.get('users')}
+
     def _make_request(self, path, method, data, headers=None):
         headers = headers or {}
 

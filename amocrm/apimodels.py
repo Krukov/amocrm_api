@@ -131,7 +131,7 @@ class _AbstractaNamedModel(_BaseModel):
     name = fields._Field('name', required=True)
     linked_leads = fields.ManyForeignField('linked_leads_id')
     tags = fields._TagsField('tags', 'name')
-    rui = fields._Field('responsible_user_id')
+    rui = fields._TypeStatusField('responsible_user_id', 'users')
 
 
 class BaseCompany(_AbstractaNamedModel):
@@ -145,6 +145,24 @@ class BaseLead(_AbstractaNamedModel):
     price = fields._Field('price')
 
     objects = LeadsManager()
+
+    def create_task(self, text, task_type=None, complete_till=None):
+        task = LeadTask(lead=self, type=task_type, text=text, complete_till=complete_till)
+        task.save()
+        return task
+
+    @property
+    def tasks(self):
+        return LeadTask.objects.all()
+
+    def create_note(self, text, note_type='COMMON'):
+        note = LeadNote(lead=self, type=note_type, text=text)
+        note.save()
+        return note
+
+    @property
+    def notes(self):
+        return LeadNote.objects.all(query={'element_id': self.id})
 
 
 class BaseContact(_AbstractaNamedModel):
@@ -165,7 +183,7 @@ class BaseContact(_AbstractaNamedModel):
     def tasks(self):
         return ContactTask.objects.all()
 
-    def create_note(self, text, note_type=None):
+    def create_note(self, text, note_type='COMMON'):
         note = ContactNote(contact=self, type=note_type, text=text)
         note.save()
         return note
@@ -207,7 +225,7 @@ class LeadNote(_AbstractNoteModel):
     _element_type = fields._ConstantField('element_type',
                                          _BaseModel._ELEMENT_TYPES['lead'])
 
-    objects = TasksManager(object_type='lead')
+    objects = NotesManager(object_type='lead')
 
 
 class ContactNote(_AbstractNoteModel):
