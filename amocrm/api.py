@@ -9,6 +9,7 @@ __all__ = ['AmoApi', 'NotesManager', 'ContactsManager', 'CompanyManager', 'Leads
 
 class ContactsManager(_BlankMixin, _BaseAmoManager):
     name = 'contacts'
+    _main_field = 'name'
     _object_type = 'contact'
 
     def _add_data(self, **kwargs):
@@ -42,7 +43,7 @@ class TasksManager(_ObjectIdMixin, _BlankMixin, _BaseAmoManager):
     _main_field = 'element_id'
 
     def search(self, query):
-            raise Exception('Amocrm havn\'t task search ability ')
+        raise Exception('Amocrm havn\'t task search ability ')
 
     def _create_or_update_data(self, **data):
         return self.add(**data)

@@ -82,7 +82,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             if not isinstance(field, fields.ForeignField):
                 continue
             main_field = field.object_type.objects._main_field
-            if main_field is not None:
+            if main_field is not None and main_field in field.links:
                 value = getattr(getattr(self, name), main_field)
                 self._data[field.links[main_field]] = value
             if getattr(field, 'auto', None):
