@@ -59,6 +59,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     }
     _amo_model_class = None
     _main_field = None
+    _container_name = None
 
     def __init__(self, user_login=None, user_hash=None,
                  domain=None, responsible_user=None):
@@ -84,6 +85,10 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     @abstractproperty
     def name(cls):
         pass
+
+    @property
+    def container_name(self):
+        return self._container_name or self.name
 
     def _convert_to_obj(self, result):
         if result:
@@ -162,7 +167,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             return req.content
 
     def _create_container(self, container, data):
-        container = ['request', self.name] + container
+        name = self.container_name
+        container = ['request', name] + container
         _container = _ = _tree()
         for i, elem in enumerate(container):
             if i + 1 == len(container):
@@ -173,7 +179,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def _modify_response(self, response, result):
         if isinstance(result, (list, tuple)):
-            result = ['response', self.name] + result
+            result = ['response', self.container_name] + result
             for key in result:
                 try:
                     response = response[key]
@@ -181,7 +187,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                     pass
         elif result:
             try:
-                response = response['response'][self.name]
+                response = response['response'][self.container_name]
             except (TypeError, KeyError):
                 pass
         return response
@@ -234,7 +240,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def get(self, id):
         # TODO: refactor function signature, ..get(id=1)
-        results = self.all(limit=1, query={'id': id, 'type': self.name[:-1]})
+        results = self.all(limit=1, query={'id': id, 'type': self.container_name[:-1]})
         if results is None:
             raise ValueError('Object with id %s not founded' % id)
         return results.pop()
@@ -242,8 +248,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     def search(self, query, modified_since=None):
         query = {'query': query}
         results = self.all(limit=1, query=query, modified_since=modified_since)
-
-        return results.pop() if results is not None else None
+        return list(results).pop() if results is not None else None
 
     @amo_request('add')
     def add(self, **kwargs):

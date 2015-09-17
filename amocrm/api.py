@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 from .base import _BlankMixin, _BaseAmoManager, _Helper
+from .decorators import lazy_dict_property
 
 
 __all__ = ['AmoApi', 'NotesManager', 'ContactsManager', 'CompanyManager', 'LeadsManager', 'TasksManager']
@@ -17,8 +18,13 @@ class ContactsManager(_BlankMixin, _BaseAmoManager):
 
 class CompanyManager(_BlankMixin, _BaseAmoManager):
     name = 'company'
+    _container_name = 'contacts'
     _object_type = name
     _main_field = 'name'
+
+    @lazy_dict_property
+    def _custom_fields(self):
+        return self.get_custom_fields(to='companies')
 
 
 class LeadsManager(_BlankMixin, _BaseAmoManager):

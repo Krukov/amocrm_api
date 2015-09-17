@@ -86,6 +86,8 @@ class FakeApi(object):
 
     @check_auth
     def _list(self, obj, params):
+        if obj == 'company':
+            obj = 'contacts'
         if params is None:
             return json.dumps({'status': 'error'})
         _id, query = params.get('id'), params.get('query')
@@ -103,6 +105,8 @@ class FakeApi(object):
 
     @check_auth
     def _set(self, obj, params):
+        if obj == 'company':
+            obj = 'contacts'
         resp = {}
         try:
             params = params['request'][obj]
