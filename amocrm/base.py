@@ -275,8 +275,9 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         obj = self.search(query) if query else {}
         if obj:
             if any(obj.get(key) != data[key] for key in data.keys()):
-                obj.update(data)
-                self.update(**obj)
+                for key, value in data.items():
+                    setattr(obj, key, value)
+                obj.save()
             return obj['id']
         else:
             return self.add(**data)
