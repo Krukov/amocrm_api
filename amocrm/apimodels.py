@@ -75,6 +75,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 self.__init__(amo_data._data, _loaded=True)
         return value or super(_BaseModel, self).__getattribute__(name)
 
+    get = __getitem__
+
     def _save_fk(self):
         for name, field in self._fields.items():
             if not isinstance(field, fields.ForeignField):
