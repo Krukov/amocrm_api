@@ -25,7 +25,7 @@ def to_amo_obj(func):
     @wraps(func)
     def call_func(*args, **kwargs):
         self = args[0]
-        return self._convert_to_obj(func(*args, **kwargs))
+        return self._convert_to_obj(func(*args, **kwargs)) or ()
     return call_func
 
 
