@@ -13,6 +13,8 @@ import requests
 from .settings import settings
 from .decorators import (amo_request, lazy_dict_property,
                          to_amo_obj, lazy_property)
+from .exceptions import *
+
 logger = logging.getLogger('amocrm')
 
 __all__ = []
@@ -22,12 +24,13 @@ _REQUEST_PARAMS = {
     'headers': {'User-Agent': 'Amocrm API module. Python powered'},
     'timeout': 3,
 }
+_G, _P = 'get', 'post'
 
 _tree = lambda: defaultdict(_tree)
+_session = requests.Session()
 
 
 class _BaseAmoManager(six.with_metaclass(ABCMeta)):
-
     __slots__ = []
     format_ = 'json'
 
@@ -45,13 +48,13 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         },
         'add': {
             'path': 'set',
-            'method': 'post',
+            'method': _P,
             'result': ['add', 0, 'id'],
             'container': ['add'],
         },
         'update': {
             'path': 'set',
-            'method': 'post',
+            'method': _P,
             'container': ['update'],
             'result': ['update', 0, 'id'],
             'timestamp': True,
@@ -63,9 +66,20 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def __init__(self, user_login=None, user_hash=None,
                  domain=None, responsible_user=None):
+        self._session = _session
         if user_login is not None:
             settings.set(user_login, user_hash, domain,
                          responsible_user)
+
+    def auth(self):
+        try:
+            self._make_request(_AMO_LOGIN_PATH, _P, data=self._login_data)
+        except AmoResponseException as e:
+            raise AmoAuthException(e.resp)
+
+    @property
+    def is_auth(self):
+        return 'session_id' in self._session.cookies
 
     @property
     def _domain(self):
@@ -75,7 +89,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     def _login_data(self):
         if settings.user_login:
             return {'USER_LOGIN': settings.user_login,
-                    'USER_HASH': settings.user_hash, 'type': 'json'}
+                    'USER_HASH': settings.user_hash}
 
     @lazy_property
     def _responsible_user(self):
@@ -146,8 +160,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         headers.update(_req_params.pop('headers'))
 
         method = method.lower()
-        params = copy(self._login_data) or {}
-        if method != 'post':
+        params = {'type': 'json'}
+        if method != _P:
             params.update(data)
             data = None
 
@@ -155,16 +169,16 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                                                        method, path))
         logger.debug('Data: %s \n Params: %s' % (data, params))
 
-        req_method = getattr(requests, method, 'get')
-        req = req_method(self._url(path), data=json.dumps(data), params=params, headers=headers, **_req_params)
-        logger.debug('Url: %s', req.url)
-        if not req.ok:
+        resp = self._session.request(method, self._url(path), data=json.dumps(data), params=params,
+                                     headers=headers, **_req_params)
+        logger.debug('Url: %s', resp.url)
+        if not resp.ok:
             logger.error('Something went wrong')
-            return req.raise_for_status()  # TODO: do not raise errors
+            raise AmoResponseException(resp)
         try:
-            return req.json()
+            return resp.json()
         except ValueError:
-            return req.content
+            return resp.content
 
     def _create_container(self, container, data):
         name = self.container_name
@@ -193,9 +207,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return response
 
     def _request(self, method, data=None, headers=None):
+        if not self.is_auth:
+            self.auth()
         path = self._get_path(method)
         method = self._methods[method]
-        method_type = method.get('method', 'get')
+        method_type = method.get('method', _G)
         timestamp, container, result = method.get('timestamp'), method.get('container'), method.get('result')
 
         if timestamp:
@@ -284,7 +300,6 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
 
 class _BlankMixin(object):
-
     def _add_data(self, **kwargs):
         return super(_BlankMixin, self)._add_data(**kwargs)
 
