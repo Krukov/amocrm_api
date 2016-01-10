@@ -15,7 +15,9 @@ def amo_request(method=None):
             self = args[0]
             headers = None
             if 'modified_since' in kwargs:
-                headers = {'if-modified-since': kwargs.pop('modified_since')}
+                ms = kwargs.pop('modified_since')
+                if ms:
+                    headers = {'if-modified-since': ms}
             return self._request(method, data=func(*args, **kwargs), headers=headers)
         return call_func
     return decor
