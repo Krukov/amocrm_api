@@ -112,9 +112,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             return self._amo_model_class(result, _loaded=True)
 
     def create(self, **kwargs):
-        obj = self._amo_model_class(kwargs)
-        obj.save()
-        return obj
+        return self.add(**kwargs)
 
     @lazy_dict_property
     def _custom_fields(self):
@@ -133,19 +131,23 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @lazy_property
     def leads_statuses(self):
-        return {item.pop('name'): item for item in self.account_info.get('leads_statuses')}
+        return {item['name']: item for item in self.account_info.get('leads_statuses')}
 
     @lazy_property
     def note_types(self):
-        return {item.pop('code'): item for item in self.account_info.get('note_types')}
+        return {item['code']: item for item in self.account_info.get('note_types')}
 
     @lazy_property
     def task_types(self):
-        return {item.pop('name'): item for item in self.account_info.get('task_types')}  # 'LETTER', 'MEETING', 'CALL'
+        return {item['name']: item for item in self.account_info.get('task_types')}  # 'LETTER', 'MEETING', 'CALL'
 
     @lazy_property
     def users(self):
-        return {User(item) for item in self.account_info.get('users')}
+        return [User(item) for item in self.account_info.get('users')]
+
+    @lazy_property
+    def pipelines(self):
+        return {item['name']: item for item in self.account_info.get('pipelines').values()}
 
     def _make_request(self, path, method, data, headers=None):
         headers = headers or {}
@@ -258,7 +260,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def get(self, id):
         results = self.all(limit=1, query={'id': id, 'type': self.container_name[:-1]})
-        if results is None:
+        if not results:
             raise ValueError('Object with id %s not founded' % id)
         return results.pop()
 

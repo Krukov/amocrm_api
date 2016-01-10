@@ -80,6 +80,7 @@ class User(object):
         self.__data = data
         self.id = data['id']
         self.login, self.name = data.get('login'), data.get('name')
+        self.phone = data.get('phone')
 
     def __repr__(self):
         return 'User(%s)' % self.__data

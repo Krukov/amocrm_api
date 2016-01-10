@@ -118,25 +118,27 @@ class ManyForeignField(_BaseForeignField):
         self.key = key
 
     def on_get(self, data, instance):
-        if data is None:
+        if not data:
             return
         if not instance._loaded:
             return data
-        items = []
-        for item in data:
-            item = self.object_type().objects.get(item)
-            items.append(item)
-        return items
+        if isinstance(data, (list, tuple)):
+            items = []
+            for item in data:
+                item = self.object_type().objects.get(item)
+                items.append(item)
+            return items
+        return self.object_type().objects.get(data)
 
     def on_set(self, value, instance):
-        if isinstance(value.__class__, instance._get_field_by_name(self.field).object_type):
-            value = [value]
-        if isinstance(value, list):
-            instance._fields_data[self.field] = [item for item in value]
-            return [item.id for item in value]
-        else:
+        if value is None:
             instance._fields_data[self.field] = []
             return []
+        # if isinstance(value, self.object_type):
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+        instance._fields_data[self.field] = [item for item in value]
+        return [int(item.id) for item in value]
 
 
 class _TagsField(_Field):
@@ -154,21 +156,34 @@ class _TagsField(_Field):
         return ', '.join(value)
 
 
-class _TypeStatusField(_Field):
+class _TypeField(_Field):
     def __init__(self, field=None, choices=None, required=False):
-        super(_TypeStatusField, self).__init__(field, required=required)
+        super(_TypeField, self).__init__(field, required=required)
         self.choices = choices
 
     def on_get(self, data, instance):
         if data and str(data).isdigit():
-            _data = [key for key, item in getattr(instance.objects, self.choices).items() if item['id'] == data]
-            data = _data.pop()
+            _data = [key for key, item in self.get_choices(instance).items() if str(item['id']) == str(data)]
+            if _data:
+                data = _data.pop()
         return data
 
     def on_set(self, value, instance):
-        _statuses = getattr(instance.objects, self.choices)
-        if _statuses:
-            return _statuses[value]['id']  # TODO: raise Exception
+        return self.get_choices(instance)[value]['id']
+
+    def get_choices(self, instance):
+        return getattr(instance.objects, self.choices)
+
+
+class _StatusTypeField(_TypeField):
+
+    def __init__(self, **kwargs):
+        super(_StatusTypeField, self).__init__('status_id', choices='leads_statuses', **kwargs)
+
+    def get_choices(self, instance):
+        ch = super(_StatusTypeField, self).get_choices(instance)
+        ch.update(instance.statuses)
+        return ch
 
 
 class Owner(_Field):
@@ -185,7 +200,7 @@ class Owner(_Field):
         if isinstance(value, User):
             return value.id
         else:
-            return User.get_one(instance.objects.users, value)
+            return User.get_one(instance.objects.users, [value, ])
 
 
 class CustomField(object):

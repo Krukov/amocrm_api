@@ -63,7 +63,7 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(_contact.created_user, 1)
         self.assertIsNotNone(contact.last_modified)
         self.assertIsNotNone(contact.date_create)
-        self.assertEqual(_contact.amo_user.name, 'test')
+        self.assertEqual(_contact.rui.name, 'test')
 
     @amomock.activate
     def test_creating_company(self):

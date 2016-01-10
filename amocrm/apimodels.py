@@ -98,11 +98,12 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         self._data['last_modified'] = int(time.time())
         multi = [custom_field['name'] for custom_field in self.objects._custom_fields.values()
                  if custom_field['type_id'] == fields.MULTI_LIST_TYPE]
-        for field in multi:
-            data = [cfield for cfield in self._data[fields.CustomField._field] if cfield['name'] == field]
-            data = data.pop() if data else None
-            if data and data['values'] and isinstance(data['values'][0], dict):
-                data['values'] = [val['enum'] for val in data['values']]
+        if self._data.get(fields.CustomField._field, None):
+            for field in multi:
+                data = [cfield for cfield in self._data[fields.CustomField._field] if cfield['name'] == field]
+                data = data.pop() if data else None
+                if data and data['values'] and isinstance(data['values'][0], dict):
+                    data['values'] = [val['enum'] for val in data['values']]
 
         if not self._loaded:
             for name, field in self._fields.items():
@@ -123,7 +124,6 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             method = self.objects.create_or_update
         else:
             method = self.objects.create
-            data = self._data
         result = method(**data)
         self._data['id'] = result
 
@@ -151,10 +151,18 @@ class BaseCompany(_AbstractNamedModel):
 
 
 class BaseLead(_AbstractNamedModel):
-    status = fields._TypeStatusField('status_id', choices='leads_statuses', required=True)
-    price = fields._Field('price')
+    status = fields._StatusTypeField(required=True)
+    pipeline = fields._TypeField('pipeline_id', choices='pipelines', required=False)
+    budget = price = fields._Field('price')
 
     objects = LeadsManager()
+
+    PRIMARY = u'Первичный контакт'
+    CONVERSATION = u'Переговоры'
+    DECIDE = u'Принимают решение'
+    APPROVAL = u'Согласование договора'
+    NOT_REALIZED = u'Закрыто и не реализовано'
+    SUCCESSFULLY = u'Успешно реализовано'
 
     def create_task(self, text, task_type=None, complete_till=None):
         task = LeadTask(lead=self, type=task_type, text=text, complete_till=complete_till)
@@ -173,6 +181,12 @@ class BaseLead(_AbstractNamedModel):
     @property
     def notes(self):
         return LeadNote.objects.all(query={'element_id': self.id})
+
+    @property
+    def statuses(self):
+        if self.pipeline and self.objects.pipelines[self.pipeline]:
+            return {item.get('name', item.get('id')): item for item in self.objects.pipelines[self.pipeline]['statuses'].values()}
+        return self.objects.leads_statuses
 
 
 class BaseContact(_AbstractNamedModel):
@@ -204,7 +218,7 @@ class BaseContact(_AbstractNamedModel):
 
 
 class _AbstractTaskModel(_BaseModel):
-    type = fields._TypeStatusField('task_type', 'task_types', required=True)
+    type = fields._TypeField('task_type', 'task_types', required=True)
     text = fields._Field('text', required=True)
     complete_till = fields._DateTimeField('complete_till', required=True)
 
@@ -226,7 +240,7 @@ class ContactTask(_AbstractTaskModel):
 
 
 class _AbstractNoteModel(_BaseModel):
-    type = fields._TypeStatusField('note_type', 'note_types', required=True)
+    type = fields._TypeField('note_type', 'note_types', required=True)
     text = fields._Field('text', required=True)
 
 

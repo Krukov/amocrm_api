@@ -14,7 +14,6 @@ from . import fields
 __all__ = [
     'BaseCompany', 'BaseContact', 'BaseLead', 'amo_settings', 'AmoApi', 'ContactNote', 'ContactTask',
     'LeadNote', 'LeadTask', 'fields',
-
 ]
 
 logger = logging.getLogger('amocrm')
