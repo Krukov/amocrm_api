@@ -11,8 +11,8 @@ import six
 import requests
 
 from .settings import settings
-from .decorators import (amo_request, lazy_dict_property,
-                         to_amo_obj, lazy_property)
+from .utils import amo_request, lazy_dict_property,\
+                    to_amo_obj, lazy_property
 from .exceptions import *
 
 logger = logging.getLogger('amocrm')

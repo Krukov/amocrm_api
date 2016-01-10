@@ -5,7 +5,7 @@ import six
 
 from . import fields
 from .api import *
-from .decorators import lazy_property
+from .utils import lazy_property
 
 
 __all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead', 'ContactNote', 'LeadNote']
