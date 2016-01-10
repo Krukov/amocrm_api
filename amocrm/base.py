@@ -174,6 +174,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         logger.debug('Url: %s', resp.url)
         if not resp.ok:
             logger.error('Something went wrong')
+            if resp.status_code in (401, 403):
+                raise AmoAuthException(resp)
             raise AmoResponseException(resp)
         try:
             return resp.json()
@@ -219,7 +221,13 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             data[0].setdefault(_time, int(time()))
         if container is not None:
             data = self._create_container(container, data)
-        response = self._make_request(path=path, method=method_type, data=data, headers=headers)
+        try:
+            response = self._make_request(path=path, method=method_type, data=data, headers=headers)
+        except AmoAuthException:
+            logger.debug('Got auth error... reauth and retry again')
+            self._session = requests.Session()
+            self.auth()
+            response = self._make_request(path=path, method=method_type, data=data, headers=headers)
         return self._modify_response(response, result)
 
     def _get_path(self, method_name):
@@ -244,7 +252,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @to_amo_obj
     @amo_request(method='list')
-    def all(self, limit=100, limit_offset=None, query=None, modified_since=None):
+    def all(self, limit=100, limit_offset=None, query=None):
         request = query or {}
         if self._object_type:
             request.update({'type': self._object_type})
@@ -255,7 +263,6 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return request
 
     def get(self, id):
-        # TODO: refactor function signature, ..get(id=1)
         results = self.all(limit=1, query={'id': id, 'type': self.container_name[:-1]})
         if results is None:
             raise ValueError('Object with id %s not founded' % id)
@@ -264,7 +271,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     def search(self, query, modified_since=None):
         query = {'query': query}
         results = self.all(limit=1, query=query, modified_since=modified_since)
-        return list(results).pop() if results is not None else None
+        return list(results).pop() if results else None
 
     @amo_request('add')
     def add(self, **kwargs):
