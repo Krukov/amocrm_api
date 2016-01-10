@@ -38,12 +38,13 @@ class FakeApi(object):
                 'id': 1,
                 'custom_fields': {
                     'contacts': [
-                        {'id': 1, 'name': 'Телефон', 'enums': {
-                                '1': 'WORK',
-                                '2': 'HOME',
-                                '3': 'OTHER'}
-                            },
-                        {'id': 2, 'name': 'Email'},
+                        {
+                            'id': 1,
+                            'name': 'Телефон',
+
+                            'type_id': '1',
+                        },
+                        {'id': 2, 'name': 'Email', 'type_id': '1'},
                     ],
                 },
 
@@ -72,15 +73,13 @@ class FakeApi(object):
         }
 
     def _check_auth(self, params):
-        login = params.pop('USER_LOGIN', None)
-        _hash = params.pop('USER_HASH', None)
-        if login == self.login and _hash == self.hash:
-            return True
-        return False
+        return True
 
     def _auth(self, obj, params):
         r = {'auth': False}
-        if self._check_auth(params):
+        login = params.pop('USER_LOGIN', None)
+        _hash = params.pop('USER_HASH', None)
+        if login == self.login and _hash == self.hash:
             r['auth'] = True
         return json.dumps(r)
 

@@ -431,27 +431,24 @@ class TestCustomFields(AmoSettingsMixin, unittest.TestCase):
     def test_contact_cf(self):
 
         class Contact(BaseContact):
-            phone = fields.CustomField('Телефон', enum='WORK')
-            home_phone = fields.CustomField('Телефон', enum='HOME')
+            phone = fields.CustomField('Телефон')
             email = fields.CustomField('Email')
 
-        contact = Contact(phone='8-888-888-88-88', home_phone='7-777-777-77-77', email='test@email.com')
+        contact = Contact(phone='8-888-888-88-88', email='test@email.com')
         contact.name = 'test'
         self.assertEqual(contact.phone, '8-888-888-88-88')
-        self.assertEqual(contact.home_phone, '7-777-777-77-77')
         self.assertEqual(contact.email, 'test@email.com')
         self.assertEqual(contact.name, 'test')
 
         contact.save()
         self.assertEqual(contact.id, 1)
         self.assertEqual(contact.phone, '8-888-888-88-88')
-        self.assertEqual(contact.home_phone, '7-777-777-77-77')
         self.assertEqual(contact.email, 'test@email.com')
         self.assertEqual(contact.name, 'test')
 
         contact = Contact.objects.get(contact.id)
         self.assertEqual(contact.phone, '8-888-888-88-88')
-        self.assertEqual(contact.home_phone, '7-777-777-77-77')
+
         self.assertEqual(contact.email, 'test@email.com')
         self.assertEqual(contact.name, 'test')
 
