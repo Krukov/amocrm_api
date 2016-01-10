@@ -6,10 +6,11 @@ from datetime import datetime
 from calendar import timegm
 from copy import deepcopy
 
-
 __all__ = ['CustomField', 'ForeignField', 'ManyForeignField']
 
 logger = logging.getLogger('amocrm')
+CHOICE_TYPE = '4'
+MULTI_LIST_TYPE = '5'
 
 
 class _BaseField(object):
@@ -172,9 +173,9 @@ class _TypeStatusField(_Field):
 class CustomField(object):
     _field = 'custom_fields'
 
-    def __init__(self, custom_field, enum=None, subtypes=False):
-        self.field = '%s_%s_%s' % (self._field, custom_field, enum)
-        self.custom_field, self.enum, self.subtypes = custom_field, enum, subtypes
+    def __init__(self, custom_field, subtypes=False):
+        self.field = '%s_%s' % (self._field, custom_field)
+        self.custom_field, self.subtypes = custom_field, subtypes
 
     def __get__(self, instance, _=None):
         if instance is None:
@@ -184,8 +185,7 @@ class CustomField(object):
 
             if _data is None:
                 return
-            if self.custom_field not in instance.objects._custom_fields:
-                raise ValueError("%s have not custom field '%s'" % (instance.objects.name, self.custom_field))
+            self._check_field(instance)
             custom_field_info = instance.objects._custom_fields[self.custom_field]
             _id = custom_field_info['id']
             _data = [item['values'] for item in _data if item['id'] == _id]
@@ -195,12 +195,14 @@ class CustomField(object):
                 return
 
             _data = _data[-1] if _data else None
-            enum = {enum_name: _id for _id, enum_name in custom_field_info.get('enums', {}).items()}.get(self.enum)
-            if enum:
-                _data = [item for item in _data if item.get('enum') == enum]
-            self._check_field(instance)
-            instance._fields_data[self.field] = '; '.join(item['value'] for item in _data) if _data else None
+            if custom_field_info['type_id'] == MULTI_LIST_TYPE and _data and not isinstance(_data[0], dict):
+                _data = [{'value': item[1]} for item in custom_field_info['enums'].items()
+                         if item[1] in _data]
+            _data = [item['value'] for item in _data] if _data else None
+            if custom_field_info['type_id'] != MULTI_LIST_TYPE and _data:
+                _data = _data.pop()
 
+            instance._fields_data[self.field] = _data
         return instance._fields_data[self.field]
 
     def __set__(self, instance, value):
@@ -211,34 +213,35 @@ class CustomField(object):
         custom_field_info = instance.objects._custom_fields[self.custom_field]
         _id = custom_field_info['id']
         field = [_field for _field in instance._data.setdefault(self._field, []) if _field['id'] == _id]
-        enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
-        if field:
-            field_vals = field[0]['values']
-            enum_field_vals = [item for item in field_vals if item.get('enum') == enum]
-            if enum_field_vals:
-                enum_field_vals[0]['value'] = value
-                if self.subtypes:
-                    field[0]['values'] = [{'subtype': str(i),
-                                           'value': val.strip()} for i, val in enumerate(value.split(';'), start=1)]
-            else:
-                new_elem = {'value': value}
-                if self.enum:
-                    new_elem['enum'] = enum
-                field_vals.append(new_elem)
+
+        if isinstance(value, (list, tuple)):
+            _elems = []
+            for v in value:
+                _elems.append({'value': v})
         else:
-            full_data = {'id': _id, 'values': [{'value': value}]}
+            _elems = [{'value': value}]
+
+        if 'enums' in custom_field_info and custom_field_info['enums']:
+            values = [item['value'] for item in _elems]
+            _elems = [{'enum': item[0], 'value': item[1]} for item in custom_field_info['enums'].items()
+                      if item[1] in values]
+            if custom_field_info['type_id'] == MULTI_LIST_TYPE:
+                _elems = [item[0] for item in custom_field_info['enums'].items()
+                          if item[1] in values]
+
+            if not _elems:
+                raise ValueError('Invalid value for %s' % self.field)
+
+        if not field:
+            full_data = {'id': _id, 'values': _elems, 'name': self.custom_field}
             if self.subtypes:
                 full_data['values'] = [{'subtype': str(i),
                                         'value': val.strip()} for i, val in enumerate(value.split(';'), start=1)]
-            if self.enum is not None:
-                full_data['values'][0]['enum'] = enum
             instance._data[self._field].append(full_data)
+        else:
+            field[0]['values'] = _elems
         instance._changed_fields.append(self._field)
 
     def _check_field(self, instance):
         if self.custom_field not in instance.objects._custom_fields:
-            raise Exception('%s hasn\'t field "%s"' % (instance.name, self.custom_field))
-        custom_field_info = instance.objects._custom_fields[self.custom_field]
-        if self.enum is not None \
-                and {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum) is None:
-            raise Exception('There is no enum "%s" for field "%s"' % (self.enum, self.custom_field))
+            raise ValueError('%s hasn\'t field "%s"' % (instance, self.custom_field))

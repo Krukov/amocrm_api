@@ -45,7 +45,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             self._data = data or kwargs
         else:
             self._init_data = data or kwargs
-        if not self._loaded:
+
             for name, field in self._fields.items():
                 value = self._init_data.get(name, None) or getattr(self, name)
                 if value is None:
@@ -96,6 +96,14 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         if self.date_create is None:
             self._data['date_create'] = int(time.time())
         self._data['last_modified'] = int(time.time())
+        multi = [custom_field['name'] for custom_field in self.objects._custom_fields.values()
+                 if custom_field['type_id'] == fields.MULTI_LIST_TYPE]
+        for field in multi:
+            data = [cfield for cfield in self._data[fields.CustomField._field] if cfield['name'] == field]
+            data = data.pop() if data else None
+            if data and data['values'] and isinstance(data['values'][0], dict):
+                data['values'] = [val['enum'] for val in data['values']]
+
         if not self._loaded:
             for name, field in self._fields.items():
                 if (isinstance(field, fields._BaseField) and
