@@ -11,8 +11,7 @@ import six
 import requests
 
 from .settings import settings
-from .utils import amo_request, lazy_dict_property,\
-                    to_amo_obj, lazy_property
+from .utils import amo_request, lazy_dict_property, to_amo_obj, lazy_property, User
 from .exceptions import *
 
 logger = logging.getLogger('amocrm')
@@ -126,16 +125,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return self.get_account_info()
 
     @lazy_property
-    def rui(self):
-        if isinstance(self._responsible_user, int):
-            return self._responsible_user
-        else:
-            filter_func = lambda _: self._responsible_user == _.get('login') or \
-                                    self._responsible_user == _.get('name')
-            user = list(filter(filter_func, self.account_info.get('users', []))).pop()
-            if user is None:
-                raise Exception('Can not get responsible user id')
-            return user.get('id')
+    def user(self):
+        user = User.get_one(self.users, self._responsible_user)
+        if user is None:
+            raise Exception('Can not get responsible user id')
+        return user
 
     @lazy_property
     def leads_statuses(self):
@@ -151,7 +145,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @lazy_property
     def users(self):
-        return {item['name']: item for item in self.account_info.get('users')}
+        return {User(item) for item in self.account_info.get('users')}
 
     def _make_request(self, path, method, data, headers=None):
         headers = headers or {}

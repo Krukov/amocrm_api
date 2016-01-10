@@ -72,3 +72,20 @@ class lazy_dict_property(object):
             setattr(this._obj, this._calculate.__name__, value)
             return getattr(value, name)(*list(reversed(args)), **kwargs)
         return __wrapper
+
+
+class User(object):
+    def __init__(self, data):
+        assert isinstance(data, dict)
+        self.__data = data
+        self.id = data['id']
+        self.login, self.name = data.get('login'), data.get('name')
+
+    def __repr__(self):
+        return 'User(%s)' % self.__data
+
+    @classmethod
+    def get_one(cls, array, values):
+        filter_func = lambda _: _.login in values or _.name in values or _.id in values
+        match = [user for user in array if filter_func(user)]
+        return match.pop() if match else None

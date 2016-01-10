@@ -49,7 +49,7 @@ class FakeApi(object):
                 },
 
                 'users': [
-                    {'id': 99, 'name': 'test'}
+                    {'id': 99, 'name': 'test', 'login': 'test'}
                 ],
                 'task_types': [
                     {'code': 'CALL', 'id': 1, 'name': 'Call'},

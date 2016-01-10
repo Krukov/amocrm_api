@@ -137,20 +137,20 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     __repr__ = __str__
 
 
-class _AbstractaNamedModel(_BaseModel):
+class _AbstractNamedModel(_BaseModel):
     name = fields._Field('name', required=True)
     linked_leads = fields.ManyForeignField('linked_leads_id')
     tags = fields._TagsField('tags', 'name')
-    rui = fields._TypeStatusField('responsible_user_id', 'users')
+    amo_user = rui = fields.Owner()
 
 
-class BaseCompany(_AbstractaNamedModel):
+class BaseCompany(_AbstractNamedModel):
     type = fields._ConstantField('type', 'company')
 
     objects = CompanyManager()
 
 
-class BaseLead(_AbstractaNamedModel):
+class BaseLead(_AbstractNamedModel):
     status = fields._TypeStatusField('status_id', choices='leads_statuses', required=True)
     price = fields._Field('price')
 
@@ -175,7 +175,7 @@ class BaseLead(_AbstractaNamedModel):
         return LeadNote.objects.all(query={'element_id': self.id})
 
 
-class BaseContact(_AbstractaNamedModel):
+class BaseContact(_AbstractNamedModel):
     type = fields._ConstantField('type', 'contact')
     company = fields.ForeignField(BaseCompany, 'linked_company_id',
                                   auto_created=True,
@@ -233,7 +233,7 @@ class _AbstractNoteModel(_BaseModel):
 class LeadNote(_AbstractNoteModel):
     lead = fields.ForeignField(BaseLead, 'element_id')
     _element_type = fields._ConstantField('element_type',
-                                         _BaseModel._ELEMENT_TYPES['lead'])
+                                          _BaseModel._ELEMENT_TYPES['lead'])
 
     objects = NotesManager(object_type='lead')
 
@@ -241,6 +241,6 @@ class LeadNote(_AbstractNoteModel):
 class ContactNote(_AbstractNoteModel):
     contact = fields.ForeignField(BaseContact, 'element_id')
     _element_type = fields._ConstantField('element_type',
-                                         _BaseModel._ELEMENT_TYPES['contact'])
+                                          _BaseModel._ELEMENT_TYPES['contact'])
 
     objects = NotesManager(object_type='contact')

@@ -6,6 +6,7 @@ from datetime import datetime
 from calendar import timegm
 from copy import deepcopy
 
+from .utils import User
 __all__ = ['CustomField', 'ForeignField', 'ManyForeignField']
 
 logger = logging.getLogger('amocrm')
@@ -160,14 +161,31 @@ class _TypeStatusField(_Field):
 
     def on_get(self, data, instance):
         if data and str(data).isdigit():
-            _statuses = {item['id']: key for key, item in getattr(instance.objects, self.choices).items()}
-            data = _statuses.get(data)
+            _data = [key for key, item in getattr(instance.objects, self.choices).items() if item['id'] == data]
+            data = _data.pop()
         return data
 
     def on_set(self, value, instance):
-        _statuses = deepcopy(getattr(instance.objects, self.choices))
+        _statuses = getattr(instance.objects, self.choices)
         if _statuses:
             return _statuses[value]['id']  # TODO: raise Exception
+
+
+class Owner(_Field):
+
+    def __init__(self):
+        super(Owner, self).__init__('responsible_user_id', required=False)
+
+    def on_get(self, data, instance):
+        if data and str(data).isdigit():
+            return [item for item in instance.objects.users if item.id == data].pop()
+        return data
+
+    def on_set(self, value, instance):
+        if isinstance(value, User):
+            return value.id
+        else:
+            return User.get_one(instance.objects.users, value)
 
 
 class CustomField(object):
@@ -197,7 +215,7 @@ class CustomField(object):
             _data = _data[-1] if _data else None
             if custom_field_info['type_id'] == MULTI_LIST_TYPE and _data and not isinstance(_data[0], dict):
                 _data = [{'value': item[1]} for item in custom_field_info['enums'].items()
-                         if item[1] in _data]
+                         if item[0] in _data]
             _data = [item['value'] for item in _data] if _data else None
             if custom_field_info['type_id'] != MULTI_LIST_TYPE and _data:
                 _data = _data.pop()

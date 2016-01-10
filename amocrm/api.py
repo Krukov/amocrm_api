@@ -13,7 +13,7 @@ class ContactsManager(_BlankMixin, _BaseAmoManager):
     _object_type = 'contact'
 
     def _add_data(self, **kwargs):
-        kwargs.setdefault('responsible_user_id', self.rui)
+        kwargs.setdefault('responsible_user_id', self.user.id)
         return super(ContactsManager, self)._add_data(**kwargs)
 
 
