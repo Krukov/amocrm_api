@@ -134,6 +134,13 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         return {item['name']: item for item in self.account_info.get('leads_statuses')}
 
     @lazy_property
+    def all_leads_statuses(self):
+        main = {item['id']: item for item in self.account_info.get('leads_statuses')}
+        for pipeline in self.pipelines.values():
+            main.update(pipeline['statuses'])
+        return main
+
+    @lazy_property
     def note_types(self):
         return {item['code']: item for item in self.account_info.get('note_types')}
 
@@ -160,6 +167,12 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         if method != _P:
             params.update(data)
             data = None
+            for name, value in params.items():
+                if isinstance(value, (list, tuple)):
+                    values = value
+                    del params[name]
+                    for i, value in enumerate(values):
+                        params['{0}[{1}]'.format(name, i)] = value
 
         logger.info('%s - Sending %s request to %s' % (self.__class__.name,
                                                        method, path))

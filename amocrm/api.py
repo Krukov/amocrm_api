@@ -35,9 +35,14 @@ class LeadsManager(_BlankMixin, _BaseAmoManager):
     def all(self, query=None, status=None, **kwargs):
         query = query or {}
         if status:
-            if not ((isinstance(status, six.string_types) and status.isdigit()) or isinstance(status, int)):
-                status = self.leads_statuses[status]['id']
-            query['status'] = status
+            status = [status] if not isinstance(status, (list, tuple)) else status
+            new_statuses = []
+            for _status in status:
+                if not ((isinstance(_status, six.string_types) and _status.isdigit()) or isinstance(_status, int)):
+                    new_statuses.extend([k for k, v in self.all_leads_statuses.items() if v['name'] == _status])
+                else:
+                    new_statuses.append(_status)
+            query['status'] = new_statuses
         return super(LeadsManager, self).all(query=query, **kwargs)
 
 
