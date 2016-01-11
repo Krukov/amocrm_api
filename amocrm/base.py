@@ -248,7 +248,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @to_amo_obj
     @amo_request(method='list')
-    def all(self, limit=100, limit_offset=None, query=None):
+    def all(self, limit=100, limit_offset=None, query=None, user=None):
         request = query or {}
         if self._object_type:
             request.update({'type': self._object_type})
@@ -256,6 +256,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             request['limit_rows'] = limit
         if limit_offset is not None:
             request['limit_offset'] = limit_offset
+        if user:
+            request['responsible_user_id'] = user.id if isinstance(user, User) else user
         return request
 
     def get(self, id):
@@ -264,9 +266,9 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             raise ValueError('Object with id %s not founded' % id)
         return results.pop()
 
-    def search(self, query, modified_since=None):
+    def search(self, query, modified_since=None, user=None):
         query = {'query': query}
-        results = self.all(limit=1, query=query, modified_since=modified_since)
+        results = self.all(limit=1, query=query, modified_since=modified_since, user=user)
         return list(results).pop() if results else None
 
     @amo_request('add')
