@@ -266,9 +266,9 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             raise ValueError('Object with id %s not founded' % id)
         return results.pop()
 
-    def search(self, query, modified_since=None, user=None):
+    def search(self, query, **kwargs):
         query = {'query': query}
-        results = self.all(limit=1, query=query, modified_since=modified_since, user=user)
+        results = self.all(limit=1, query=query, **kwargs)
         return list(results).pop() if results else None
 
     @amo_request('add')

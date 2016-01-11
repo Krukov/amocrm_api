@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from .base import _BlankMixin, _BaseAmoManager, _Helper
 from .utils import lazy_dict_property
 
+import six
 
 __all__ = ['AmoApi', 'NotesManager', 'ContactsManager', 'CompanyManager', 'LeadsManager', 'TasksManager']
 
@@ -31,6 +32,14 @@ class CompanyManager(_BlankMixin, _BaseAmoManager):
 class LeadsManager(_BlankMixin, _BaseAmoManager):
     name = 'leads'
 
+    def all(self, query=None, status=None, **kwargs):
+        query = query or {}
+        if status:
+            if not ((isinstance(status, six.string_types) and status.isdigit()) or isinstance(status, int)):
+                status = self.leads_statuses[status]['id']
+            query['status'] = status
+        return super(LeadsManager, self).all(query=query, **kwargs)
+
 
 class _ObjectIdMixin(object):
     def __init__(self, object_type=None, *args, **kwargs):
@@ -42,7 +51,7 @@ class TasksManager(_ObjectIdMixin, _BlankMixin, _BaseAmoManager):
     name = 'tasks'
     _main_field = 'element_id'
 
-    def search(self, query):
+    def search(self, *args, **kwargs):
         raise Exception('Amocrm havn\'t task search ability ')
 
     def _create_or_update_data(self, **data):
@@ -53,7 +62,7 @@ class NotesManager(_ObjectIdMixin, _BlankMixin, _BaseAmoManager):
     name = 'notes'
     _main_field = 'element_id'
 
-    def search(self, query):
+    def search(self, *args, **kwargs):
         raise Exception('Amocrm havn\'t note search ability ')
 
     def _create_or_update_data(self, **data):
