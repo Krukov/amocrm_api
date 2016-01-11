@@ -123,11 +123,7 @@ class ManyForeignField(_BaseForeignField):
         if not instance._loaded:
             return data
         if isinstance(data, (list, tuple)):
-            items = []
-            for item in data:
-                item = self.object_type().objects.get(item)
-                items.append(item)
-            return items
+            return (self.object_type().objects.get(item) for item in data)
         return self.object_type().objects.get(data)
 
     def on_set(self, value, instance):
@@ -164,8 +160,7 @@ class _TypeField(_Field):
     def on_get(self, data, instance):
         if data and str(data).isdigit():
             _data = [key for key, item in self.get_choices(instance).items() if str(item['id']) == str(data)]
-            if _data:
-                data = _data.pop()
+            data = _data.pop()
         return data
 
     def on_set(self, value, instance):
