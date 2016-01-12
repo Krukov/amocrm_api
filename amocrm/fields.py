@@ -240,7 +240,7 @@ class CustomField(object):
         instance._fields_data[self.field] = None
         custom_field_info = instance.objects._custom_fields[self.custom_field]
         _id = custom_field_info['id']
-        instance._data[self._field] = instance._data[self._field] or []
+        instance._data[self._field] = instance._data.get(self._field, None) or []
         field = [_field for _field in instance._data[self._field] if _field['id'] == _id]
 
         if isinstance(value, (list, tuple)):
