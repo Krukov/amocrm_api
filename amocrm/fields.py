@@ -195,7 +195,7 @@ class Owner(_Field):
         if isinstance(value, User):
             return value.id
         else:
-            return User.get_one(instance.objects.users, [value, ])
+            return User.get_one(instance.objects.users, [value, ]).id
 
 
 class CustomField(object):
