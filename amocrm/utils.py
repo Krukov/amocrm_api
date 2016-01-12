@@ -1,34 +1,9 @@
 # -*- coding: utf-8 -*-
-from functools import wraps
 
-
-__all__ = ['amo_request', 'lazy_dict_property', 'lazy_property']
+__all__ = ['lazy_dict_property', 'lazy_property']
 
 
 empty = type('empty', (), {})
-
-
-def amo_request(method=None):
-    def decor(func):
-        @wraps(func)
-        def call_func(*args, **kwargs):
-            self = args[0]
-            headers = None
-            if 'modified_since' in kwargs:
-                ms = kwargs.pop('modified_since')
-                if ms:
-                    headers = {'if-modified-since': ms}
-            return self._request(method, data=func(*args, **kwargs), headers=headers)
-        return call_func
-    return decor
-
-
-def to_amo_obj(func):
-    @wraps(func)
-    def call_func(*args, **kwargs):
-        self = args[0]
-        return self._convert_to_obj(func(*args, **kwargs)) or ()
-    return call_func
 
 
 class lazy_property(object):
@@ -66,11 +41,10 @@ class lazy_dict_property(object):
     @staticmethod
     def __dispatch(name):
         def __wrapper(*args, **kwargs):
-            args = list(reversed(args))
-            this = args.pop()
+            this = args[0]
             value = this._calculate(this._obj)
             setattr(this._obj, this._calculate.__name__, value)
-            return getattr(value, name)(*list(reversed(args)), **kwargs)
+            return getattr(value, name)(*args[1:], **kwargs)
         return __wrapper
 
 

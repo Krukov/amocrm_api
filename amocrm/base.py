@@ -11,7 +11,7 @@ import six
 import requests
 
 from .settings import settings
-from .utils import amo_request, lazy_dict_property, to_amo_obj, lazy_property, User
+from .utils import lazy_dict_property, lazy_property, User
 from .exceptions import *
 
 logger = logging.getLogger('amocrm')
@@ -217,13 +217,16 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                 pass
         return response
 
-    def _request(self, method, data=None, headers=None):
+    def _request(self, method, data=None, headers=None, modified_since=None):
         if not self.is_auth:
             self.auth()
         path = self._get_path(method)
         method = self._methods[method]
         method_type = method.get('method', _G)
         timestamp, container, result = method.get('timestamp'), method.get('container'), method.get('result')
+
+        if modified_since:
+            headers = {'if-modified-since': modified_since}
 
         if timestamp:
             _time = timestamp if isinstance(timestamp, str) else 'last_modified'
@@ -255,13 +258,10 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         custom_fields = self.account_info['custom_fields'].get(to, [])
         return {field['name']: field for field in custom_fields}
 
-    @amo_request(method='account_info')
     def get_account_info(self):
-        return {}
+        return self._request('account_info', data={})
 
-    @to_amo_obj
-    @amo_request(method='list')
-    def all(self, limit=100, limit_offset=None, query=None, user=None):
+    def all(self, limit=100, limit_offset=None, query=None, user=None, **kwargs):
         request = query or {}
         if self._object_type:
             request.update({'type': self._object_type})
@@ -271,7 +271,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             request['limit_offset'] = limit_offset
         if user:
             request['responsible_user_id'] = user.id if isinstance(user, User) else user
-        return request
+        response = self._request('list', data=request, **kwargs)
+        return self._convert_to_obj(response)
 
     def get(self, id):
         results = self.all(limit=1, query={'id': id, 'type': self.container_name[:-1]})
@@ -284,13 +285,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         results = self.all(limit=1, query=query, **kwargs)
         return list(results).pop() if results else None
 
-    @amo_request('add')
     def add(self, **kwargs):
-        return [self._add_data(**kwargs)]
+        return self._request('add', data=[self._add_data(**kwargs)])
 
-    @amo_request('update')
     def update(self, **kwargs):
-        return [self._update_data(**kwargs)]
+        return self._request('update', data=[self._update_data(**kwargs)])
 
     def create_or_update(self, **kwargs):
         return self._create_or_update_data(**kwargs)
