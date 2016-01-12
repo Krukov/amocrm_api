@@ -43,7 +43,7 @@ class LeadsManager(_BlankMixin, _BaseAmoManager):
                 else:
                     new_statuses.append(_status)
             query['status'] = new_statuses
-        return super(LeadsManager, self).all(query=query, **kwargs)
+        return super(LeadsManager, self).all(query=query, **kwargs) or ()
 
 
 class _ObjectIdMixin(object):
