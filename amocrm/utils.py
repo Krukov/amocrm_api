@@ -54,7 +54,7 @@ class User(object):
         self.__data = data
         self.id = data['id']
         self.login, self.name = data.get('login'), data.get('name')
-        self.phone = data.get('phone')
+        self.phone = data.get('phone_number')
 
     def __repr__(self):
         return 'User(%s)' % self.__data
