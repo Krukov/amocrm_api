@@ -62,6 +62,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     _amo_model_class = None
     _main_field = None
     _container_name = None
+    ObjectNotFound = ObjectNotFound
 
     def __init__(self, user_login=None, user_hash=None,
                  domain=None, responsible_user=None):
@@ -277,7 +278,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     def get(self, id):
         results = self.all(limit=1, query={'id': id, 'type': self.container_name[:-1]})
         if not results:
-            raise ValueError('Object with id %s not founded' % id)
+            raise self.ObjectNotFound('%s with id %s not founded' % (self._amo_model_class, id))
         return results.pop()
 
     def search(self, query, **kwargs):

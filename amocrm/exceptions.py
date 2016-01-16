@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['AmoAuthException', 'AmoResponseException']
+__all__ = ['AmoAuthException', 'AmoResponseException', 'ObjectNotFound']
 
 
-class AmoResponseException(Exception):
+class AmoApiException(Exception):
+    pass
+
+
+class ObjectNotFound(AmoApiException):
+    pass
+
+
+class AmoResponseException(AmoApiException):
 
     def __init__(self, resp):
         self.resp = resp
