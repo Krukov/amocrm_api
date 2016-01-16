@@ -192,10 +192,10 @@ class Owner(_Field):
         return data
 
     def on_set(self, value, instance):
-        if isinstance(value, User):
-            return value.id
-        else:
+        if isinstance(value, str):
             return User.get_one(instance.objects.users, [value, ]).id
+        elif value is not None:
+            return value.id
 
 
 class CustomField(object):
@@ -241,12 +241,16 @@ class CustomField(object):
         custom_field_info = instance.objects._custom_fields[self.custom_field]
         _id = custom_field_info['id']
         instance._data[self._field] = instance._data.get(self._field, None) or []
-        field = [_field for _field in instance._data[self._field] if _field['id'] == _id]
+        fields = [item for item in instance._data[self._field] if item['id'] == _id]
 
         if isinstance(value, (list, tuple)):
             _elems = []
             for v in value:
                 _elems.append({'value': v})
+        elif value is None:
+            fields[0]['values'] = []
+            instance._changed_fields.append(self._field)
+            return
         else:
             _elems = [{'value': value}]
 
@@ -261,14 +265,14 @@ class CustomField(object):
             if not _elems:
                 raise ValueError('Invalid value for %s' % self.field)
 
-        if not field:
+        if not fields:
             full_data = {'id': _id, 'values': _elems, 'name': self.custom_field}
             if self.subtypes:
                 full_data['values'] = [{'subtype': str(i),
                                         'value': val.strip()} for i, val in enumerate(value.split(';'), start=1)]
             instance._data[self._field].append(full_data)
         else:
-            field[0]['values'] = _elems
+            fields[0]['values'] = _elems
         instance._changed_fields.append(self._field)
 
     def _check_field(self, instance):
