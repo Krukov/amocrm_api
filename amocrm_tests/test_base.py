@@ -391,7 +391,7 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     @amomock.activate
     def test_last_modified_since(self):
         self.create_object()
-        lead = self.object_type.objects.all(modified_since=datetime.today()-timedelta(days=2))
+        leads = list(self.object_type.objects.all(modified_since=datetime.today()-timedelta(days=2)))
         call = amomock.calls[-1]
         self.assertIn('if-modified-since', call[0].headers)
 
