@@ -26,4 +26,3 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
-    logger.setLevel(logging.WARNING)

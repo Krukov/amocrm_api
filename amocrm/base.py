@@ -109,7 +109,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             if not self._amo_model_class:
                 return result
             if isinstance(result, (tuple, list)):
-                return [self._amo_model_class(obj, _loaded=True) for obj in result]
+                return (self._amo_model_class(obj, _loaded=True) for obj in result)
             return self._amo_model_class(result, _loaded=True)
 
     def create(self, **kwargs):
@@ -262,7 +262,19 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     def get_account_info(self):
         return self._request('account_info', data={})
 
-    def all(self, limit=100, limit_offset=None, query=None, user=None, **kwargs):
+    def all(self, query=None, user=None, **kwargs):
+        offset = 0
+        limit = 100
+        while True:
+            i = 0
+            for item in self._all(limit=limit, limit_offset=offset, query=None, user=None, **kwargs):
+                i += 1
+                yield item
+            if i < limit:
+                break
+            offset += limit
+
+    def _all(self, limit=100, limit_offset=None, query=None, user=None, **kwargs):
         request = query or {}
         if self._object_type:
             request.update({'type': self._object_type})
@@ -273,17 +285,17 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         if user:
             request['responsible_user_id'] = user.id if isinstance(user, User) else user
         response = self._request('list', data=request, **kwargs)
-        return self._convert_to_obj(response)
+        return self._convert_to_obj(response) or []
 
     def get(self, id):
-        results = self.all(limit=1, query={'id': id, 'type': self.container_name[:-1]})
+        results = self._all(limit=1, query={'id': id, 'type': self.container_name[:-1]})
         if not results:
             raise self.ObjectNotFound('%s with id %s not founded' % (self._amo_model_class, id))
-        return results.pop()
+        return list(results).pop()
 
     def search(self, query, **kwargs):
         query = {'query': query}
-        results = self.all(limit=1, query=query, **kwargs)
+        results = self._all(limit=1, query=query, **kwargs)
         return list(results).pop() if results else None
 
     def add(self, **kwargs):
