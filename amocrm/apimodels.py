@@ -151,6 +151,7 @@ class BaseCompany(_AbstractNamedModel):
 
 
 class BaseLead(_AbstractNamedModel):
+    contact_model = None
     status = fields._StatusTypeField(required=True)
     pipeline = fields._TypeField('pipeline_id', choices='pipelines', required=False)
     budget = price = fields._Field('price')
@@ -178,6 +179,12 @@ class BaseLead(_AbstractNamedModel):
         note.save()
         return note
 
+    def add_note(self, note):
+        note.id = None
+        note.lead = self
+        note.save()
+        return note
+
     @property
     def notes(self):
         return LeadNote.objects.all(query={'element_id': self.id})
@@ -188,8 +195,14 @@ class BaseLead(_AbstractNamedModel):
             return {item.get('name', item.get('id')): item for item in self.objects.pipelines[self.pipeline]['statuses'].values()}
         return self.objects.leads_statuses
 
+    @property
+    def contacts(self):
+        return (self.contact_model.objects.get(item['contact_id']) for item in self.objects._get_links(leads=[self.id]))
+
 
 class BaseContact(_AbstractNamedModel):
+    leads_model = None
+    leads = fields.ManyForeignField(BaseLead, 'linked_leads_id')
     type = fields._ConstantField('type', 'contact')
     company = fields.ForeignField(BaseCompany, 'linked_company_id',
                                   auto_created=True,
@@ -215,6 +228,10 @@ class BaseContact(_AbstractNamedModel):
     @lazy_property
     def notes(self):
         return ContactNote.objects.all(query={'element_id': self.id})
+
+    @property
+    def links(self):
+        return (self.leads_model.objects.get(item['lead_id']) for item in self.objects._get_links(contacts=[self.id]))
 
 
 class _AbstractTaskModel(_BaseModel):
