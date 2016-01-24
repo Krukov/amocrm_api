@@ -222,6 +222,8 @@ class _AbstractTaskModel(_BaseModel):
     text = fields._Field('text', required=True)
     complete_till = fields._DateTimeField('complete_till', required=True)
 
+    objects = TasksManager()
+
 
 class LeadTask(_AbstractTaskModel):
     lead = fields.ForeignField(BaseLead, 'element_id')
@@ -242,6 +244,8 @@ class ContactTask(_AbstractTaskModel):
 class _AbstractNoteModel(_BaseModel):
     type = fields._TypeField('note_type', 'note_types', required=True)
     text = fields._Field('text', required=True)
+
+    objects = NotesManager()
 
 
 class LeadNote(_AbstractNoteModel):
