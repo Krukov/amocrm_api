@@ -144,6 +144,8 @@ class _TagsField(_Field):
 
     def on_get(self, data, instance):
         if data:
+            if isinstance(data, (list, tuple)):
+                return (item['name'] for item in data)
             return data.replace(', ', ',').split(',')
 
     def on_set(self, value, *args):
@@ -188,7 +190,7 @@ class Owner(_Field):
 
     def on_get(self, data, instance):
         if data and str(data).isdigit():
-            return [item for item in instance.objects.users if item.id == data].pop()
+            return [item for item in instance.objects.users if str(item.id) == str(data)].pop()
         return data
 
     def on_set(self, value, instance):
