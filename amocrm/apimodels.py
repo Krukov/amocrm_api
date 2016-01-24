@@ -136,6 +136,11 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
 
     __repr__ = __str__
 
+    @property
+    def detail_url(self):
+        if self.id:
+            return self.oblects._url('{0}/detail/{1}'.format(self.objects.name, self.id))
+
 
 class _AbstractNamedModel(_BaseModel):
     name = fields._Field('name', required=True)
