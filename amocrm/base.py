@@ -51,6 +51,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             'result': ['add', 0, 'id'],
             'container': ['add'],
         },
+        'links': {
+            'path': 'links',
+            'name': 'contacts',
+            'result': ['links'],
+        },
         'update': {
             'path': 'set',
             'method': _P,
@@ -261,6 +266,19 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def get_account_info(self):
         return self._request('account_info', data={})
+
+    def _get_links(self, contacts=None, leads=None, limit=None, limit_offset=None):
+        """ Low level api to get links between leads and contacts """
+        data = {}
+        if contacts:
+            data['contacts_link'] = contacts
+        elif leads:
+            data['deals_link'] = leads
+        if limit is not None:
+            data['limit_rows'] = limit
+        if limit_offset is not None:
+            data['limit_offset'] = limit_offset
+        return self._request('links', data={})
 
     def all(self, query=None, user=None, **kwargs):
         offset = 0
