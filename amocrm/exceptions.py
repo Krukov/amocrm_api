@@ -20,3 +20,7 @@ class AmoResponseException(AmoApiException):
 
 class AmoAuthException(AmoResponseException):
     pass
+
+
+class UneditableFieldError(AmoApiException):
+    pass

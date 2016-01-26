@@ -7,6 +7,7 @@ from calendar import timegm
 from copy import deepcopy
 
 from .utils import User
+from .exceptions import UneditableFieldError
 __all__ = ['CustomField', 'ForeignField', 'ManyForeignField']
 
 logger = logging.getLogger('amocrm')
@@ -50,7 +51,7 @@ class _Field(_BaseField):
 
 class _UneditableField(_Field):
     def __set__(self, instance, value):
-        pass
+        raise UneditableFieldError
 
 
 class _ConstantField(_UneditableField):
@@ -98,8 +99,8 @@ class ForeignField(_BaseForeignField):
     def on_get(self, data, instance):
         obj = self.object_type()
         obj._fields_data['id'] = instance._data.get(self.field)
-        [setattr(obj, name, instance._data.get(value))
-         for name, value in self.links.items()]
+        obj._data = {name: instance._data.get(value)
+                     for name, value in self.links.items()}
         return obj
 
     def on_set(self, val, instance):
@@ -185,8 +186,8 @@ class _StatusTypeField(_TypeField):
 
 class Owner(_Field):
 
-    def __init__(self):
-        super(Owner, self).__init__('responsible_user_id', required=False)
+    def __init__(self, field='responsible_user_id'):
+        super(Owner, self).__init__(field, required=False)
 
     def on_get(self, data, instance):
         if data and str(data).isdigit():
