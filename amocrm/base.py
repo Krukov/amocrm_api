@@ -285,7 +285,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         limit = 100
         while True:
             i = 0
-            for item in self._all(limit=limit, limit_offset=offset, query=None, user=None, **kwargs):
+            for item in self._all(limit=limit, limit_offset=offset, query=query, user=None, **kwargs):
                 i += 1
                 yield item
             if i < limit:
