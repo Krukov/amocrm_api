@@ -53,8 +53,6 @@ class TestBaseFields(unittest.TestCase):
         self.assertEqual(self.instance.tags, self.data['tags'].replace(', ', ',').split(','))
 
         self.instance.field = 'new_field'
-        self.instance.uneditable = 'new_field'
-        self.instance.constant = 'new_field'
         self.instance.bool = 0
         new_date = datetime.utcnow() - timedelta(days=1)
         self.instance.datetime = new_date
