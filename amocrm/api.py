@@ -31,6 +31,12 @@ class CompanyManager(_BlankMixin, _BaseAmoManager):
 
 class LeadsManager(_BlankMixin, _BaseAmoManager):
     name = 'leads'
+    PRIMARY = u'Первичный контакт'
+    CONVERSATION = u'Переговоры'
+    DECIDE = u'Принимают решение'
+    APPROVAL = u'Согласование договора'
+    NOT_REALIZED = u'Закрыто и не реализовано'
+    SUCCESSFULLY = u'Успешно реализовано'
 
     def all(self, query=None, status=None, **kwargs):
         query = query or {}
@@ -66,6 +72,23 @@ class TasksManager(_ObjectIdMixin, _BlankMixin, _BaseAmoManager):
 class NotesManager(_ObjectIdMixin, _BlankMixin, _BaseAmoManager):
     name = 'notes'
     _main_field = 'element_id'
+    EXTERNAL_ATTACH = u'EXTERNAL_ATTACH'
+    MAX_SYSTEM = u'MAX_SYSTEM'
+    DEAL_STATUS_CHANGED = u'DEAL_STATUS_CHANGED'
+    ATTACHEMENT = u'ATTACHEMENT'
+    MAIL_MESSAGE = u'MAIL_MESSAGE'
+    COMPANY_CREATED = u'COMPANY_CREATED'
+    SMS_IN = u'SMS_IN'
+    CALL_OUT = u'CALL_OUT'
+    CONTACT_CREATED = u'CONTACT_CREATED'
+    DEAL_CREATED = u'DEAL_CREATED'
+    CALL = u'CALL'
+    COMMON = u'COMMON'
+    TASK_RESULT = u'TASK_RESULT'
+    SMS_OUT = u'SMS_OUT'
+    MAIL_MESSAGE_ATTACHMENT = u'MAIL_MESSAGE_ATTACHMENT'
+    DROPBOX = u'DROPBOX'
+    CALL_IN = u'CALL_IN'
 
     def search(self, *args, **kwargs):
         raise Exception('Amocrm havn\'t note search ability ')

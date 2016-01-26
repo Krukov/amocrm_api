@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
+
+import json
 import time
 import six
 
@@ -36,6 +38,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     date_create = fields._StaticDateTimeField('date_create')
     last_modified = fields._StaticDateTimeField('last_modified')
     request = fields._Field('request_id')
+    amo_user = rui = fields.Owner()
+    amo_creator = fields.Owner('created_user_id')
 
     def __init__(self, data=None, **kwargs):
         self._data, self._init_data = {}, {}
@@ -60,7 +64,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 else:
                     if isinstance(field, fields._UneditableField):
                         self._data[field.field] = value
-                    setattr(self, name, value)
+                    else:
+                        setattr(self, name, value)
                     self._changed_fields.append(field.field)
 
     def __getitem__(self, item):
@@ -139,14 +144,13 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     @property
     def detail_url(self):
         if self.id:
-            return self.oblects._url('{0}/detail/{1}'.format(self.objects.name, self.id))
+            return self.objects._url('/{0}/detail/{1}'.format(self.objects.name, self.id))
 
 
 class _AbstractNamedModel(_BaseModel):
     name = fields._Field('name', required=True)
     linked_leads = fields.ManyForeignField('linked_leads_id')
     tags = fields._TagsField('tags', 'name')
-    amo_user = rui = fields.Owner()
 
 
 class BaseCompany(_AbstractNamedModel):
@@ -163,13 +167,6 @@ class BaseLead(_AbstractNamedModel):
 
     objects = LeadsManager()
 
-    PRIMARY = u'Первичный контакт'
-    CONVERSATION = u'Переговоры'
-    DECIDE = u'Принимают решение'
-    APPROVAL = u'Согласование договора'
-    NOT_REALIZED = u'Закрыто и не реализовано'
-    SUCCESSFULLY = u'Успешно реализовано'
-
     def create_task(self, text, task_type=None, complete_till=None):
         task = LeadTask(lead=self, type=task_type, text=text, complete_till=complete_till)
         task.save()
@@ -177,16 +174,10 @@ class BaseLead(_AbstractNamedModel):
 
     @property
     def tasks(self):
-        return LeadTask.objects.all()
+        return LeadTask.objects.all(query={'element_id': self.id})
 
     def create_note(self, text, note_type='COMMON'):
         note = LeadNote(lead=self, type=note_type, text=text)
-        note.save()
-        return note
-
-    def add_note(self, note):
-        note.id = None
-        note.lead = self
         note.save()
         return note
 
@@ -223,7 +214,7 @@ class BaseContact(_AbstractNamedModel):
 
     @lazy_property
     def tasks(self):
-        return ContactTask.objects.all()
+        return ContactTask.objects.all(query={'element_id': self.id})
 
     def create_note(self, text, note_type='COMMON'):
         note = ContactNote(contact=self, type=note_type, text=text)
@@ -243,6 +234,7 @@ class _AbstractTaskModel(_BaseModel):
     type = fields._TypeField('task_type', 'task_types', required=True)
     text = fields._Field('text', required=True)
     complete_till = fields._DateTimeField('complete_till', required=True)
+    is_closed = fields._BooleanField('status', required=True)
 
     objects = TasksManager()
 
@@ -268,6 +260,13 @@ class _AbstractNoteModel(_BaseModel):
     text = fields._Field('text', required=True)
 
     objects = NotesManager()
+
+    @property
+    def properties(self):
+        try:
+            return json.loads(self.text)
+        except ValueError:
+            return {'text': self.text}
 
 
 class LeadNote(_AbstractNoteModel):
