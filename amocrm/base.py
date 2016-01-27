@@ -278,7 +278,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             data['limit_rows'] = limit
         if limit_offset is not None:
             data['limit_offset'] = limit_offset
-        return self._request('links', data={})
+        return self._request('links', data=data)
 
     def all(self, query=None, user=None, **kwargs):
         offset = 0
