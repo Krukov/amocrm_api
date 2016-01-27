@@ -193,7 +193,8 @@ class BaseLead(_AbstractNamedModel):
 
     @property
     def contacts(self):
-        return (self.contact_model.objects.get(item['contact_id']) for item in self.objects._get_links(leads=[self.id]))
+        return (self.contact_model.objects.get(_id) for _id in
+                set([item['contact_id'] for item in self.objects._get_links(leads=[self.id])]))
 
 
 class BaseContact(_AbstractNamedModel):
