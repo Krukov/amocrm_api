@@ -282,7 +282,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def all(self, query=None, user=None, **kwargs):
         offset = 0
-        limit = 100
+        limit = 500
         while True:
             i = 0
             for item in self._all(limit=limit, limit_offset=offset, query=query, user=None, **kwargs):
@@ -292,7 +292,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                 break
             offset += limit
 
-    def _all(self, limit=100, limit_offset=None, query=None, user=None, **kwargs):
+    def _all(self, limit=500, limit_offset=None, query=None, user=None, **kwargs):
         request = query or {}
         if self._object_type:
             request.update({'type': self._object_type})
