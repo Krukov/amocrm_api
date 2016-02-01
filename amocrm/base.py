@@ -280,9 +280,9 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             data['limit_offset'] = limit_offset
         return self._request('links', data=data)
 
-    def all(self, query=None, user=None, **kwargs):
+    def all(self, query=None, user=None, chunk=500, **kwargs):
         offset = 0
-        limit = 500
+        limit = chunk
         while True:
             i = 0
             for item in self._all(limit=limit, limit_offset=offset, query=query, user=None, **kwargs):
