@@ -267,7 +267,7 @@ class _AbstractNoteModel(_BaseModel):
         try:
             return json.loads(self.text)
         except ValueError:
-            return {'text': self.text}
+            return {u'TEXT': self.text}
 
 
 class LeadNote(_AbstractNoteModel):
