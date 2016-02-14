@@ -265,9 +265,12 @@ class _AbstractNoteModel(_BaseModel):
     @property
     def properties(self):
         try:
-            return json.loads(self.text)
+            res = json.loads(self.text)
         except ValueError:
-            return {u'TEXT': self.text}
+            res = None
+        if not isinstance(res, dict):
+            res = {u'TEXT': self.text}
+        return res
 
 
 class LeadNote(_AbstractNoteModel):
