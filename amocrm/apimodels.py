@@ -94,7 +94,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 continue
             if (field.field in self._changed_fields or not self._loaded) \
                     and (name in self._data or name in self._init_data):
-                getattr(self, name).save()
+                if not getattr(self, name).id:  # save fk if it not exists
+                    getattr(self, name).save()
                 self._data[field.field] = getattr(self, name).id
 
     def _pre_save(self):
