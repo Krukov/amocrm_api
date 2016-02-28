@@ -60,7 +60,7 @@ Example::
     class Contact(BaseContact):
         position = fields.CustomField(u'Должность')
         site = fields.CustomField(u'Сайт')
-        phone = fields.CustomField(u'Телефон', enum='WORK')
+        phone = fields.EnumCustomField(u'Телефон', enum='WORK')
 
 Ok, now it is ready to use and you can get, create or edit contacts
 
