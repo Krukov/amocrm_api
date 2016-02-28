@@ -311,10 +311,10 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             raise self.ObjectNotFound('%s with id %s not founded' % (self._amo_model_class, id))
         return list(results).pop()
 
-    def search(self, query, **kwargs):
+    def search(self, query, limit=1, **kwargs):
         query = {'query': query}
-        results = self._all(limit=1, query=query, **kwargs)
-        return list(results).pop() if results else None
+        results = self._all(query=query, limit=limit, **kwargs)
+        return list(results) if results else []
 
     def add(self, **kwargs):
         return self._request('add', data=[self._add_data(**kwargs)])
@@ -338,9 +338,13 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         query = data.get(on_field or self._main_field)
         obj = self.search(query) if query else {}
         if obj:
+            obj = obj.pop()
             if any(obj.get(key) != data[key] for key in data.keys()):
                 for key, value in data.items():
-                    setattr(obj, key, value)
+                    try:
+                        setattr(obj, key, value)
+                    except UneditableFieldError:
+                        pass
                 obj.save()
             return obj['id']
         else:

@@ -221,10 +221,6 @@ class CustomField(object):
             _id = custom_field_info['id']
             _data = [item['values'] for item in _data if item['id'] == _id]
 
-            if not _data:
-                logger.warning('Object "%s" have not custom field "%s"', instance, self.custom_field)
-                return
-
             _data = _data[-1] if _data else None
             if custom_field_info['type_id'] == MULTI_LIST_TYPE and _data and not isinstance(_data[0], dict):
                 _data = [{'value': item[1]} for item in custom_field_info['enums'].items()
@@ -303,10 +299,6 @@ class EnumCustomField(CustomField):
             custom_field_info = instance.objects._custom_fields[self.custom_field]
             _id = custom_field_info['id']
             _data = [item['values'] for item in _data if item['id'] == _id]
-
-            if not _data:
-                logger.warning('Object "%s" have not custom field "%s"', instance, self.custom_field)
-                return
 
             _data = _data[-1] if _data else None
             enum = {enum_name: _id for _id, enum_name in custom_field_info.get('enums', {}).items()}.get(self.enum)

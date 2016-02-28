@@ -73,7 +73,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
 
     def __getattribute__(self, name):
         value = super(_BaseModel, self).__getattribute__(name)
-        if (value is None and not self._loaded and name != 'id' and self.id is not None
+        if (value is None and not self._loaded and name != 'id' and self.id is not None and name in self._fields
                 and self._fields[name].field not in self._changed_fields):
             amo_data = self.objects.get(self.id)  # trying to get info from crm
             if amo_data:
@@ -106,7 +106,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                  if custom_field['type_id'] == fields.MULTI_LIST_TYPE]
         if self._data.get(fields.CustomField._field, None):
             for field in multi:
-                data = [cfield for cfield in self._data[fields.CustomField._field] if cfield['name'] == field]
+                data = [cfield for cfield in self._data[fields.CustomField._field] if cfield.get('name', None) == field]
                 data = data.pop() if data else None
                 if data and data['values'] and isinstance(data['values'][0], dict):
                     data['values'] = [val['enum'] for val in data['values']]
