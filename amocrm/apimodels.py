@@ -142,6 +142,17 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
 
     __repr__ = __str__
 
+    def __hash__(self):
+        return hash(self.id or json.dumps(self._data))
+
+    def __eq__(self, other):
+        if self.id == other.id:
+            return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @property
     def detail_url(self):
         if self.id:
