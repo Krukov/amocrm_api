@@ -221,7 +221,7 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     def test_searching_contact(self):
         self.create_object()
         self.create_object(name='super_uniq')
-        contact = BaseContact.objects.search('super_uniq')
+        contact = BaseContact.objects.search('super_uniq').pop()
         self.assertEqual(contact.name, 'super_uniq')
 
     @amomock.activate
@@ -239,12 +239,12 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     def test_creating_tags(self):
         self.create_object(tags=['Tag2', 'Tag1'])
 
-        _contact = BaseContact.objects.search('test_name')
+        _contact = BaseContact.objects.search('test_name').pop()
         self.assertEqual(_contact.tags, ['Tag2', 'Tag1'])
 
         _contact.tags += ['frog']
         _contact.save()
-        _contact = BaseContact.objects.search('test_name')
+        _contact = BaseContact.objects.search('test_name').pop()
         self.assertEqual(_contact.tags, ['Tag2', 'Tag1', 'frog'])
 
     @amomock.activate
@@ -271,7 +271,7 @@ class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     def test_searching_company(self):
         self.create_object()
         self.create_object(name='super_uniq')
-        company = self.object_type.objects.search('super_uniq')
+        company = self.object_type.objects.search('super_uniq').pop()
         self.assertEqual(company.name, 'super_uniq')
 
     @amomock.activate
@@ -360,7 +360,7 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
     def test_searching_lead(self):
         self.create_object()
         self.create_object(name='super_uniq', price=999)
-        lead = self.object_type.objects.search('super_uniq')
+        lead = self.object_type.objects.search('super_uniq').pop()
         self.assertEqual(lead.name, 'super_uniq')
 
     @amomock.activate
