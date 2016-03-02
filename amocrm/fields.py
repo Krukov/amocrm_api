@@ -120,7 +120,7 @@ class ManyForeignField(_BaseForeignField):
 
     def on_get(self, data, instance):
         if not data:
-            return
+            return []
         if not instance._loaded:
             return data
         if isinstance(data, (list, tuple)):
