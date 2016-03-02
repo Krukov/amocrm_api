@@ -170,6 +170,14 @@ class BaseCompany(_AbstractNamedModel):
 
     objects = CompanyManager()
 
+    @lazy_property
+    def notes(self):
+        return CompanyNote.objects.all(query={'element_id': self.id})
+
+    @lazy_property
+    def tasks(self):
+        return CompanyTask.objects.all(query={'element_id': self.id})
+
 
 class BaseLead(_AbstractNamedModel):
     contact_model = None
@@ -268,6 +276,14 @@ class ContactTask(_AbstractTaskModel):
     objects = TasksManager(object_type='contact')
 
 
+class CompanyTask(_AbstractTaskModel):
+    company = fields.ForeignField(BaseCompany, 'element_id')
+    _element_type = fields._ConstantField('element_type',
+                                         _BaseModel._ELEMENT_TYPES['contact'])
+
+    objects = TasksManager(object_type='company')
+
+
 class _AbstractNoteModel(_BaseModel):
     type = fields._TypeField('note_type', 'note_types', required=True)
     text = fields._Field('text', required=True)
@@ -299,3 +315,11 @@ class ContactNote(_AbstractNoteModel):
                                           _BaseModel._ELEMENT_TYPES['contact'])
 
     objects = NotesManager(object_type='contact')
+
+
+class CompanyNote(_AbstractNoteModel):
+    company = fields.ForeignField(BaseCompany, 'element_id')
+    _element_type = fields._ConstantField('element_type',
+                                          _BaseModel._ELEMENT_TYPES['contact'])
+
+    objects = NotesManager(object_type='company')
