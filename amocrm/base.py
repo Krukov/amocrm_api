@@ -184,6 +184,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                                                        method, path))
         logger.debug('Data: %s \n Params: %s' % (data, params))
 
+
         resp = self._session.request(method, self._url(path), data=json.dumps(data), params=params,
                                      headers=headers, **_req_params)
         logger.debug('Url: %s', resp.url)
@@ -239,14 +240,23 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             data[0].setdefault(_time, int(time()))
         if container is not None:
             data = self._create_container(container, data)
-        try:
-            response = self._make_request(path=path, method=method_type, data=data, headers=headers)
-        except AmoAuthException:
-            logger.debug('Got auth error... reauth and retry again')
-            self._session = requests.Session()
-            self.auth()
-            response = self._make_request(path=path, method=method_type, data=data, headers=headers)
-        return self._modify_response(response, result)
+
+        retry = 3
+        while True:
+            try:
+                response = self._make_request(path=path, method=method_type, data=data, headers=headers)
+            except AmoAuthException:
+                logger.debug('Got auth error... reauth and retry again')
+                self._session = requests.Session()
+                retry -= 1
+                continue
+            except Exception:
+                retry -= 1
+                if retry == 0:
+                    raise
+                continue
+
+            return self._modify_response(response, result)
 
     def _get_path(self, method_name):
         name = self._methods[method_name].get('name', self.name)
@@ -280,8 +290,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             data['limit_offset'] = limit_offset
         return self._request('links', data=data)
 
-    def all(self, query=None, user=None, chunk=500, **kwargs):
-        offset = 0
+    def all(self, query=None, user=None, chunk=500, offset=0, **kwargs):
         limit = chunk
         while True:
             i = 0
@@ -290,7 +299,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                 yield item
             if not i:
                 break
-            offset += limit
+            offset += i
 
     def _all(self, limit=500, limit_offset=None, query=None, user=None, **kwargs):
         request = query or {}
