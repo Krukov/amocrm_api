@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import json
 from abc import *
 from collections import defaultdict
-from time import time
+from time import time, sleep
 from copy import copy
 import logging
 import six
@@ -250,7 +250,9 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                 self._session = requests.Session()
                 retry -= 1
                 continue
-            except Exception:
+            except (AmoResponseException, requests.RequestException):
+                logger.debug('Got error... retry again')
+                sleep(5)
                 retry -= 1
                 if retry == 0:
                     raise
