@@ -7,7 +7,7 @@ import six
 
 from . import fields
 from .api import *
-from .utils import lazy_property
+from .utils import lazy_property, cached_property
 
 
 __all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead', 'ContactNote', 'LeadNote']
@@ -51,6 +51,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             self._init_data = data or kwargs
 
             for name, field in self._fields.items():
+                if isinstance(field, fields.ManyForeignField):
+                    continue
                 value = self._init_data.get(name, None) or getattr(self, name)
                 if value is None:
                     continue
@@ -170,11 +172,11 @@ class BaseCompany(_AbstractNamedModel):
 
     objects = CompanyManager()
 
-    @lazy_property
+    @cached_property
     def notes(self):
         return CompanyNote.objects.all(query={'element_id': self.id})
 
-    @lazy_property
+    @cached_property
     def tasks(self):
         return CompanyTask.objects.all(query={'element_id': self.id})
 
@@ -192,7 +194,7 @@ class BaseLead(_AbstractNamedModel):
         task.save()
         return task
 
-    @property
+    @cached_property
     def tasks(self):
         return LeadTask.objects.all(query={'element_id': self.id})
 
@@ -201,7 +203,7 @@ class BaseLead(_AbstractNamedModel):
         note.save()
         return note
 
-    @property
+    @cached_property
     def notes(self):
         return LeadNote.objects.all(query={'element_id': self.id})
 
@@ -211,7 +213,7 @@ class BaseLead(_AbstractNamedModel):
             return {item.get('name', item.get('id')): item for item in self.objects.pipelines[self.pipeline]['statuses'].values()}
         return self.objects.leads_statuses
 
-    @property
+    @cached_property
     def contacts(self):
         return (self.contact_model.objects.get(_id) for _id in
                 set([item['contact_id'] for item in self.objects._get_links(leads=[self.id])]))
@@ -233,7 +235,7 @@ class BaseContact(_AbstractNamedModel):
         task.save()
         return task
 
-    @lazy_property
+    @cached_property
     def tasks(self):
         return ContactTask.objects.all(query={'element_id': self.id})
 
@@ -242,11 +244,11 @@ class BaseContact(_AbstractNamedModel):
         note.save()
         return note
 
-    @lazy_property
+    @cached_property
     def notes(self):
         return ContactNote.objects.all(query={'element_id': self.id})
 
-    @property
+    @cached_property
     def links(self):
         return (self.leads_model.objects.get(item['lead_id']) for item in self.objects._get_links(contacts=[self.id]))
 

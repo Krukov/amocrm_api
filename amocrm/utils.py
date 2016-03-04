@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['lazy_dict_property', 'lazy_property']
+import types
+from itertools import tee
+
+__all__ = ['lazy_dict_property', 'lazy_property', 'cached_property']
 
 
 empty = type('empty', (), {})
@@ -46,6 +49,24 @@ class lazy_dict_property(object):
             setattr(this._obj, this._calculate.__name__, value)
             return getattr(value, name)(*args[1:], **kwargs)
         return __wrapper
+
+
+class cached_property(object):
+    def __init__(self, func):
+        self.__func = func
+        self.__cache = None
+
+    def __get__(self, obj, _=None):
+        if obj is None:
+            return self
+        if self.__cache:
+            return self.__cache
+        value = self.__func(obj)
+        if value is not None:
+            self.__cache = value
+        if isinstance(self.__cache, types.GeneratorType):
+            self.__cache = list(self.__cache)
+        return self.__cache
 
 
 class User(object):
