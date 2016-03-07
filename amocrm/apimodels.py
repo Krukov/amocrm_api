@@ -180,6 +180,11 @@ class BaseCompany(_AbstractNamedModel):
     def tasks(self):
         return CompanyTask.objects.all(query={'element_id': self.id})
 
+    def create_note(self, text, note_type='COMMON'):
+        note = CompanyNote(company=self, type=note_type, text=text)
+        note.save()
+        return note
+
 
 class BaseLead(_AbstractNamedModel):
     contact_model = None
