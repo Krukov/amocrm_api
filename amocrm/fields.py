@@ -246,10 +246,6 @@ class CustomField(object):
             _elems = []
             for v in value:
                 _elems.append({'value': v})
-        elif value is None:
-            fields[0]['values'] = []
-            instance._changed_fields.append(self._field)
-            return
         else:
             _elems = [{'value': value}]
 
