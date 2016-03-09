@@ -124,7 +124,7 @@ class ManyForeignField(_BaseForeignField):
         if not instance._loaded:
             return data
         if isinstance(data, (list, tuple)):
-            return (self.object_type().objects.get(item) for item in data)
+            return [self.object_type().objects.get(item) for item in data]
         return self.object_type().objects.get(data)
 
     def on_set(self, value, instance):
@@ -146,7 +146,7 @@ class _TagsField(_Field):
     def on_get(self, data, instance):
         if data:
             if isinstance(data, (list, tuple)):
-                return (item['name'] for item in data)
+                return [item['name'] for item in data]
             return data.replace(', ', ',').split(',')
 
     def on_set(self, value, *args):
