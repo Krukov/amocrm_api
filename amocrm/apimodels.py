@@ -7,7 +7,6 @@ import six
 
 from . import fields
 from .api import *
-from .utils import lazy_property, cached_property
 
 
 __all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead', 'ContactNote', 'LeadNote']
@@ -32,6 +31,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     _ELEMENT_TYPES = {
         'contact': 1,
         'lead': 2,
+        'company': 3,
     }
 
     id = fields._UneditableField('id')
@@ -148,9 +148,14 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         return hash(self.id or json.dumps(self._data))
 
     def __eq__(self, other):
-        if self.id == other.id:
-            return True
-        return False
+        if isinstance(other, self.__class__):
+            if self.id == other.id:
+                return True
+            return False
+        elif isinstance(other, six.string_types):
+            param = getattr(self, 'name', None) or getattr(self, 'text', None)
+            if param:
+                return param == other
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -172,17 +177,17 @@ class BaseCompany(_AbstractNamedModel):
 
     objects = CompanyManager()
 
-    @cached_property
+    @property
     def notes(self):
         return CompanyNote.objects.all(query={'element_id': self.id})
 
-    @cached_property
+    @property
     def tasks(self):
         return CompanyTask.objects.all(query={'element_id': self.id})
 
     def create_note(self, text, note_type='COMMON'):
         note = CompanyNote(company=self, type=note_type, text=text)
-        note.save()
+        note.save(update_if_exists=False)
         return note
 
 
@@ -196,19 +201,19 @@ class BaseLead(_AbstractNamedModel):
 
     def create_task(self, text, task_type=None, complete_till=None):
         task = LeadTask(lead=self, type=task_type, text=text, complete_till=complete_till)
-        task.save()
+        task.save(update_if_exists=False)
         return task
 
-    @cached_property
+    @property
     def tasks(self):
         return LeadTask.objects.all(query={'element_id': self.id})
 
     def create_note(self, text, note_type='COMMON'):
         note = LeadNote(lead=self, type=note_type, text=text)
-        note.save()
+        note.save(update_if_exists=False)
         return note
 
-    @cached_property
+    @property
     def notes(self):
         return LeadNote.objects.all(query={'element_id': self.id})
 
@@ -218,7 +223,7 @@ class BaseLead(_AbstractNamedModel):
             return {item.get('name', item.get('id')): item for item in self.objects.pipelines[self.pipeline]['statuses'].values()}
         return self.objects.leads_statuses
 
-    @cached_property
+    @property
     def contacts(self):
         return (self.contact_model.objects.get(_id) for _id in
                 set([item['contact_id'] for item in self.objects._get_links(leads=[self.id])]))
@@ -237,23 +242,23 @@ class BaseContact(_AbstractNamedModel):
 
     def create_task(self, text, task_type=None, complete_till=None):
         task = ContactTask(contact=self, type=task_type, text=text, complete_till=complete_till)
-        task.save()
+        task.save(update_if_exists=False)
         return task
 
-    @cached_property
+    @property
     def tasks(self):
         return ContactTask.objects.all(query={'element_id': self.id})
 
     def create_note(self, text, note_type='COMMON'):
         note = ContactNote(contact=self, type=note_type, text=text)
-        note.save()
+        note.save(update_if_exists=False)
         return note
 
-    @cached_property
+    @property
     def notes(self):
         return ContactNote.objects.all(query={'element_id': self.id})
 
-    @cached_property
+    @property
     def links(self):
         return (self.leads_model.objects.get(item['lead_id']) for item in self.objects._get_links(contacts=[self.id]))
 
@@ -327,6 +332,6 @@ class ContactNote(_AbstractNoteModel):
 class CompanyNote(_AbstractNoteModel):
     company = fields.ForeignField(BaseCompany, 'element_id')
     _element_type = fields._ConstantField('element_type',
-                                          _BaseModel._ELEMENT_TYPES['contact'])
+                                          _BaseModel._ELEMENT_TYPES['company'])
 
     objects = NotesManager(object_type='company')
