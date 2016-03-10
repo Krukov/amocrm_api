@@ -268,7 +268,8 @@ class CustomField(object):
             instance._data[self._field].append(full_data)
         else:
             fields[0]['values'] = _elems
-        instance._changed_fields.append(self._field)
+        if self._field not in instance._changed_fields:
+            instance._changed_fields.append(self._field)
 
     def _check_field(self, instance):
         if self.custom_field not in instance.objects._custom_fields:
@@ -329,7 +330,8 @@ class EnumCustomField(CustomField):
         else:
             full_data = {'id': _id, 'values': [{'value': value, 'enum': enum} for value in values]}
             instance._data[self._field].append(full_data)
-        instance._changed_fields.append(self._field)
+        if self._field not in instance._changed_fields:
+            instance._changed_fields.append(self._field)
 
     def _check_field(self, instance):
         super(EnumCustomField, self)._check_field(instance)
