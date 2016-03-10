@@ -101,6 +101,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 self._data[field.field] = getattr(self, name).id
 
     def _pre_save(self):
+        if self.id and not self._data['id']:  # TODO: WTF ???
+            self._data['id'] = self.id
         if self.date_create is None:
             self._data['date_create'] = int(time.time())
         self._data['last_modified'] = int(time.time())
@@ -112,6 +114,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 data = data.pop() if data else None
                 if data and data['values'] and isinstance(data['values'][0], dict):
                     data['values'] = [val['enum'] for val in data['values']]
+            self._data[fields.CustomField._field] = [{key: value for key, value in cf.items() if key in ['id', 'values']}
+                                                     for cf in self._data.get(fields.CustomField._field) if cf['values'][0]['value']]
 
         if not self._loaded:
             for name, field in self._fields.items():
