@@ -249,6 +249,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                 logger.debug('Got auth error... reauth and retry again')
                 self._session = requests.Session()
                 retry -= 1
+                if retry == 0:
+                    raise
                 continue
             except (AmoResponseException, requests.RequestException):
                 logger.debug('Got error... retry again')
