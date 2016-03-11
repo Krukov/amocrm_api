@@ -248,6 +248,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             except AmoAuthException:
                 logger.debug('Got auth error... reauth and retry again')
                 self._session = requests.Session()
+                self.auth()
                 retry -= 1
                 if retry == 0:
                     raise
@@ -298,7 +299,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         limit = chunk
         while True:
             i = 0
-            for item in self._all(limit=limit, limit_offset=offset, query=query, user=None, **kwargs):
+            for item in self._all(limit=limit, limit_offset=offset, query=query, user=user, **kwargs):
                 i += 1
                 yield item
             if not i:
