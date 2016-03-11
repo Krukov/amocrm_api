@@ -27,11 +27,13 @@ setup(
         'requests (>=2.3)',
         'responses (>=0.2.2)',
         'six (>=1.7.3)',
+        'pytz',
     ],
     install_requires=[
         'requests >=2.3',
         'responses >=0.2.2',
         'six >=1.7.3',
+        'pytz',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

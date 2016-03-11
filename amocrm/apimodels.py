@@ -3,13 +3,18 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 import time
+from datetime import datetime
+
 import six
+from pytz import utc, timezone
 
 from . import fields
 from .api import *
 
 
 __all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead', 'ContactNote', 'LeadNote']
+KIEV = 'Europe/Kiev'
+MOSCOW = 'Europe/Moscow'
 
 
 class _ModelMeta(type):
@@ -274,6 +279,23 @@ class _AbstractTaskModel(_BaseModel):
     is_closed = fields._BooleanField('status', required=True)
 
     objects = TasksManager()
+
+    @property
+    def is_active(self):
+        if self.is_closed or self.complete_till < datetime.utcnow():
+            return False
+        return True
+
+    def get_task_time_tz(self, tz=KIEV):
+        return utc.localize(self.complete_till).astimezone(timezone(tz))
+
+    @property
+    def is_meeting(self):
+        return self.type == u'MEETING'
+
+    @property
+    def is_full_day(self):
+        return self.complete_till.minute == 59
 
 
 class LeadTask(_AbstractTaskModel):
