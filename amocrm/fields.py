@@ -6,8 +6,10 @@ from datetime import datetime
 from calendar import timegm
 from copy import deepcopy
 
+import six
 from .utils import User
 from .exceptions import UneditableFieldError
+
 __all__ = ['CustomField', u'EnumCustomField', 'ForeignField', 'ManyForeignField']
 
 logger = logging.getLogger('amocrm')
@@ -161,8 +163,10 @@ class _TypeField(_Field):
         self.choices = choices
 
     def on_get(self, data, instance):
-        if data and str(data).isdigit():
-            _data = [key for key, item in self.get_choices(instance).items() if str(item['id']) == str(data)]
+        if data:
+            _data = [key for key, item in self.get_choices(instance).items()
+                     if six.text_type(item['id']) == six.text_type(data)
+                     or six.text_type(item.get('code', '')) == six.text_type(data)]
             data = _data.pop()
         return data
 

@@ -301,7 +301,7 @@ class _AbstractTaskModel(_BaseModel):
 
     @property
     def is_meeting(self):
-        return self.type == u'MEETING'
+        return self.type == u'Встреча'
 
     @property
     def is_full_day(self):

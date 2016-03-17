@@ -152,7 +152,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @lazy_property
     def task_types(self):
-        return {item['name']: item for item in self.account_info.get('task_types')}  # 'LETTER', 'MEETING', 'CALL'
+        return {item['name']: item for item in self.account_info.get('task_types')}
 
     @lazy_property
     def users(self):
