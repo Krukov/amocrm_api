@@ -58,7 +58,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             for name, field in self._fields.items():
                 if isinstance(field, fields.ManyForeignField):
                     continue
-                value = self._init_data.get(name, None) or getattr(self, name)
+                value = self._init_data.get(name, None)
                 if value is None:
                     continue
                 if isinstance(field, fields.ForeignField) and name in self._init_data:
