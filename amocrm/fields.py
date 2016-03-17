@@ -203,6 +203,7 @@ class Owner(_Field):
 
 class CustomField(object):
     _field = 'custom_fields'
+    required = False
 
     def __init__(self, custom_field, subtypes=False):
         self.field = '%s_%s' % (self._field, custom_field)
@@ -219,9 +220,11 @@ class CustomField(object):
             self._check_field(instance)
             custom_field_info = instance.objects._custom_fields[self.custom_field]
             _id = custom_field_info['id']
+            _data = list(_data.values()) if isinstance(_data, dict) else _data
             _data = [item['values'] for item in _data if item['id'] == _id]
 
             _data = _data[-1] if _data else None
+            _data = list(_data.values()) if isinstance(_data, dict) else _data
             if custom_field_info['type_id'] == MULTI_LIST_TYPE and _data and not isinstance(_data[0], dict):
                 _data = [{'value': item[1]} for item in custom_field_info['enums'].items()
                          if item[0] in _data]

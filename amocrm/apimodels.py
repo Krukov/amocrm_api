@@ -23,6 +23,7 @@ class _ModelMeta(type):
         [attrs.update(getattr(base, '_fields', {})) for base in bases]
         attrs['_fields'].update({name: instance for name, instance in attrs.items()
                                  if isinstance(instance, fields._BaseField) or isinstance(instance, fields.CustomField)})
+        attrs['_required'] = [f.field for f in attrs['_fields'].values() if f.required]
         super_new = super(_ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         _manager = getattr(super_new, 'objects', None)
         if _manager:
@@ -31,7 +32,6 @@ class _ModelMeta(type):
 
 
 class _BaseModel(six.with_metaclass(_ModelMeta)):
-    _fields = {}
 
     _ELEMENT_TYPES = {
         'contact': 1,
@@ -39,7 +39,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         'company': 3,
     }
 
-    id = fields._UneditableField('id')
+    id = fields._UneditableField('id', required=True)
     date_create = fields._StaticDateTimeField('date_create')
     last_modified = fields._StaticDateTimeField('last_modified')
     request = fields._Field('request_id')
@@ -124,8 +124,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
 
         if not self._loaded:
             for name, field in self._fields.items():
-                if (isinstance(field, fields._BaseField) and
-                        field.required and getattr(self, name, None) is None):
+                if (isinstance(field, fields._BaseField) and field.required and getattr(self, name, None) is None)\
+                        and not isinstance(field, fields._UneditableField):
                     raise ValueError('{} is required'.format(name))
 
     def save(self, update_if_exists=True):
@@ -136,7 +136,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             method = self.objects.update
             if not self._changed_fields:
                 return
-            data = dict([(key, value) for key, value in data.items() if key in self._changed_fields or key == 'id'])
+            data = dict([(key, value) for key, value in data.items() if key in self._changed_fields or key in self._required])
         elif update_if_exists:
             method = self.objects.create_or_update
         else:
