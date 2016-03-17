@@ -56,7 +56,7 @@ class _UneditableField(_Field):
 
 class _ConstantField(_UneditableField):
     def __init__(self, field=None, value=None):
-        super(_ConstantField, self).__init__(field)
+        super(_ConstantField, self).__init__(field, True)
         self._data = value
 
     def on_get(self, data, instance):
