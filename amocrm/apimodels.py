@@ -111,6 +111,16 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         if self.date_create is None:
             self._data['date_create'] = int(time.time())
         self._data['last_modified'] = int(time.time())
+        for name, field in self._fields.items():
+            if field.field in self._required:
+                value = getattr(self, name)
+                if not value:
+                    continue
+                if isinstance(field, fields._UneditableField):
+                    self._data[field.field] = value
+                else:
+                    setattr(self, name, value)
+
         multi = [custom_field['name'] for custom_field in self.objects._custom_fields.values()
                  if custom_field['type_id'] == fields.MULTI_LIST_TYPE]
         if self._data.get(fields.CustomField._field, None):
