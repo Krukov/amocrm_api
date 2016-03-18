@@ -199,7 +199,7 @@ class Owner(_Field):
         return data
 
     def on_set(self, value, instance):
-        if isinstance(value, str):
+        if isinstance(value, six.string_types):
             return User.get_one(instance.objects.users, [value, ]).id
         elif value is not None:
             return value.id
@@ -207,11 +207,11 @@ class Owner(_Field):
 
 class CustomField(object):
     _field = 'custom_fields'
-    required = False
 
-    def __init__(self, custom_field, subtypes=False):
+    def __init__(self, custom_field, subtypes=False, required=False):
         self.field = '%s_%s' % (self._field, custom_field)
         self.custom_field, self.subtypes = custom_field, subtypes
+        self.required = required
 
     def __get__(self, instance, _=None):
         if instance is None:
