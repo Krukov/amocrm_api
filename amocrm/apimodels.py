@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 import time
+import copy
 from datetime import datetime
 
 import six
@@ -80,7 +81,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
 
     def __getattribute__(self, name):
         value = super(_BaseModel, self).__getattribute__(name)
-        if (value is None and not self._loaded and name != 'id' and self.id is not None and name in self._fields
+        if (value is None and not self._loaded and name != 'id' and self._data.get('id', None) is not None and name in self._fields
                 and self._fields[name].field not in self._changed_fields):
             amo_data = self.objects.get(self.id)  # trying to get info from crm
             if amo_data:
@@ -138,7 +139,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                         and not isinstance(field, fields._UneditableField):
                     raise ValueError('{} is required'.format(name))
 
-    def save(self, update_if_exists=True):
+    def save(self, update_if_exists=False):
         self._save_fk()
         self._pre_save()
         data = self._data
@@ -153,6 +154,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             method = self.objects.create
         result = method(**data)
         self._data['id'] = result
+        self._changed_fields = []
+        self._fields_data = {}
 
     def _get_field_by_name(self, name):
         result = [v for k, v in self._fields.items() if v.field == name]
@@ -178,6 +181,11 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def get_copy(self):
+        data = copy.deepcopy(self._data)
+        data.pop('id')
+        return self.__class__(data=data, _loaded=True)
 
     @property
     def detail_url(self):
@@ -218,7 +226,7 @@ class BaseLead(_AbstractNamedModel):
 
     objects = LeadsManager()
 
-    def create_task(self, text, task_type=None, complete_till=None):
+    def create_task(self, text, complete_till, task_type='Follow-up'):
         task = LeadTask(lead=self, type=task_type, text=text, complete_till=complete_till)
         task.save(update_if_exists=False)
         return task
@@ -259,7 +267,7 @@ class BaseContact(_AbstractNamedModel):
 
     objects = ContactsManager()
 
-    def create_task(self, text, task_type=None, complete_till=None):
+    def create_task(self, text, complete_till, task_type='Follow-up'):
         task = ContactTask(contact=self, type=task_type, text=text, complete_till=complete_till)
         task.save(update_if_exists=False)
         return task
@@ -283,6 +291,11 @@ class BaseContact(_AbstractNamedModel):
 
 
 class _AbstractTaskModel(_BaseModel):
+    CALL = u'Звонок'
+    MEETING = u'Встреча'
+    LETTER = u'Письмо'
+    FOLLOW = u'Follow-up'
+
     type = fields._TypeField('task_type', 'task_types', required=True)
     text = fields._Field('text', required=True)
     complete_till = fields._DateTimeField('complete_till', required=True)
