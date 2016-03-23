@@ -153,7 +153,8 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         else:
             method = self.objects.create
         result = method(**data)
-        self._data['id'] = result
+        if result:
+            self._data['id'] = result
         self._changed_fields = []
         self._fields_data = {}
 
