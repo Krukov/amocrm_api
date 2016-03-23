@@ -236,6 +236,9 @@ class CustomField(object):
             if custom_field_info['type_id'] != MULTI_LIST_TYPE and custom_field_info.get(u'multiple') != u'Y' and _data:
                 _data = _data.pop()
 
+            if _data in ['0', '1']:
+                _data = bool(int(_data))
+
             instance._fields_data[self.field] = _data
         return instance._fields_data[self.field]
 
@@ -243,6 +246,8 @@ class CustomField(object):
         if instance is None:
             return
         self._check_field(instance)
+        if isinstance(value, bool):
+            value = str(int(value))
         instance._fields_data[self.field] = None
         custom_field_info = instance.objects._custom_fields[self.custom_field]
         _id = custom_field_info['id']
