@@ -184,6 +184,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
 
     def get_copy(self):
         data = copy.deepcopy(self._data)
+        data.pop('date_create')
         data.pop('id')
         return self.__class__(data=data, _loaded=True)
 
