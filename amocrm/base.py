@@ -30,7 +30,6 @@ _session = requests.Session()
 
 
 class _BaseAmoManager(six.with_metaclass(ABCMeta)):
-    __slots__ = []
     format_ = 'json'
 
     _object_type = None
@@ -228,9 +227,9 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         if not self.is_auth:
             self.auth()
         path = self._get_path(method)
-        method = self._methods[method]
-        method_type = method.get('method', _G)
-        timestamp, container, result = method.get('timestamp'), method.get('container'), method.get('result')
+        _method = self._methods[method]
+        method_type = _method.get('method', _G)
+        timestamp, container, result = _method.get('timestamp'), _method.get('container'), _method.get('result')
 
         if modified_since:
             headers = {'if-modified-since': modified_since}
@@ -338,6 +337,18 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def create_or_update(self, **kwargs):
         return self._create_or_update_data(**kwargs)
+
+    def delete(self, id, name=None):
+        name = name or self.container_name
+        headers = {
+            'Referer': self._url('/{0}/list/'.format(name)),
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        return self._session.request(_P, self._url('/ajax/{0}/multiple/delete/'.format(name)),
+                                     data={'ID[]': id, 'ACTION': 'DELETE'},
+                                     headers=headers)
 
     @abstractmethod
     def _add_data(self, **kwargs):
