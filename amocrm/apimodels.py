@@ -192,7 +192,10 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
     @property
     def detail_url(self):
         if self.id:
-            return self.objects._url('/{0}/detail/{1}'.format(self.objects.name, self.id))
+            return self.objects._url('/{0}/detail/{1}'.format(self.objects.container_name, self.id))
+
+    def delete(self):
+        self.objects.delete(self.id)
 
 
 class _AbstractNamedModel(_BaseModel):
@@ -321,6 +324,9 @@ class _AbstractTaskModel(_BaseModel):
     @property
     def is_full_day(self):
         return self.complete_till.minute == 59
+
+    def delete(self):
+        self.objects.delete(self.id, name='todo')
 
 
 class LeadTask(_AbstractTaskModel):
