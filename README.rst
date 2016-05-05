@@ -2,6 +2,12 @@
 AmoCRM python API. 
 ==================
 
+Вопросы?
+
+.. image:: https://badges.gitter.im/Krukov/amocrm_api.svg
+   :alt: Join the chat at https://gitter.im/Krukov/amocrm_api
+   :target: https://gitter.im/Krukov/amocrm_api?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 ------------------
 Могу оказать помощь по экспорту/импроту ваших данных из/в AmoCRM
 ------------------
@@ -81,8 +87,3 @@ Example::
     print(contact.notes)
     print(contact.tasks)
 
-
-
-.. image:: https://badges.gitter.im/Krukov/amocrm_api.svg
-   :alt: Join the chat at https://gitter.im/Krukov/amocrm_api
-   :target: https://gitter.im/Krukov/amocrm_api?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
