@@ -131,7 +131,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                 if data and data['values'] and isinstance(data['values'][0], dict):
                     data['values'] = [val['enum'] for val in data['values']]
             self._data[fields.CustomField._field] = [{key: value for key, value in cf.items() if key in ['id', 'values']}
-                                                     for cf in self._data.get(fields.CustomField._field) if cf['name'] in multi or cf['values'][0]['value']]
+                                                     for cf in self._data.get(fields.CustomField._field) if field in multi or cf['values'][0]['value']]
 
         if not self._loaded:
             for name, field in self._fields.items():
