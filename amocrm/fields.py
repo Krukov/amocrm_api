@@ -133,11 +133,10 @@ class ManyForeignField(_BaseForeignField):
         if value is None:
             instance._fields_data[self.field] = []
             return []
-        # if isinstance(value, self.object_type):
         if not isinstance(value, (list, tuple)):
             value = [value]
         instance._fields_data[self.field] = [item for item in value]
-        return [int(item.id) for item in value]
+        return [int(item) if isinstance(item, (str, int)) else int(item.id) for item in value]
 
 
 class _TagsField(_Field):
