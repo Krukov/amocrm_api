@@ -350,7 +350,7 @@ class ContactTask(_AbstractTaskModel):
 class CompanyTask(_AbstractTaskModel):
     company = fields.ForeignField(BaseCompany, 'element_id')
     _element_type = fields._ConstantField('element_type',
-                                         _BaseModel._ELEMENT_TYPES['contact'])
+                                         _BaseModel._ELEMENT_TYPES['company'])
 
     objects = TasksManager(object_type='company')
 
