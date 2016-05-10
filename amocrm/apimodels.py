@@ -13,7 +13,9 @@ from . import fields
 from .api import *
 
 
-__all__ = ['BaseCompany', 'BaseContact', 'ContactTask', 'LeadTask', 'BaseLead', 'ContactNote', 'LeadNote']
+__all__ = ['BaseCompany', 'BaseContact', 'BaseLead',
+           'CompanyTask', 'ContactTask', 'LeadTask',
+           'CompanyNote', 'ContactNote', 'LeadNote']
 KIEV = 'Europe/Kiev'
 MOSCOW = 'Europe/Moscow'
 
