@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import types
-from itertools import tee
 
 __all__ = ['lazy_dict_property', 'lazy_property', 'cached_property']
 
@@ -81,7 +80,16 @@ class User(object):
         return 'User(%s)' % self.__data
 
     @classmethod
-    def get_one(cls, array, values):
+    def get_user(cls, name):
+        return cls.get_one(cls.all(), [name])
+
+    @classmethod
+    def all(cls):
+        from .api import AmoApi
+        return AmoApi().users
+
+    @staticmethod
+    def get_one(array, values):
         filter_func = lambda _: _.login in values or _.name in values or _.id in values
         match = [user for user in array if filter_func(user)]
         return match.pop() if match else None
