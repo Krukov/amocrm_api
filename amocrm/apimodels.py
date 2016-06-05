@@ -15,7 +15,7 @@ from .api import *
 
 __all__ = ['BaseCompany', 'BaseContact', 'BaseLead',
            'CompanyTask', 'ContactTask', 'LeadTask',
-           'CompanyNote', 'ContactNote', 'LeadNote']
+           'CompanyNote', 'ContactNote', 'LeadNote', 'TaskNote']
 KIEV = 'Europe/Kiev'
 MOSCOW = 'Europe/Moscow'
 
@@ -40,6 +40,7 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         'contact': 1,
         'lead': 2,
         'company': 3,
+        'task': 4,
     }
 
     id = fields._UneditableField('id', required=True)
@@ -397,3 +398,10 @@ class CompanyNote(_AbstractNoteModel):
                                           _BaseModel._ELEMENT_TYPES['company'])
 
     objects = NotesManager(object_type='company')
+
+class TaskNote(_AbstractNoteModel):
+    task_id = fields._Field('element_id')
+    _element_type = fields._ConstantField('element_type',
+                                          _BaseModel._ELEMENT_TYPES['task'])
+
+    objects = NotesManager(object_type='task')
