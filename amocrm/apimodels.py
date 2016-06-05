@@ -229,6 +229,9 @@ class BaseLead(_AbstractNamedModel):
     contact_model = None
     status = fields._StatusTypeField(required=True)
     pipeline = fields._TypeField('pipeline_id', choices='pipelines', required=False)
+    company = fields.ForeignField(BaseCompany, 'linked_company_id',
+                                  auto_created=True,
+                                  links={'name': 'company_name'})
     budget = price = fields._Field('price')
 
     objects = LeadsManager()
