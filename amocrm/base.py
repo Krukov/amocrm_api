@@ -18,7 +18,7 @@ logger = logging.getLogger('amocrm')
 
 __all__ = []
 
-_AMO_LOGIN_PATH = '/private/api/auth.php'
+_AMO_LOGIN_PATH = '/private/api/auth.php?type=json'
 _REQUEST_PARAMS = {
     'headers': {'User-Agent': 'Amocrm API module. Python powered'},
     'timeout': 10,
@@ -168,7 +168,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         headers.update(_req_params.pop('headers'))
 
         method = method.lower()
-        params = {'type': 'json'}
+        params = {}
         if method != _P:
             params.update(data)
             data = None
