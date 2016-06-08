@@ -23,9 +23,13 @@ MOSCOW = 'Europe/Moscow'
 class _ModelMeta(type):
     def __new__(mcs, name, bases, attrs):
         attrs.setdefault('_fields', {})
-        [attrs.update(getattr(base, '_fields', {})) for base in bases]
+        for base in bases:
+            for _name, _field in getattr(base, '_fields', {}).items():
+                if _name not in attrs:
+                    attrs[_name] = _field
+
         attrs['_fields'].update({name: instance for name, instance in attrs.items()
-                                 if isinstance(instance, fields._BaseField) or isinstance(instance, fields.CustomField)})
+                                 if isinstance(instance, (fields._BaseField, fields.CustomField))})
         attrs['_required'] = [f.field for f in attrs['_fields'].values() if f.required]
         super_new = super(_ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         _manager = getattr(super_new, 'objects', None)
@@ -398,6 +402,7 @@ class CompanyNote(_AbstractNoteModel):
                                           _BaseModel._ELEMENT_TYPES['company'])
 
     objects = NotesManager(object_type='company')
+
 
 class TaskNote(_AbstractNoteModel):
     task_id = fields._Field('element_id')
