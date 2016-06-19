@@ -90,6 +90,11 @@ class _BaseForeignField(_Field):
         super(_BaseForeignField, self).__init__(field, required=required)
         self.object_type = object_type
 
+    def __get__(self, instance, _=None):
+        instance._init()
+        return super(_BaseForeignField, self).__get__(instance, _)
+
+
 
 class ForeignField(_BaseForeignField):
     def __init__(self, object_type=None, field=None, auto_created=False,
@@ -194,8 +199,9 @@ class Owner(_Field):
 
     def on_get(self, data, instance):
         if data and str(data).isdigit():
-            return [item for item in instance.objects.users if str(item.id) == str(data)].pop()
-        return data
+            owners = [item for item in instance.objects.users if str(item.id) == str(data)]
+            if owners:
+                return owners.pop()
 
     def on_set(self, value, instance):
         if isinstance(value, six.string_types):
@@ -222,7 +228,7 @@ class CustomField(object):
                 return
             self._check_field(instance)
             custom_field_info = instance.objects._custom_fields[self.custom_field]
-            _id = custom_field_info['id']
+            self._id = _id = custom_field_info['id']
             _data = list(_data.values()) if isinstance(_data, dict) else _data
             _data = [item['values'] for item in _data if item['id'] == _id]
 

@@ -13,10 +13,6 @@ class ContactsManager(_BlankMixin, _BaseAmoManager):
     _main_field = 'name'
     _object_type = 'contact'
 
-    def _add_data(self, **kwargs):
-        kwargs.setdefault('responsible_user_id', self.user.id)
-        return super(ContactsManager, self)._add_data(**kwargs)
-
 
 class CompanyManager(_BlankMixin, _BaseAmoManager):
     name = 'company'

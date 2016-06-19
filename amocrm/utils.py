@@ -77,7 +77,7 @@ class User(object):
         self.phone = data.get('phone_number')
 
     def __repr__(self):
-        return 'User(%s)' % self.__data
+        return 'User(%s)' % self.name
 
     @classmethod
     def get_user(cls, name):

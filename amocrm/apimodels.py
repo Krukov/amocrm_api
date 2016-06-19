@@ -87,15 +87,23 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
         return self.__getattribute__(item)
 
     def __getattribute__(self, name):
-        value = super(_BaseModel, self).__getattribute__(name)
-        if (value is None and not self._loaded and name != 'id' and self._data.get('id', None) is not None and name in self._fields
-                and self._fields[name].field not in self._changed_fields):
+        get_attr = super(_BaseModel, self).__getattribute__
+        value = get_attr(name)
+        if (value is None and not get_attr('_loaded') and
+                    name != 'id' and
+                    get_attr('_data').get('id', None) is not None and
+                    name in get_attr('_fields') and
+                    get_attr('_fields')[name].field not in get_attr('_changed_fields')):
+            get_attr('_init')()
+        return value
+
+    get = __getitem__
+
+    def _init(self):
+        if not self._loaded:
             amo_data = self.objects.get(self.id)  # trying to get info from crm
             if amo_data:
                 self.__init__(amo_data._data, _loaded=True)
-        return value or super(_BaseModel, self).__getattribute__(name)
-
-    get = __getitem__
 
     def _save_fk(self):
         for name, field in self._fields.items():
