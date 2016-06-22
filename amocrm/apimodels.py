@@ -95,15 +95,17 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
                     name in get_attr('_fields') and
                     get_attr('_fields')[name].field not in get_attr('_changed_fields')):
             get_attr('_init')()
+            value = get_attr(name)
         return value
 
     get = __getitem__
 
     def _init(self):
-        if not self._loaded:
+        if not self._loaded and self.id is not None:
             amo_data = self.objects.get(self.id)  # trying to get info from crm
             if amo_data:
                 self.__init__(amo_data._data, _loaded=True)
+                return True
 
     def _save_fk(self):
         for name, field in self._fields.items():

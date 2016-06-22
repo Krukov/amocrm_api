@@ -91,9 +91,9 @@ class _BaseForeignField(_Field):
         self.object_type = object_type
 
     def __get__(self, instance, _=None):
-        instance._init()
+        if instance._init():
+            instance._fields_data[self.field] = None
         return super(_BaseForeignField, self).__get__(instance, _)
-
 
 
 class ForeignField(_BaseForeignField):
