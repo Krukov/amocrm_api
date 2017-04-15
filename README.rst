@@ -2,16 +2,6 @@
 AmoCRM python API. 
 ==================
 
-Вопросы?
-
-.. image:: https://badges.gitter.im/Krukov/amocrm_api.svg
-   :alt: Join the chat at https://gitter.im/Krukov/amocrm_api
-   :target: https://gitter.im/Krukov/amocrm_api?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-
-------------------
-Могу оказать помощь по экспорту/импроту ваших данных из/в AmoCRM
-------------------
-
 .. image:: https://travis-ci.org/Krukov/amocrm_api.svg?branch=master
     :target: https://travis-ci.org/Krukov/amocrm_api
 .. image:: https://img.shields.io/coveralls/Krukov/amocrm_api.svg
