@@ -239,6 +239,21 @@ class BaseCompany(_AbstractNamedModel):
         note.save(update_if_exists=False)
         return note
 
+    @property
+    def contacts(self):
+        return (
+            BaseContact.objects.get(_id)
+            for _id in set([
+                item['to_id']
+                for item in self.objects._get_linkslist(
+                    from_type='company',
+                    from_ids=[self.id],
+                    to_type='contact',
+                )
+                if item['to'] == 'contacts'
+            ])
+        )
+
 
 class BaseLead(_AbstractNamedModel):
     contact_model = None
