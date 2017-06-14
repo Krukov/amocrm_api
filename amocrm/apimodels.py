@@ -316,10 +316,10 @@ class BaseContact(_AbstractNamedModel):
 
 
 class _AbstractTaskModel(_BaseModel):
-    CALL = u'Звонок'
-    MEETING = u'Встреча'
-    LETTER = u'Письмо'
-    FOLLOW = u'Follow-up'
+    CALL = 'Звонок'
+    MEETING = 'Встреча'
+    LETTER = 'Письмо'
+    FOLLOW = 'Follow-up'
 
     type = fields._TypeField('task_type', 'task_types', required=True)
     text = fields._Field('text', required=True)
@@ -339,7 +339,7 @@ class _AbstractTaskModel(_BaseModel):
 
     @property
     def is_meeting(self):
-        return self.type == u'Встреча'
+        return self.type == 'Встреча'
 
     @property
     def is_full_day(self):
@@ -386,7 +386,7 @@ class _AbstractNoteModel(_BaseModel):
         except ValueError:
             res = None
         if not isinstance(res, dict):
-            res = {u'TEXT': self.text}
+            res = {'TEXT': self.text}
         return res
 
 
