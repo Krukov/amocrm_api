@@ -55,6 +55,11 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             'name': 'contacts',
             'result': ['links'],
         },
+        'linkslist': {
+            'path': 'list',
+            'name': 'links',
+            'result': ['links'],
+        },
         'update': {
             'path': 'set',
             'method': _P,
@@ -177,7 +182,14 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
                     values = value
                     del params[name]
                     for i, value in enumerate(values):
-                        params['{0}[{1}]'.format(name, i)] = value
+                        key = '{0}[{1}]'.format(name, i)
+                        params[key] = value
+                elif isinstance(value, dict):
+                    values = value
+                    del params[name]
+                    for item_key, item_value in values.items():
+                        key = '{0}[{1}][{2}]'.format(name, 0, item_key)
+                        params[key] = item_value
 
         logger.info('%s - Sending %s request to %s' % (self.__class__.name,
                                                        method, path))
@@ -293,6 +305,21 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         if limit_offset is not None:
             data['limit_offset'] = limit_offset
         return self._request('links', data=data)
+
+    def _get_linkslist(self, **kwargs, from_type=None, from_ids=None, to_type=None, to_ids=None):
+        data = {}
+
+        if to_type:
+            data['to'] = to_type
+        if from_type:
+            data['from'] = from_type
+        if from_ids:
+            data['from_id'] = from_ids
+        if to_ids:
+            data['to_id'] = to_ids
+
+        data = {'links': data}
+        return self._request('linkslist', data=data)
 
     def all(self, query=None, user=None, chunk=500, offset=0, **kwargs):
         limit = chunk
