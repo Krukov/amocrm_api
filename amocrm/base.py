@@ -306,7 +306,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
             data['limit_offset'] = limit_offset
         return self._request('links', data=data)
 
-    def _get_linkslist(self, **kwargs, from_type=None, from_ids=None, to_type=None, to_ids=None):
+    def _get_linkslist(self, from_type=None, from_ids=None, to_type=None, to_ids=None):
         data = {}
 
         if to_type:
