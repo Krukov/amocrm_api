@@ -244,7 +244,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         timestamp, container, result = _method.get('timestamp'), _method.get('container'), _method.get('result')
 
         if modified_since:
-            headers = {'if-modified-since': modified_since}
+            headers = {'if-modified-since': six.text_type(modified_since)}
 
         if timestamp:
             _time = timestamp if isinstance(timestamp, str) else 'last_modified'
