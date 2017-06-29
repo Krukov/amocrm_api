@@ -222,6 +222,7 @@ class _AbstractNamedModel(_BaseModel):
 
 
 class BaseCompany(_AbstractNamedModel):
+    contact_model = None
     type = fields._ConstantField('type', 'company')
 
     objects = CompanyManager()
@@ -242,7 +243,7 @@ class BaseCompany(_AbstractNamedModel):
     @property
     def contacts(self):
         return (
-            BaseContact.objects.get(_id)
+            (self.contact_model or BaseContact).objects.get(_id)
             for _id in set([
                 item['to_id']
                 for item in self.objects._get_linkslist(
@@ -295,7 +296,7 @@ class BaseLead(_BaseModel):
 
     @property
     def contacts(self):
-        return (self.contact_model.objects.get(_id) for _id in
+        return ((self.contact_model or BaseContact).objects.get(_id) for _id in
                 set([item['contact_id'] for item in self.objects._get_links(leads=[self.id])]))
 
 
