@@ -29,48 +29,10 @@ def check_auth(func):
 
 class FakeApi(object):
     """docstring for FakeApi"""
-    def __init__(self):
+
+    def __init__(self, data):
         self.login, self.hash = None, None
-        self._data = {
-            'contacts': [],
-            'notes': [],
-            'account': {
-                'id': 1,
-                'custom_fields': {
-                    'contacts': [
-                        {
-                            'id': 1,
-                            'name': 'Телефон',
-
-                            'type_id': '1',
-                        },
-                        {'id': 2, 'name': 'Email', 'type_id': '1'},
-                    ],
-                },
-
-                'users': [
-                    {'id': 99, 'name': 'test', 'login': 'test'}
-                ],
-                'task_types': [
-                    {'code': 'CALL', 'id': 1, 'name': 'Call'},
-                    {'code': 'MEETING', 'id': 2, 'name': 'Meeting'},
-                    {'code': 'LETTER', 'id': 3, 'name': 'Letter'},
-                ],
-                'leads_statuses': [
-                    {'color': '#99CCFF', 'sort': '10', 'editable': 'N', 'name': 'test1', 'id': '7495620'},
-                    {'color': '#FFFF99', 'sort': '20', 'editable': 'N', 'name': 'test2', 'id': '7495622'},
-                ],
-                'note_types': [
-                    {'code': 'DEAL_CREATED', 'editable': 'N', 'id': 1, 'name': ''},
-                    {'code': 'CONTACT_CREATED', 'editable': 'N', 'id': 2, 'name': ''},
-                    {'code': 'DEAL_STATUS_CHANGED', 'editable': 'N', 'id': 3, 'name': ''},
-                    {'code': 'COMMON', 'editable': 'Y', 'id': 4, 'name': ''},
-                ],
-            },
-            'company': [],
-            'leads': [],
-            'tasks': [],
-        }
+        self._data = data
 
     def _check_auth(self, params):
         return True
@@ -143,10 +105,52 @@ class AmoApiMock(RequestsMock):
     _objects = ('contacts', 'notes', 'company', 'tasks', 'leads')
     _base_url = 'https://%(domain)s.amocrm.ru/private/api/v2/%(format)s%(name)s%(path)s'
     _format = 'json'
+    fake_api_cls = FakeApi
+
+    API_DATA = {
+        'contacts': [],
+        'notes': [],
+        'account': {
+            'id': 1,
+            'custom_fields': {
+                'contacts': [
+                    {
+                        'id': 1,
+                        'name': 'Телефон',
+
+                        'type_id': '1',
+                    },
+                    {'id': 2, 'name': 'Email', 'type_id': '1'},
+                ],
+            },
+
+            'users': [
+                {'id': 99, 'name': 'test', 'login': 'test'}
+            ],
+            'task_types': [
+                {'code': 'CALL', 'id': 1, 'name': 'Call'},
+                {'code': 'MEETING', 'id': 2, 'name': 'Meeting'},
+                {'code': 'LETTER', 'id': 3, 'name': 'Letter'},
+            ],
+            'leads_statuses': [
+                {'color': '#99CCFF', 'sort': '10', 'editable': 'N', 'name': 'test1', 'id': '7495620'},
+                {'color': '#FFFF99', 'sort': '20', 'editable': 'N', 'name': 'test2', 'id': '7495622'},
+            ],
+            'note_types': [
+                {'code': 'DEAL_CREATED', 'editable': 'N', 'id': 1, 'name': ''},
+                {'code': 'CONTACT_CREATED', 'editable': 'N', 'id': 2, 'name': ''},
+                {'code': 'DEAL_STATUS_CHANGED', 'editable': 'N', 'id': 3, 'name': ''},
+                {'code': 'COMMON', 'editable': 'Y', 'id': 4, 'name': ''},
+            ],
+        },
+        'company': [],
+        'leads': [],
+        'tasks': [],
+    }
 
     def reset(self):
         super(AmoApiMock, self).reset()
-        self._faker = FakeApi()
+        self._faker = self.fake_api_cls(data=self.API_DATA)
 
     def _find_match(self, request):
         result = super(AmoApiMock, self)._find_match(request)
