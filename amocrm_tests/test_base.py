@@ -50,13 +50,12 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertIsNone(contact.amo_user)
 
         contact.save()
-        self.assertEqual(contact.id, 1)
         self.assertIsNotNone(contact.last_modified)
         self.assertIsNotNone(contact.date_create)
         self.assertEqual(contact.created_user, 1)
 
         _contact = BaseContact.objects.get(contact.id)
-        self.assertEqual(_contact.id, 1)
+        self.assertEqual(_contact.id, contact.id)
         self.assertEqual(_contact.type, 'contact')
         self.assertEqual(_contact.name, 'test')
         self.assertEqual(_contact.tags, ['1', '2', 'frog'])
@@ -75,12 +74,11 @@ class TestCreations(AmoSettingsMixin, unittest.TestCase):
         self.assertIsNone(company.date_create)
 
         company.save()
-        self.assertEqual(company.id, 1)
         self.assertIsNotNone(company.last_modified)
         self.assertIsNotNone(company.date_create)
 
         _company = BaseCompany.objects.get(company.id)
-        self.assertEqual(_company.id, 1)
+        self.assertEqual(_company.id, company.id)
         self.assertEqual(_company.type, 'company')
         self.assertEqual(_company.name, 'test')
         self.assertEqual(_company.tags, ['1', '2', 'frog'])
@@ -208,11 +206,11 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_getting_contact_by_id_and_data(self):
-        self.create_object()
-        contact = BaseContact.objects.get(1)
+        created = self.create_object()
+        contact = BaseContact.objects.get(created.id)
 
         self.assertEqual(contact.name, 'test_name')
-        self.assertEqual(contact.id, 1)
+        self.assertEqual(contact.id, created.id)
         self.assertSetEqual(set(contact.tags), set(['1', '2', '3']))
         self.assertEquals(contact.created_user, 731)
 
@@ -225,25 +223,25 @@ class TestContacts(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_edit_contact(self):
-        self.create_object()
-        contact = BaseContact.objects.get(1)
+        created = self.create_object()
+        contact = BaseContact.objects.get(created.id)
         self.assertNotEqual(contact.name, 'frog')
         contact.name = 'frog'
         contact.save()
 
-        _contact = BaseContact.objects.get(1)
+        _contact = BaseContact.objects.get(created.id)
         self.assertEqual(_contact.name, 'frog')
 
     @amomock.activate
     def test_creating_tags(self):
-        self.create_object(tags=['Tag2', 'Tag1'])
+        created = self.create_object(tags=['Tag2', 'Tag1'])
 
-        _contact = BaseContact.objects.search('test_name').pop()
+        _contact = BaseContact.objects.get(created.id)
         self.assertEqual(_contact.tags, ['Tag2', 'Tag1'])
 
         _contact.tags += ['frog']
         _contact.save()
-        _contact = BaseContact.objects.search('test_name').pop()
+        _contact = BaseContact.objects.get(created.id)
         self.assertEqual(_contact.tags, ['Tag2', 'Tag1', 'frog'])
 
     @amomock.activate
@@ -260,11 +258,11 @@ class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_getting_company_by_id_and_data(self):
-        self.create_object()
-        company = self.object_type.objects.get(1)
+        created = self.create_object()
+        company = self.object_type.objects.get(created.id)
 
+        self.assertEqual(company.id, created.id)
         self.assertEqual(company.name, 'test_name')
-        self.assertEqual(company.id, 1)
 
     @amomock.activate
     def test_searching_company(self):
@@ -275,13 +273,13 @@ class TestCompany(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_edit_company(self):
-        self.create_object()
-        company = self.object_type.objects.get(1)
+        created = self.create_object()
+        company = self.object_type.objects.get(created.id)
         self.assertNotEqual(company.name, 'frog')
         company.name = 'frog'
         company.save()
 
-        _company = self.object_type.objects.get(1)
+        _company = self.object_type.objects.get(created.id)
         self.assertEqual(_company.name, 'frog')
 
     @amomock.activate
@@ -299,13 +297,14 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_getting_task_by_id_and_data(self):
-        self.create_object(contact=self.create_object(object=BaseContact), text='TEST TEST')
-        task = self.object_type.objects.get(1)
+        contact = self.create_object(object=BaseContact)
+        created = self.create_object(contact=contact, text='TEST TEST')
+        task = self.object_type.objects.get(created.id)
 
-        self.assertEqual(task.id, 1)
+        self.assertEqual(task.id, created.id)
         self.assertEqual(task.text, 'TEST TEST')
         self.assertEquals(task.contact.name, 'test_name')
-        self.assertEquals(task.contact.id, 1)
+        self.assertEquals(task.contact.id, contact.id)
 
     @amomock.activate
     def test_searching_task(self):
@@ -313,13 +312,13 @@ class TestTask(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_edit_task(self):
-        self.create_object()
-        task = self.object_type.objects.get(1)
+        created = self.create_object()
+        task = self.object_type.objects.get(created.id)
         self.assertNotEqual(task.text, 'frog')
         task.text = 'frog'
         task.save()
 
-        _task = self.object_type.objects.get(1)
+        _task = self.object_type.objects.get(task.id)
         self.assertEqual(_task.text, 'frog')
 
     @amomock.activate
@@ -349,11 +348,11 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_getting_lead_by_id_and_data(self):
-        self.create_object()
-        lead = self.object_type.objects.get(1)
+        created = self.create_object()
+        lead = self.object_type.objects.get(created.id)
 
         self.assertEqual(lead.name, 'test_name')
-        self.assertEqual(lead.id, 1)
+        self.assertEqual(lead.id, created.id)
 
     @amomock.activate
     def test_searching_lead(self):
@@ -395,13 +394,14 @@ class TestNote(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
 
     @amomock.activate
     def test_getting_note_by_id_and_data(self):
-        self.create_object(contact=self.create_object(object=BaseContact), text='TEST TEST')
-        note = self.object_type.objects.get(1)
+        contact = self.create_object(object=BaseContact)
+        created = self.create_object(contact=contact, text='TEST TEST')
+        note = self.object_type.objects.get(created.id)
 
-        self.assertEqual(note.id, 1)
+        self.assertEqual(note.id, created.id)
         self.assertEqual(note.text, 'TEST TEST')
         self.assertEquals(note.contact.name, 'test_name')
-        self.assertEquals(note.contact.id, 1)
+        self.assertEquals(note.contact.id, contact.id)
 
     @amomock.activate
     def test_searching_note(self):
@@ -434,7 +434,6 @@ class TestCustomFields(AmoSettingsMixin, unittest.TestCase):
         self.assertEqual(contact.name, 'test')
 
         contact.save()
-        self.assertEqual(contact.id, 1)
         self.assertEqual(contact.phone, '8-888-888-88-88')
         self.assertEqual(contact.email, 'test@email.com')
         self.assertEqual(contact.name, 'test')

@@ -194,8 +194,6 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
         logger.info('%s - Sending %s request to %s' % (self.__class__.name,
                                                        method, path))
         logger.debug('Data: %s \n Params: %s' % (data, params))
-
-
         resp = self._session.request(method, self._url(path), data=json.dumps(data), params=params,
                                      headers=headers, **_req_params)
         logger.debug('Url: %s', resp.url)
