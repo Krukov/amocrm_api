@@ -381,12 +381,6 @@ class TestLead(AmoSettingsMixin, CreateObjMixin, unittest.TestCase):
             lead.save()
         self.assertEqual('status is required', str(context.exception))
 
-        lead.status = 'test1'
-        lead.name = None
-        with self.assertRaises(ValueError) as context:
-            lead.save()
-        self.assertEqual('name is required', str(context.exception))
-
     @amomock.activate
     def test_last_modified_since(self):
         self.create_object()

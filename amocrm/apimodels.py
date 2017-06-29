@@ -240,8 +240,11 @@ class BaseCompany(_AbstractNamedModel):
         return note
 
 
-class BaseLead(_AbstractNamedModel):
+class BaseLead(_BaseModel):
     contact_model = None
+
+    name = fields._Field('name', required=False)
+    tags = fields._TagsField('tags', 'name')
     status = fields._StatusTypeField(required=True)
     pipeline = fields._TypeField('pipeline_id', choices='pipelines', required=False)
     company = fields.ForeignField(BaseCompany, 'linked_company_id',
