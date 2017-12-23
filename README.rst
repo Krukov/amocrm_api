@@ -1,5 +1,5 @@
 ==================
-AmoCRM python API. 
+UNMAINTAINED AmoCRM python API. 
 ==================
 
 .. image:: https://travis-ci.org/Krukov/amocrm_api.svg?branch=master
