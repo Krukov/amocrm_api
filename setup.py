@@ -25,13 +25,13 @@ setup(
 
     requires=[
         'requests (>=2.3)',
-        'responses (>=0.2.2)',
+        'responses (>=0.2.2,<0.6)',
         'six (>=1.7.3)',
         'pytz',
     ],
     install_requires=[
         'requests >=2.3',
-        'responses >=0.2.2',
+        'responses >=0.2.2,<0.6',
         'six >=1.7.3',
         'pytz',
     ],
