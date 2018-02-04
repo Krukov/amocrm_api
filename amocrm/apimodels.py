@@ -5,6 +5,7 @@ import json
 import time
 import copy
 from datetime import datetime
+import logging
 
 import six
 from pytz import utc, timezone
@@ -18,6 +19,9 @@ __all__ = ['BaseCompany', 'BaseContact', 'BaseLead',
            'CompanyNote', 'ContactNote', 'LeadNote', 'TaskNote']
 KIEV = 'Europe/Kiev'
 MOSCOW = 'Europe/Moscow'
+
+
+logger = logging.getLogger(__name__)
 
 
 class _ModelMeta(type):
@@ -128,7 +132,14 @@ class _BaseModel(six.with_metaclass(_ModelMeta)):
             self._data['id'] = self.id
         if self.date_create is None:
             self._data['date_create'] = int(time.time())
-        self._data['last_modified'] = int(time.time())
+        current_last_modified = self._data.get('last_modified')
+        now = int(time.time())
+        if current_last_modified and current_last_modified > now:
+            # Воркэраунд для ситуации, когда last_modified объекта на сервере больше, чем наше время
+            logger.debug('last_modified workaround old last_modified=%s > now=%s', current_last_modified, now)
+            self._data['last_modified'] = current_last_modified + 1
+        else:
+            self._data['last_modified'] = now
         for name, field in self._fields.items():
             if field.field in self._required:
                 value = getattr(self, name)
