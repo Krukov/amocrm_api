@@ -18,7 +18,8 @@ __all__ = [
 
 logger = logging.getLogger('amocrm')
 
-if not logger.handlers:
+if not logger.handlers and not logging.getLogger().handlers:
+    # Change nothing if root logger already has handlers!
     formatter = logging.Formatter(
         '%(asctime)s.%(msecs)d %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S'
     )

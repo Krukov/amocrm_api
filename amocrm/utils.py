@@ -85,6 +85,8 @@ class User(object):
 
     @classmethod
     def all(cls):
+        if hasattr(cls, '_api'):
+            return cls._api.users
         from .api import AmoApi
         return AmoApi().users
 

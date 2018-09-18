@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 class _ModelMeta(type):
+    _model_registry = {}
+
     def __new__(mcs, name, bases, attrs):
         attrs.setdefault('_fields', {})
         for base in bases:
@@ -36,10 +38,19 @@ class _ModelMeta(type):
                                  if isinstance(instance, (fields._BaseField, fields.CustomField))})
         attrs['_required'] = [f.field for f in attrs['_fields'].values() if f.required]
         super_new = super(_ModelMeta, mcs).__new__(mcs, name, bases, attrs)
+        assert name not in mcs._model_registry, 'Model already registered: %s' % name
+        mcs._model_registry[name] = super_new  # To resolve models by names later
         _manager = getattr(super_new, 'objects', None)
         if _manager:
             _manager._amo_model_class = super(_ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         return super_new
+
+    @classmethod
+    def _resolve_model_names(mcs):
+        for model in mcs._model_registry.values():
+            for attr_name, attr in model.__dict__.items():
+                if attr_name.endswith('_model') and isinstance(attr, str):
+                    setattr(model, attr_name, mcs._model_registry[attr])
 
 
 class _BaseModel(six.with_metaclass(_ModelMeta)):
@@ -233,28 +244,31 @@ class _AbstractNamedModel(_BaseModel):
 
 
 class BaseCompany(_AbstractNamedModel):
-    contact_model = None
+    contact_model = 'BaseContact'
+    company_note_model = 'CompanyNote'
+    company_task_model = 'CompanyTask'
+
     type = fields._ConstantField('type', 'company')
 
     objects = CompanyManager()
 
     @property
     def notes(self):
-        return CompanyNote.objects.all(query={'element_id': self.id})
+        return self.company_note_model.objects.all(query={'element_id': self.id})
 
     @property
     def tasks(self):
-        return CompanyTask.objects.all(query={'element_id': self.id})
+        return self.company_task_model.objects.all(query={'element_id': self.id})
 
     def create_note(self, text, note_type='COMMON'):
-        note = CompanyNote(company=self, type=note_type, text=text)
+        note = self.company_note_model(company=self, type=note_type, text=text)
         note.save(update_if_exists=False)
         return note
 
     @property
     def contacts(self):
         return (
-            (self.contact_model or BaseContact).objects.get(_id)
+            self.contact_model.objects.get(_id)
             for _id in set([
                 item['to_id']
                 for item in self.objects._get_linkslist(
@@ -268,7 +282,9 @@ class BaseCompany(_AbstractNamedModel):
 
 
 class BaseLead(_BaseModel):
-    contact_model = None
+    contact_model = 'BaseContact'
+    lead_task_model = 'LeadTask'
+    lead_note_model = 'LeadNote'
 
     name = fields._Field('name', required=False)
     tags = fields._TagsField('tags', 'name')
@@ -282,37 +298,41 @@ class BaseLead(_BaseModel):
     objects = LeadsManager()
 
     def create_task(self, text, complete_till, task_type='Follow-up'):
-        task = LeadTask(lead=self, type=task_type, text=text, complete_till=complete_till)
+        task = self.lead_task_model(lead=self, type=task_type, text=text,
+                                    complete_till=complete_till)
         task.save(update_if_exists=False)
         return task
 
     @property
     def tasks(self):
-        return LeadTask.objects.all(query={'element_id': self.id})
+        return self.lead_task_model.objects.all(query={'element_id': self.id})
 
     def create_note(self, text, note_type='COMMON'):
-        note = LeadNote(lead=self, type=note_type, text=text)
+        note = self.lead_note_model(lead=self, type=note_type, text=text)
         note.save(update_if_exists=False)
         return note
 
     @property
     def notes(self):
-        return LeadNote.objects.all(query={'element_id': self.id})
+        return self.lead_note_model.objects.all(query={'element_id': self.id})
 
     @property
     def statuses(self):
         if self.pipeline and self.objects.pipelines[self.pipeline]:
-            return {item.get('name', item.get('id')): item for item in self.objects.pipelines[self.pipeline]['statuses'].values()}
+            return {item.get('name', item.get('id')): item
+                    for item in self.objects.pipelines[self.pipeline]['statuses'].values()}
         return self.objects.leads_statuses
 
     @property
     def contacts(self):
-        return ((self.contact_model or BaseContact).objects.get(_id) for _id in
+        return (self.contact_model.objects.get(_id) for _id in
                 set([item['contact_id'] for item in self.objects._get_links(leads=[self.id])]))
 
 
 class BaseContact(_AbstractNamedModel):
-    leads_model = None
+    lead_model = 'BaseLead'
+    contact_note_model = 'ContactNote'
+    contact_task_model = 'ContactTask'
     leads = fields.ManyForeignField(BaseLead, 'linked_leads_id')
     type = fields._ConstantField('type', 'contact')
     company = fields.ForeignField(BaseCompany, 'linked_company_id',
@@ -323,26 +343,28 @@ class BaseContact(_AbstractNamedModel):
     objects = ContactsManager()
 
     def create_task(self, text, complete_till, task_type='Follow-up'):
-        task = ContactTask(contact=self, type=task_type, text=text, complete_till=complete_till)
+        task = self.contact_task_model(contact=self, type=task_type, text=text,
+                                       complete_till=complete_till)
         task.save(update_if_exists=False)
         return task
 
     @property
     def tasks(self):
-        return ContactTask.objects.all(query={'element_id': self.id})
+        return self.contact_task_model.objects.all(query={'element_id': self.id})
 
     def create_note(self, text, note_type='COMMON'):
-        note = ContactNote(contact=self, type=note_type, text=text)
+        note = self.contact_note_model(contact=self, type=note_type, text=text)
         note.save(update_if_exists=False)
         return note
 
     @property
     def notes(self):
-        return ContactNote.objects.all(query={'element_id': self.id})
+        return self.contact_note_model.objects.all(query={'element_id': self.id})
 
     @property
     def links(self):
-        return (self.leads_model.objects.get(item['lead_id']) for item in self.objects._get_links(contacts=[self.id]))
+        return (self.lead_model.objects.get(item['lead_id'])
+                for item in self.objects._get_links(contacts=[self.id]))
 
 
 class _AbstractTaskModel(_BaseModel):
@@ -450,3 +472,6 @@ class TaskNote(_AbstractNoteModel):
                                           _BaseModel._ELEMENT_TYPES['task'])
 
     objects = NotesManager(object_type='task')
+
+
+_ModelMeta._resolve_model_names()

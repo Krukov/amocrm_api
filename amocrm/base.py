@@ -10,7 +10,7 @@ import six
 
 import requests
 
-from .settings import settings
+from .settings import Settings, settings
 from .utils import lazy_dict_property, lazy_property, User
 from .exceptions import *
 
@@ -74,11 +74,19 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
     ObjectNotFound = ObjectNotFound
 
     def __init__(self, user_login=None, user_hash=None,
-                 domain=None, responsible_user=None):
-        self._session = _session
+                 domain=None, responsible_user=None, config=False):
+        if user_login or config:
+            self._settings = Settings()
+            self._session = requests.Session()
+        else:
+            self._settings = settings
+            self._session = _session
+
         if user_login is not None:
-            settings.set(user_login, user_hash, domain,
-                         responsible_user)
+            self._settings.set(user_login, user_hash, domain,
+                               responsible_user)
+        elif config:
+            self._settings.set_from_config(*([] if config is True else [config]))
 
     def auth(self):
         try:
@@ -92,17 +100,17 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @property
     def _domain(self):
-        return settings.domain
+        return self._settings.domain
 
     @property
     def _login_data(self):
-        if settings.user_login:
-            return {'USER_LOGIN': settings.user_login,
-                    'USER_HASH': settings.user_hash}
+        if self._settings.user_login:
+            return {'USER_LOGIN': self._settings.user_login,
+                    'USER_HASH': self._settings.user_hash}
 
     @lazy_property
     def _responsible_user(self):
-        return settings.responsible_user or settings.user_login
+        return self._settings.responsible_user or self._settings.user_login
 
     @classmethod
     @abstractproperty
@@ -130,6 +138,8 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     @lazy_dict_property
     def account_info(self):
+        # if hasattr(self, '_account_info'):
+        #     return self._account_info
         return self.get_account_info()
 
     @lazy_property

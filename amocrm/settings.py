@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
+import os.path
+from configparser import RawConfigParser
 
 __all__ = ['settings']
 
@@ -22,5 +24,22 @@ class Settings(object):
             'domain': self.domain,
             'responsible_user': self.responsible_user
         }
+
+    def set_from_config(self, path=['amocrm.ini', '~/amocrm.ini']):
+        if isinstance(path, str):
+            path = [path]
+
+        for config in map(os.path.expanduser, path):
+            if os.path.exists(config):
+                parser = RawConfigParser()
+                parser.read_string('[_default_section]\n' + open(config).read())
+                section = 'amocrm' if 'amocrm' in parser else '_default_section'
+                self.set(
+                    parser[section]['user_login'],
+                    parser[section]['user_hash'],
+                    parser[section]['domain'],
+                    parser[section].get('responsible_user')
+                )
+
 
 settings = Settings()

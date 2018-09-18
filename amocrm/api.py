@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
+from copy import copy
 from .base import _BlankMixin, _BaseAmoManager, _Helper
-from .utils import lazy_dict_property
+from .utils import lazy_dict_property, User
 
 import six
 
@@ -98,3 +99,35 @@ class AmoApi(_Helper(ContactsManager, 'contacts'), _Helper(CompanyManager, 'comp
              _BlankMixin, _BaseAmoManager):
     name = 'accounts'
 
+    def __init__(self, *args, **kwargs):
+        super(AmoApi, self).__init__(*args, **kwargs)
+        if args or kwargs:
+            from .apimodels import _ModelMeta
+
+            _ModelMeta._resolve_model_names()
+            self._bind_models(_ModelMeta._model_registry)
+
+    def _bind_models(self, models_registry):
+        registry = {name: copy(model) for name, model in models_registry.items()}
+
+        self.User = copy(User)
+        self.User._api = self
+
+        def _bind_manager(manager):
+            if manager._amo_model_class:
+                manager._amo_model_class = registry[manager._amo_model_class.__name__]
+            manager._session = self._session
+            manager._settings = self._settings
+
+        for manager in ('contacts', 'company', 'notes', 'leads', 'tasks'):
+            _bind_manager(getattr(self, manager))
+
+        for name, model in registry.items():
+            setattr(self, name, model)
+            if hasattr(model, 'objects'):
+                model.objects = copy(model.objects)
+                _bind_manager(model.objects)
+
+            for attr_name, attr in model.__dict__.items():
+                if attr_name.endswith('_model'):
+                    setattr(model, attr_name, registry[attr.__name__])

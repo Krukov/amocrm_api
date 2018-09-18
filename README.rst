@@ -63,7 +63,7 @@ Ok, now it is ready to use and you can get, create or edit contacts
 Example::
 
     new_contact = Contact(name='Example2', company='ExampleCorp2', position='QA', phone='0001')
-    new_contact.site = 'http://example.com'
+    new_contact.site = 'http://example.com'  # TODO: not working for some reason
     new_contact.save()
 
     contact = Contact.objects.get(new_contact.id)
@@ -77,3 +77,15 @@ Example::
     print(contact.notes)
     print(contact.tasks)
 
+If you don't want to expose session globally::
+
+    class Contact(BaseContact):
+        position = fields.CustomField(u'Должность')
+        site = fields.CustomField(u'Сайт')
+        phone = fields.EnumCustomField(u'Телефон', enum='WORK')
+
+    from amocrm import AmoApi
+    api = AmoApi('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
+    # session is now binded to api object, you should access models and managers from api instance
+    new_contact = api.Contact(name='Example2', company='ExampleCorp2', position='QA', phone='0001')
+    new_contact.save()
