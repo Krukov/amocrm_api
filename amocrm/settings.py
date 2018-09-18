@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import os.path
-from configparser import RawConfigParser
+try:
+    from configparser import RawConfigParser
+except ImportError:
+    # Python2
+    from ConfigParser import RawConfigParser
 
 __all__ = ['settings']
 
