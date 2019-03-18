@@ -343,7 +343,13 @@ class EnumCustomField(CustomField):
         field = [_field for _field in instance._data.setdefault(self._field, []) if _field['id'] == _id]
         enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
         if field:
-            field[0]['values'] = [{'value': value, 'enum': enum} for value in values]
+            _tmp_vals=[]
+            for v in field[0]['values']:
+                if v['enum'] != enum:
+                    _tmp_vals += [v]
+
+            _tmp_vals += [{'value': value, 'enum': enum} for value in values]
+            field[0]['values']=_tmp_vals
         else:
             full_data = {'id': _id, 'values': [{'value': value, 'enum': enum} for value in values]}
             instance._data[self._field].append(full_data)
