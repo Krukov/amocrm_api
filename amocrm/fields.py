@@ -228,7 +228,7 @@ class CustomField(object):
                 return
             self._check_field(instance)
             custom_field_info = instance.objects._custom_fields[self.custom_field]
-            self._id = _id = custom_field_info['id']
+            self._id = _id = int(custom_field_info['id'])
             _data = list(_data.values()) if isinstance(_data, dict) else _data
             _data = [item['values'] for item in _data if item['id'] == _id]
 
