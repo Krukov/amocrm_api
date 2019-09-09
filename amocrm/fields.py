@@ -339,9 +339,9 @@ class EnumCustomField(CustomField):
         self._check_field(instance)
         instance._fields_data[self.field] = None
         custom_field_info = instance.objects._custom_fields[self.custom_field]
-        _id = custom_field_info['id']
+        _id = int(custom_field_info['id'])
         field = [_field for _field in instance._data.setdefault(self._field, []) if _field['id'] == _id]
-        enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
+        enum = {enum: int(_id) for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
         if field:
             _tmp_vals=[]
             for v in field[0]['values']:
