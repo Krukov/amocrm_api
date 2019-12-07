@@ -1,9 +1,11 @@
 .idea/
 .bin/
 .env/
+.venv/
 .tox/
 dist/
 build/
 .coverage
 *.pyc*
 *.egg*
+settings.json

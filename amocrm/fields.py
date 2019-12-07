@@ -228,7 +228,7 @@ class CustomField(object):
                 return
             self._check_field(instance)
             custom_field_info = instance.objects._custom_fields[self.custom_field]
-            self._id = _id = custom_field_info['id']
+            self._id = _id = int(custom_field_info['id'])
             _data = list(_data.values()) if isinstance(_data, dict) else _data
             _data = [item['values'] for item in _data if item['id'] == _id]
 
@@ -311,7 +311,7 @@ class EnumCustomField(CustomField):
             if self.custom_field not in instance.objects._custom_fields:
                 raise ValueError(u"%s have not custom field '%s'" % (instance.objects.name, self.custom_field))
             custom_field_info = instance.objects._custom_fields[self.custom_field]
-            _id = custom_field_info['id']
+            _id = int(custom_field_info['id'])
             _data = [item['values'] for item in _data if item['id'] == _id]
 
             _data = _data[-1] if _data else None
@@ -323,7 +323,7 @@ class EnumCustomField(CustomField):
 
             if _data is None:
                 return
-            _data = [item for item in _data if item.get('enum') == enum]
+            _data = [item for item in _data if item.get('enum') == int(enum)]
             self._check_field(instance)
             instance._fields_data[self.field] = [item['value'] for item in _data] if _data else None
             if len(_data) == 1:
@@ -339,11 +339,17 @@ class EnumCustomField(CustomField):
         self._check_field(instance)
         instance._fields_data[self.field] = None
         custom_field_info = instance.objects._custom_fields[self.custom_field]
-        _id = custom_field_info['id']
+        _id = int(custom_field_info['id'])
         field = [_field for _field in instance._data.setdefault(self._field, []) if _field['id'] == _id]
-        enum = {enum: _id for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
+        enum = {enum: int(_id) for _id, enum in custom_field_info.get('enums', {}).items()}.get(self.enum)
         if field:
-            field[0]['values'] = [{'value': value, 'enum': enum} for value in values]
+            _tmp_vals=[]
+            for v in field[0]['values']:
+                if v['enum'] != enum:
+                    _tmp_vals += [v]
+
+            _tmp_vals += [{'value': value, 'enum': enum} for value in values]
+            field[0]['values']=_tmp_vals
         else:
             full_data = {'id': _id, 'values': [{'value': value, 'enum': enum} for value in values]}
             instance._data[self._field].append(full_data)

@@ -82,7 +82,7 @@ class _BaseAmoManager(six.with_metaclass(ABCMeta)):
 
     def auth(self):
         try:
-            self._make_request(_AMO_LOGIN_PATH, _P, data=self._login_data)
+            self._make_request(_AMO_LOGIN_PATH, _P, data=self._login_data, headers = {'content-type': 'application/json'})
         except AmoResponseException as e:
             raise AmoAuthException(e.resp)
 
