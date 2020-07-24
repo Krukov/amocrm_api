@@ -1,6 +1,6 @@
-==================
-UNMAINTAINED AmoCRM python API. 
-==================
+===============================
+AmoCRM python API. V2
+===============================
 
 .. image:: https://travis-ci.org/Krukov/amocrm_api.svg?branch=master
     :target: https://travis-ci.org/Krukov/amocrm_api
@@ -8,7 +8,7 @@ UNMAINTAINED AmoCRM python API.
     :target: https://coveralls.io/r/Krukov/amocrm_api
 
 
-Python AmoCRM API (http://www.amocrm.ru/) (human interface for easy using )
+Python AmoCRM API v2 (http://www.amocrm.ru/) (human interface for easy using)
 
 
 Installation
@@ -18,45 +18,96 @@ Installation
 
     pip install amocrm_api
 
-
 Usage
 =====
 
+Авторизация
+-----------
 
-There are 7 abstraction of 5 AmoCRM objects:
+Авторизация - с Июня 2020 amocrm форсировала смену авторизации с токена на Oauth
+Но Oauth без поддержки server to server взаимодействия, связи с чем текущая реализация содержит следующие ограничения
+1. В личном кабинете необходимо создать интеграцию
+2. Рефрешь токен однаразовый и обновляется при каждом получении аксесс токена
+3. Токены нужно хранить, для этого есть api и существует 3 типа хранилиша (можно реализовать свой):
 
-- Контакт - BaseContact
-- Компания  - BaseCompany
-- Сделка - BaseLead
-- Задача - (LeadTask, ContactTask)
-- Событие - (LeadNote, ContactNote)
-
-Settings
---------
-
-First of all you need to define settings
-Example::
-
-    from amocrm import BaseContact, amo_settings, fields
-    amo_settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
-
-
-Custom field
-------------
-
-One of the features of AmoCRM in the presence of custom fields in a contact, company and lead objects
-
-To define your custom field you need describe it
+- MemoryTokensStorage - хранит токены в памяти (если вы перезапускаете приложение то придется стнова создавать refresh_token)
+- FileStorage - сохраняет токены в файле
+- RedisTokensStorage - сохраняет токены в редисе (pip install redis) для new-age приложений каторые работают в нескольок инстансов
 
 Example::
 
-    from amocrm import BaseContact, amo_settings, fields
-    amo_settings.set('krukov@centrobit.ru', '4b332718c4c5944003af7e6389860ced', 'testcentrobit')
+    from amocrm.v2 import tokens
 
-    class Contact(BaseContact):
-        position = fields.CustomField(u'Должность')
-        site = fields.CustomField(u'Сайт')
-        phone = fields.EnumCustomField(u'Телефон', enum='WORK')
+    tokens.default_token_manager(
+        client_id="....-....-....-....-.........",
+        client_secret="...",
+        subdomain="subdomain",
+        redirect_url="https://..../...",
+        storage=tokens.FileTokensStorage(),  # by default FileTokensStorage
+    )
+    tokens.default_token_manager.init(code="..very long code...", skip_error=True)
+
+
+- Контакт - Contact
+- Компания  - Company
+- Теги - Tags
+- Сделка - Lead
+- Задача - Task
+- Событие - Note
+
+
+Работа с сушьностями
+--------------------
+
+У каждой сущности есть менеджер (проперти objects), который имеет следующие методы
+
+::
+
+    <Entity>.objects.get(object_id=1, query="test")  # получение обьекта
+    <Entity>.objects.all()  # получение всех сущьностей
+    <Entity>.objects.filter(**kwargs)  # получение списка сущьностей с фильтром
+
+    <Entity>.objects.create(**kwargs)  # создание сущьности (нет явной сигнатуры поэтому лучше испольщовать метод create самой сушьности)
+    <Entity>.objects.update(**kwargs)  # обносление сущьности (нет явной сигнатуры поэтому лучше испольщовать метод update самой сушьности)
+
+В свою очередь сама сушьность имеет несколько методов для более простого создания и обноления
+
+::
+
+    <EntityInstance>.create()
+    <EntityInstance>.update()
+    <EntityInstance>.save()  # создаст или обновит в зависимости от того как обьект был инициализирован
+
+Рассмотрим полный флоу работы на примере контакта
+
+::
+
+    from amocrm.v2 import Contact, Company
+
+    contact = Contact.objects.get(query="Тест")
+    print(contact.first_name)
+    print(contact.company.name)
+    print(contact.created_at)
+
+    contact.last_name = "Новое"
+    contact.tags.append("new")
+    contact.save()
+
+    contact.company = Company(name="Amocrm")  # создаст и приленкует компанию сразу
+    print(contact.company.id)
+
+    len(list(contact.customers)) # lazy list
+    contact.customers.append(Customer(name="Volta"))
+
+
+Кастомные поля
+--------------
+
+Одна из удобных возможностей AmoCrm  - кастомные поля
+
+Example::
+
+    Contact.position = fields.CustomField(u'Должность')
 
 Ok, now it is ready to use and you can get, create or edit contacts
 
