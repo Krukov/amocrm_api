@@ -1,6 +1,7 @@
 
 from ..interaction import GenericInteraction
 from .. import fields, model, manager
+from .pipeline import Status
 
 
 class _StatusesField(fields._BaseField):
@@ -13,6 +14,13 @@ class _StatusesField(fields._BaseField):
         for status in instance.pipeline.statuses:
             if status.id == status_id:
                 return status
+
+    def on_set_instance(self, instance, value):
+        if isinstance(value, str):
+            return Status.get_for(instance.pipeline).get(query=value).id
+        if isinstance(value, Status):
+            return value.id
+        return value
 
 
 class LeadsInteraction(GenericInteraction):
@@ -37,11 +45,9 @@ class Lead(model.Model):
     status = _StatusesField()
     pipeline = fields._Link("pipeline_id", "Pipeline")
 
-    # loss_reason = fields._Field("name", path=["_embedded", "loss_reason"])
+    loss_reason = fields._Field("loss_reason", path=["_embedded"])
     contacts = fields._EmbeddedLinkListField("contacts", model="Contact")
 
     tags = fields._TagsField()
-
-    # catalog_elements = fields._EmbeddedLinkListField("catalog_elements", Customer)
 
     objects = manager.Manager(LeadsInteraction())

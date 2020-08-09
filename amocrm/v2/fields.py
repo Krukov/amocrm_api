@@ -8,12 +8,13 @@ from .register import get_model_by_name
 class _BaseField:
     _path = []
 
-    def __init__(self, name=None, blank=False, path=None, cache=True):
+    def __init__(self, name=None, blank=False, path=None, cache=True, is_embedded=None):
         self.name = name
         self._blank = blank
         self._path = path if path is not None else self._path
         self._cache = cache
         self.__value = None
+        self.__is_embedded = is_embedded
 
     def __repr__(self):
         return f"{self.__class__.__name__}(name={self.name}, blank={self._blank}, path={self._path})"
@@ -60,10 +61,11 @@ class _BaseField:
     def on_get(self, data):
         return data
 
-    @classmethod
     @property
-    def is_embedded(cls):
-        return cls._path and cls._path[0] == "embedded"
+    def is_embedded(self):
+        if self.__is_embedded is None:
+            return bool(self._path and self._path[0] == "_embedded")
+        return self.__is_embedded
 
 
 class _Field(_BaseField):

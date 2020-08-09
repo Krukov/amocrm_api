@@ -44,7 +44,8 @@ class Model(metaclass=_RegisterMeta):
 
     def update(self):
         if self._updated_fields:
-            self._data["updated_at"] = self._manager.update(self.id, self._get_updated_data())
+            self._manager.update(self.id, self._get_updated_data())
+            self._updated_fields = set()
 
     def _get_updated_data(self):
         data = {}

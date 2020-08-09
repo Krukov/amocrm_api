@@ -39,6 +39,8 @@ class BaseInteraction:
             raise exceptions.UnAuthorizedException()
         if response.status_code == 403:
             raise exceptions.PermissionsDenyException()
+        if response.status_code == 402:
+            raise ValueError("Тариф не позволяет включать покупателей")
         raise exceptions.AmoApiException("Wrong status {}".format(response.status_code))
 
     def request(self, method, path, data=None, params=None, headers=None, include=None):
@@ -145,4 +147,4 @@ class GenericInteraction(BaseInteraction):
         response, status = self.request("patch", path, data=data)
         if status == 400:
             raise exceptions.ValidationError(response)
-        return response["updated_at"]
+        return response

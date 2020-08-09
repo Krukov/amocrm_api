@@ -39,10 +39,10 @@ Example::
     from amocrm.v2 import tokens
 
     tokens.default_token_manager(
-        client_id="....-....-....-....-.........",
-        client_secret="...",
+        client_id="xxx-xxx-xxxx-xxxx-xxxxxxx",
+        client_secret="xxxx",
         subdomain="subdomain",
-        redirect_url="https://..../...",
+        redirect_url="https://xxxx/xx",
         storage=tokens.FileTokensStorage(),  # by default FileTokensStorage
     )
     tokens.default_token_manager.init(code="..very long code...", skip_error=True)
@@ -109,22 +109,4 @@ Example::
 
     Contact.position = fields.CustomField(u'Должность')
 
-Ok, now it is ready to use and you can get, create or edit contacts
-
-Example::
-
-    new_contact = Contact(name='Example2', company='ExampleCorp2', position='QA', phone='0001')
-    new_contact.site = 'http://example.com'
-    new_contact.save()
-
-    contact = Contact.objects.get(new_contact.id)
-    contact_search = Contact.objects.search('Example2')
-    assert contact.id == contact_search.id
-    print(contact.phone)
-    contact.phone = '8-800-00000000'
-    contact.save()
-    contact.create_task('New task, yeee', task_type=u'Звонок',
-                     complete_till=datetime.datetime.now()+datetime.timedelta(days=3))
-    print(contact.notes)
-    print(contact.tasks)
 
