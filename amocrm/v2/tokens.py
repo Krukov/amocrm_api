@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class TokensStorage:
-
     def get_access_token(self) -> Optional[str]:
         pass
 
@@ -23,7 +22,6 @@ class TokensStorage:
 
 
 class MemoryTokensStorage(TokensStorage):
-
     def __init__(self):
         self._access_token = None
         self._refresh_token = None
@@ -39,7 +37,6 @@ class MemoryTokensStorage(TokensStorage):
 
 
 class FileTokensStorage(TokensStorage):
-
     def __init__(self, directory_path=os.getcwd()):
         self._access_token_path = os.path.join(directory_path, "access_token.txt")
         self._refresh_token_path = os.path.join(directory_path, "refresh_token.txt")
@@ -99,7 +96,9 @@ class TokenManager:
         self._redirect_url = None
         self._storage: Optional[TokensStorage] = None
 
-    def __call__(self, client_id: str, client_secret: str, subdomain: str, redirect_url: str, storage=FileTokensStorage()):
+    def __call__(
+        self, client_id: str, client_secret: str, subdomain: str, redirect_url: str, storage=FileTokensStorage()
+    ):
         self._client_id = client_id
         self._client_secret = client_secret
         self._redirect_url = redirect_url
@@ -135,11 +134,11 @@ class TokenManager:
         if refresh_token is None:
             raise ValueError()
         body = {
-          "client_id": self._client_id,
-          "client_secret": self._client_secret,
-          "grant_type": "refresh_token",
-          "refresh_token": refresh_token,
-          "redirect_uri": self._redirect_url,
+            "client_id": self._client_id,
+            "client_secret": self._client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "redirect_uri": self._redirect_url,
         }
         response = requests.post("https://{}.amocrm.ru/oauth2/access_token".format(self.subdomain), json=body).json()
         return response["access_token"], response["refresh_token"]
@@ -157,7 +156,12 @@ class TokenManager:
     def _is_expire(token: str):
         alg = jwt.get_unverified_header(token).get("alg")
         try:
-            jwt.decode(token, verify=True, options={"verify_exp": True, "verify_signature": False, "verify_aud": False}, algorithms=[alg])
+            jwt.decode(
+                token,
+                verify=True,
+                options={"verify_exp": True, "verify_signature": False, "verify_aud": False},
+                algorithms=[alg],
+            )
         except jwt.exceptions.ExpiredSignatureError:
             return True
         else:

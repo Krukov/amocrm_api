@@ -1,4 +1,3 @@
-
 class BaseModuleException(Exception):
     """
     Base exception for all

@@ -4,7 +4,7 @@ from . import fields
 from .register import _RegisterMeta
 
 _EMBEDDED_FIELDS = (fields._EmbeddedLinkListField, fields._EmbeddedLinkField)
-_FIELDS_FOR_REPR = (fields._Field, ) + _EMBEDDED_FIELDS
+_FIELDS_FOR_REPR = (fields._Field,) + _EMBEDDED_FIELDS
 
 
 class Model(metaclass=_RegisterMeta):
@@ -24,10 +24,18 @@ class Model(metaclass=_RegisterMeta):
 
     @classmethod
     def _get_embedded_fields(cls):
-        return [field.name for _, field in inspect.getmembers(cls) if isinstance(field, fields._BaseField) and field.is_embedded]
+        return [
+            field.name
+            for _, field in inspect.getmembers(cls)
+            if isinstance(field, fields._BaseField) and field.is_embedded
+        ]
 
     def __repr__(self):
-        fields = ["{} = {}".format(field.name, getattr(self, attr)) for attr, field in inspect.getmembers(self.__class__) if isinstance(field, _FIELDS_FOR_REPR)]
+        fields = [
+            "{} = {}".format(field.name, getattr(self, attr))
+            for attr, field in inspect.getmembers(self.__class__)
+            if isinstance(field, _FIELDS_FOR_REPR)
+        ]
         return "{self.__class__.__name__}({fields})".format(self=self, fields=", ".join(fields))
 
     def save(self):

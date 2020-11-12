@@ -1,5 +1,3 @@
-
-
 from ..interaction import GenericInteraction
 from .. import fields, model, manager
 
@@ -24,4 +22,3 @@ class Task(model.Model):
     result = fields._Field("text", path=["result"])
 
     objects = manager.Manager(TasksInteraction())
-

@@ -28,4 +28,3 @@ class Contact(model.Model):
     notes = NotesField()
 
     objects = manager.Manager(ContactsInteraction())
-

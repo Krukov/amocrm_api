@@ -1,4 +1,3 @@
-
 from ..interaction import GenericInteraction
 from .. import fields, model, manager
 from .pipeline import Status

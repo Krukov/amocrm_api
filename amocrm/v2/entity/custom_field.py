@@ -38,26 +38,19 @@ class CustomFieldModel(model.Model):
     @classmethod
     def get_for(cls, instance):
         return manager.Manager(
-            GenericInteraction(
-                path=f"{instance._path}/custom_fields",
-                field="custom_fields",
-            ),
-            model=CustomFieldModel,
+            GenericInteraction(path=f"{instance._path}/custom_fields", field="custom_fields",), model=CustomFieldModel,
         ).all()
 
     @classmethod
     def create_for(cls, instance, name, code=None, sort=None):
-        return manager.Manager(
-            GenericInteraction(
-                path=f"{instance._path}/custom_fields",
-                field="custom_fields",
-            ),
-            model=CustomFieldModel,
-        ).create(
-            name=name,
-            code=code,
-            sort=sort,
-        ).code
+        return (
+            manager.Manager(
+                GenericInteraction(path=f"{instance._path}/custom_fields", field="custom_fields",),
+                model=CustomFieldModel,
+            )
+            .create(name=name, code=code, sort=sort,)
+            .code
+        )
 
 
 class BaseCustomField(fields._BaseField):

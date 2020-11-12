@@ -60,4 +60,3 @@ class Pipeline(model.Model):
     statuses = _StatusField()
 
     objects = manager.Manager(PipelinesInteraction())
-

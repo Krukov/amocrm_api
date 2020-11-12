@@ -1,5 +1,3 @@
-
-
 class _RegisterMeta(type):
     _REGISTER = {}
 

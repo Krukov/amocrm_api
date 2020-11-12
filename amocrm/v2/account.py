@@ -3,7 +3,6 @@ from . import model, manager, fields
 
 
 class AccountInteraction(BaseInteraction):
-
     def get(self, object_id=None, include=None):
         response, _ = self.request("get", "account", include=include)
         return response

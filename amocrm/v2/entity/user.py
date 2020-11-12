@@ -1,5 +1,3 @@
-
-
 from ..interaction import GenericInteraction
 from .. import fields, model, manager
 

@@ -41,4 +41,3 @@ class Customer(model.Model):
     company = fields._EmbeddedLinkField("companies", "Company")
 
     objects = manager.Manager(CustomersInteraction())
-

@@ -3,7 +3,6 @@ from . import exceptions
 
 
 class LinksInteraction(BaseInteraction):
-
     def link(self, for_entity, to_entity, main=False, metadata=None):
         return self._set("link", for_entity, to_entity, main=main, metadata=metadata)
 

@@ -100,7 +100,6 @@ class _ObjectField(_UnEditableField):
 
 
 class _Link(_BaseField):
-
     def __init__(self, name, model, links=LinksInteraction(), manager=None):
         super().__init__(name, blank=True)
         self.__model = model
@@ -127,7 +126,6 @@ class _Link(_BaseField):
 
 
 class _ListData:
-
     def __init__(self, data, instance, model, manager=None, links=LinksInteraction()):
         self._data = data
         self._model = model
@@ -148,7 +146,9 @@ class _ListData:
 
 
 class _EmbeddedLinkField(_Link):
-    _path = ["_embedded", ]
+    _path = [
+        "_embedded",
+    ]
 
     def on_get(self, data):
         if data:
@@ -165,12 +165,12 @@ class _EmbeddedLinkField(_Link):
 
 
 class _EmbeddedLinkListField(_Link):
-    _path = ["_embedded", ]
+    _path = [
+        "_embedded",
+    ]
 
     def on_get_instance(self, instance, value):
         return _ListData(data=value, model=self._model, manager=self._manager, instance=instance, links=self._links)
 
     def on_set(self, value):
         raise TypeError()
-
-

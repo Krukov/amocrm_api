@@ -6,7 +6,7 @@ CALL_IN_TYPE = "call_in"  # Входящий звонок
 CALL_OUT_TYPE = "call_out"  # Исходящий звонок
 SERVICE_MESSAGE_TYPE = "service_message"  # Системное сообщение
 CASHIER_MESSAGE_TYPE = "message_cashier"  # Сообщение кассиру
-INVOICE_PAID_TYPE = "invoice_paid"   # Оплата счета
+INVOICE_PAID_TYPE = "invoice_paid"  # Оплата счета
 GEOLOCATION_TYPE = "geolocation"  # Геолокация
 SMS_IN_TYPE = "sms_in"  # Входящее сообщение
 SMS_OUT_TYPE = "sms_out"  # Исходящее сообщение
@@ -24,14 +24,14 @@ class NotesField(fields._UnEditableField):
     def on_get_instance(self, instance, value):
         class Note(_Note):
             objects = manager.Manager(NotesInteraction(path=f"{instance._path}/{instance.id}/notes", field="notes"))
+
         return Note
 
 
 class _AutoTypeField(fields._Field):
-
     def __init__(self, *args, note_type, **kwargs):
         self._auto_type = note_type
-        super().__init__(*args, blank=True,  path=["params"], **kwargs)
+        super().__init__(*args, blank=True, path=["params"], **kwargs)
 
     def on_set_instance(self, instance, value):
         instance._data["note_type"] = self._auto_type

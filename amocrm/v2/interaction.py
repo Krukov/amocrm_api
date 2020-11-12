@@ -68,7 +68,9 @@ class BaseInteraction:
     def _all(self, path, include=None, query=None, filters=(), order=None, limit=250):
         page = 1
         while True:
-            response, _ = self._list(path, page, include=include, query=query, filters=filters, order=order, limit=limit)
+            response, _ = self._list(
+                path, page, include=include, query=query, filters=filters, order=order, limit=limit
+            )
             if response is None:
                 return
             yield response["_embedded"]
@@ -117,7 +119,10 @@ class RangeFilter(Filter):
         self._value_to = value_to
 
     def _as_params(self):
-        return {"filter[{}][from]".format(self._name): self._value_from, "filter[{}][to]".format(self._name): self._value_to}
+        return {
+            "filter[{}][from]".format(self._name): self._value_from,
+            "filter[{}][to]".format(self._name): self._value_to,
+        }
 
 
 class GenericInteraction(BaseInteraction):
@@ -138,7 +143,9 @@ class GenericInteraction(BaseInteraction):
         return self.path
 
     def get_list(self, page, include=None, limit=250, query=None, filters=None, order=None):
-        response, _ = self._list(self._get_path(), page, include=include, limit=limit, query=query, filters=filters, order=order)
+        response, _ = self._list(
+            self._get_path(), page, include=include, limit=limit, query=query, filters=filters, order=order
+        )
         return response["_embedded"][self._get_field()]
 
     def get_all(self, include=None, query=None, filters=(), order=None):
