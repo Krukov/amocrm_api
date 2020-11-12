@@ -1,7 +1,6 @@
-
-
 from ..interaction import GenericInteraction
 from .. import fields, model, manager
+from .tag import TagsField
 
 
 class CustomersInteraction(GenericInteraction):
@@ -36,7 +35,7 @@ class Customer(model.Model):
     average_check = fields._Field("average_check")
 
     account_id = fields._UnEditableField("account_id")
-    tags = fields._TagsField()
+    tags = TagsField()
 
     contacts = fields._EmbeddedLinkListField("contacts", "Contact")
     company = fields._EmbeddedLinkField("companies", "Company")

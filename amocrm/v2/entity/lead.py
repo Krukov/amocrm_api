@@ -2,6 +2,8 @@
 from ..interaction import GenericInteraction
 from .. import fields, model, manager
 from .pipeline import Status
+from .note import NotesField
+from .tag import TagsField
 
 
 class _StatusesField(fields._BaseField):
@@ -48,6 +50,7 @@ class Lead(model.Model):
     loss_reason = fields._Field("loss_reason", path=["_embedded"])
     contacts = fields._EmbeddedLinkListField("contacts", model="Contact")
 
-    tags = fields._TagsField()
+    tags = TagsField()
+    notes = NotesField()
 
     objects = manager.Manager(LeadsInteraction())

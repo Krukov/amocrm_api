@@ -123,7 +123,7 @@ class TokenManager:
                 raise
         else:
             if response.status_code != 200 and not skip_error:
-                raise Exception(response.content)
+                raise Exception(response.json()["title"])
             if response.status_code != 200 and skip_error:
                 return
             response = response.json()

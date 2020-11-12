@@ -8,7 +8,7 @@ from .register import get_model_by_name
 class _BaseField:
     _path = []
 
-    def __init__(self, name=None, blank=False, path=None, cache=True, is_embedded=None):
+    def __init__(self, name=None, blank=False, path=None, cache=False, is_embedded=None):
         self.name = name
         self._blank = blank
         self._path = path if path is not None else self._path
@@ -28,7 +28,7 @@ class _BaseField:
             return self
         data = instance._data
         for _path in self._path:
-            data = data[_path]
+            data = data.get(_path, {})
         data = data.get(self.name)
         if data is None and not self._blank:
             raise exceptions.NoDataException(str(self))
@@ -52,8 +52,8 @@ class _BaseField:
     def on_set_instance(self, instance, value):
         return self.on_set(value)
 
-    def on_get_instance(self, instance, value):
-        return self.on_get(value)
+    def on_get_instance(self, instance, data):
+        return self.on_get(data)
 
     def on_set(self, value):
         return value
@@ -99,52 +99,10 @@ class _ObjectField(_UnEditableField):
         return self._model.from_dict(**data)
 
 
-class _TagsList:
-    def __init__(self, add, remove):
-        self._add = add
-        self._remove = remove
-
-    def append(self, value):
-        if isinstance(value, get_model_by_name("Tag")):
-            if value.id is None:
-                value.create()
-            self._add({"id": value.id})
-        else:
-            self._add({"name": value})
-
-    add = append
-
-    def remove(self, value):
-        if isinstance(value, get_model_by_name("Tag")):
-            value = value.id
-        self._remove(value)
-
-
-class _TagsField(_BaseField):
-    _path = ["_embedded"]
-
-    def __init__(self):
-        super().__init__("tags", blank=True)
-
-    def on_get_instance(self, instance, tags):
-        def _add(data):
-            tags.append(data)
-            self._notify_instance(instance)
-
-        def _remove(value):
-            for tag in tags:
-                if tag["id"] == value or tag["name"] == value:
-                    tags.remove(tag)
-                    self._notify_instance(instance)
-                    return
-
-        return _TagsList(_add, _remove)
-
-
 class _Link(_BaseField):
 
     def __init__(self, name, model, links=LinksInteraction(), manager=None):
-        super().__init__(name)
+        super().__init__(name, blank=True)
         self.__model = model
         self._links = links
         self.__manager = manager
@@ -193,7 +151,9 @@ class _EmbeddedLinkField(_Link):
     _path = ["_embedded", ]
 
     def on_get(self, data):
-        return self._model.objects.get(data[0]["id"])
+        if data:
+            return self._model.objects.get(data[0]["id"])
+        return None
 
     def on_set_instance(self, instance, value):
         if instance.id is None:
@@ -213,7 +173,4 @@ class _EmbeddedLinkListField(_Link):
     def on_set(self, value):
         raise TypeError()
 
-
-class CustomField(_BaseField):
-    pass
 

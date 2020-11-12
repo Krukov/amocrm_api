@@ -11,9 +11,10 @@ class BaseInteraction:
         "User-Agent": "amocrm-py/v2",
     }
 
-    def __init__(self, token_manager=default_token_manager, session=_session):
+    def __init__(self, token_manager=default_token_manager, session=_session, headers=_default_headers):
         self._token_manager = token_manager
         self._session = session
+        self._default_headers = headers
 
     def get_headers(self):
         headers = {}
@@ -94,6 +95,14 @@ class SingleFilter(Filter):
         return {"filter[{}]".format(self._name): self._value}
 
 
+class SingleListFilter(Filter):
+    def __call__(self, value):
+        self._value = value
+
+    def _as_params(self):
+        return {"filter[{}][]".format(self._name): self._value}
+
+
 class MultiFilter(Filter):
     def __call__(self, values):
         self._values = values
@@ -108,12 +117,19 @@ class RangeFilter(Filter):
         self._value_to = value_to
 
     def _as_params(self):
-        return {"filter[{}][from]".format(self._name): self._value_from}
+        return {"filter[{}][from]".format(self._name): self._value_from, "filter[{}][to]".format(self._name): self._value_to}
 
 
 class GenericInteraction(BaseInteraction):
     path = ""
     field = None
+
+    def __init__(self, *args, path=None, field=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if path is not None:
+            self.path = path
+        if field is not None:
+            self.field = field
 
     def _get_field(self):
         return self.field or self.path

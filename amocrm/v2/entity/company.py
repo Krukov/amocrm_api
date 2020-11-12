@@ -1,5 +1,7 @@
 from ..interaction import GenericInteraction
 from .. import fields, model, manager
+from .note import NotesField
+from .tag import TagsField
 
 
 class CompaniesInteraction(GenericInteraction):
@@ -17,7 +19,8 @@ class Company(model.Model):
     closest_task_at = fields._DateTimeField("closest_task_at", blank=True)
     account_id = fields._UnEditableField("account_id")
 
-    tags = fields._TagsField()
+    tags = TagsField()
+    notes = NotesField()
 
     leads = fields._EmbeddedLinkListField("leads", "Lead")
     customers = fields._EmbeddedLinkListField("customers", "Customer")
