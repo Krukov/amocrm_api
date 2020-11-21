@@ -1,5 +1,6 @@
 from datetime import datetime
-from .. import fields, model, manager
+
+from .. import fields, manager, model
 from ..interaction import GenericInteraction
 
 TEXT = "text"  # Текст

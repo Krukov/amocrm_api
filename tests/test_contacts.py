@@ -1,10 +1,10 @@
 import pytest
 
-from amocrm.v2 import exceptions, Contact
+from amocrm.v2 import Contact, exceptions
 
-from .data.contacts import DETAIL_INFO, LIST_PAGE_1, CREATE_DATA, UPDATE
-from .data.users import DETAIL_INFO as USER_DETAIL_INFO
 from .data.companies import DETAIL_INFO as COMPANY_DETAIL_INFO
+from .data.contacts import CREATE_DATA, DETAIL_INFO, LIST_PAGE_1, UPDATE
+from .data.users import DETAIL_INFO as USER_DETAIL_INFO
 
 
 def test_get(response_mock):
@@ -20,7 +20,9 @@ def test_get(response_mock):
     assert contact.responsible_user.id == 3
     assert contact.responsible_user.name == "Алексей Поимцев"
 
-    response_mock.add("GET", "https://test.amocrm.ru/api/v4/companies/1", match_querystring=False, json=COMPANY_DETAIL_INFO)
+    response_mock.add(
+        "GET", "https://test.amocrm.ru/api/v4/companies/1", match_querystring=False, json=COMPANY_DETAIL_INFO
+    )
     assert contact.company.name == "АО Рога и копыта"
     assert contact.company.account_id == 10
 
@@ -32,7 +34,9 @@ def test_get_not_found(response_mock):
 
 
 def test_list(response_mock):
-    response_mock.add("GET", "https://test.amocrm.ru/api/v4/contacts", match_querystring=False, status=200, json=LIST_PAGE_1)
+    response_mock.add(
+        "GET", "https://test.amocrm.ru/api/v4/contacts", match_querystring=False, status=200, json=LIST_PAGE_1
+    )
 
     contacts = list(Contact.objects.all())
     assert len(contacts) == 2

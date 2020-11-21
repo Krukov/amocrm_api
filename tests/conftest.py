@@ -1,13 +1,11 @@
+import jwt
 import pytest
 
-import jwt
 import responses
-
-from amocrm.v2.tokens import default_token_manager, TokensStorage
+from amocrm.v2.tokens import TokensStorage, default_token_manager
 
 
 class FakeStorage(TokensStorage):
-
     def get_access_token(self):
         return jwt.encode({}, "tests").decode()
 

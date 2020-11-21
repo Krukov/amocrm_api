@@ -1,5 +1,5 @@
+from .. import fields, manager, model
 from ..interaction import GenericInteraction
-from .. import fields, model, manager
 
 
 class StatusesInteraction(GenericInteraction):

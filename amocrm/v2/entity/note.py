@@ -1,5 +1,5 @@
+from .. import fields, manager, model
 from ..interaction import GenericInteraction
-from .. import model, fields, manager
 
 COMMON_TYPE = "common"  # Обычное примечание
 CALL_IN_TYPE = "call_in"  # Входящий звонок

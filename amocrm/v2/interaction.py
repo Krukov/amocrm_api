@@ -1,7 +1,7 @@
 import requests
 
-from .tokens import default_token_manager
 from . import exceptions
+from .tokens import default_token_manager
 
 _session = requests.Session()
 

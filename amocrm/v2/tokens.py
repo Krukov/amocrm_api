@@ -1,9 +1,9 @@
-import os
 import logging
+import os
 from typing import Optional, Tuple
 
-import requests
 import jwt
+import requests
 
 from . import exceptions
 

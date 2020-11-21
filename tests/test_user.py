@@ -1,7 +1,7 @@
 import pytest
 
-from amocrm.v2.entity.user import User
 from amocrm.v2 import exceptions
+from amocrm.v2.entity.user import User
 
 from .data.users import DETAIL_INFO
 

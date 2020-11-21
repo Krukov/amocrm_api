@@ -1,5 +1,5 @@
-from .interaction import BaseInteraction
 from . import exceptions
+from .interaction import BaseInteraction
 
 
 class LinksInteraction(BaseInteraction):

@@ -14,22 +14,10 @@ DETAIL_INFO = {
             "field_name": "Телефон",
             "field_code": "PHONE",
             "field_type": "multitext",
-            "values": [
-                {
-                    "value": "123213",
-                    "enum_id": 1,
-                    "enum": "WORK"
-                }
-            ]
+            "values": [{"value": "123213", "enum_id": 1, "enum": "WORK"}],
         }
     ],
     "account_id": 10,
-    "_links": {
-        "self": {
-            "href": "https://exmaple.amocrm.ru/api/v4/companies/1"
-        }
-    },
-    "_embedded": {
-        "tags": []
-    }
+    "_links": {"self": {"href": "https://exmaple.amocrm.ru/api/v4/companies/1"}},
+    "_embedded": {"tags": []},
 }

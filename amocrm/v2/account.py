@@ -1,5 +1,5 @@
+from . import fields, manager, model
 from .interaction import BaseInteraction
-from . import model, manager, fields
 
 
 class AccountInteraction(BaseInteraction):

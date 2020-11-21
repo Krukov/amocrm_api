@@ -1,7 +1,7 @@
+from .. import fields, manager, model
 from ..interaction import GenericInteraction
-from .. import fields, model, manager
-from .pipeline import Status
 from .note import NotesField
+from .pipeline import Status
 from .tag import TagsField
 
 
