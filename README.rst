@@ -107,6 +107,12 @@ Example::
 
 Example::
 
-    Contact.position = fields.CustomField(u'Должность')
+    from amocrm.v2 import Lead as _Lead, custom_field
+
+    class Lead(_Lead):
+        utm = custom_field.UrlCustomField("UTM метка")
+        delivery_type = custom_field.SelectCustomField("Способ доставки")
+        address = custom_field.TextCustomField("Адрес")
+
 
 
