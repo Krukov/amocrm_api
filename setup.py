@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 import re
 
 
@@ -14,7 +14,7 @@ version = get_version()
 setup(
     name='amocrm_api',
     version=version,
-    packages=['amocrm'],
+    packages=find_packages(),
     url='https://github.com/Krukov/amocrm_api',
     download_url='https://github.com/Krukov/amocrm_api/tarball/%s' % version,
     license='MIT license',
