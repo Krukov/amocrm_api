@@ -9,3 +9,4 @@ build/
 *.pyc*
 *.egg*
 settings.json
+*.txt
