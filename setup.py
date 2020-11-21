@@ -22,7 +22,7 @@ setup(
     author_email='glebov.ru@gmail.com',
     description='Python API for Amocrm',
     long_description=open('README.rst').read(),
-    requires=[
+    install_requires=[
         'requests',
         'pyjwt'
     ],
