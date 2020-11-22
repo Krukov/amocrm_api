@@ -118,7 +118,7 @@ class BaseCustomField(fields._BaseField):
         return _data
 
     def __set__(self, instance, value):
-        if instance is None:
+        if instance is None or value is None:
             return
         data = instance._data
         for _path in self._path:

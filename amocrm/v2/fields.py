@@ -35,7 +35,7 @@ class _BaseField:
         return self.on_get_instance(instance, data)
 
     def __set__(self, instance, value):
-        if instance is None:
+        if instance is None or value is None:
             return
         value = self.on_set_instance(instance, value)
         data = instance._data

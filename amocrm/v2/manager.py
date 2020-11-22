@@ -1,3 +1,4 @@
+
 class Manager:
     def __init__(self, interaction, model=None):
         self._interaction = interaction

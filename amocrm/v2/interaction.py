@@ -42,7 +42,7 @@ class BaseInteraction:
             raise exceptions.PermissionsDenyException()
         if response.status_code == 402:
             raise ValueError("Тариф не позволяет включать покупателей")
-        raise exceptions.AmoApiException("Wrong status {}".format(response.status_code))
+        raise exceptions.AmoApiException("Wrong status {} ({})".format(response.status_code, response.text))
 
     def request(self, method, path, data=None, params=None, headers=None, include=None):
         params = params or {}
