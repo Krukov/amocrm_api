@@ -1,3 +1,4 @@
+from collections import namedtuple
 from datetime import datetime
 
 from .. import fields, manager, model
@@ -24,9 +25,29 @@ MULTITEXT = "multitext"
 # ITEMS = "items"  # Предметы
 
 
+class SelectValue:
+    def __init__(self, id=None, value=None):
+        self.id = id
+        self.value = value
+
+
+class _FieldsRegisterMeta(type):
+    _REGISTER = {}
+
+    def __new__(cls, name, bases, dct):
+        _class = super().__new__(cls, name, bases, dct)
+        cls._REGISTER[(_class.type, _class._real_code)] = name
+        return _class
+
+
+def _get_field_class(type_name, code) -> str:
+    get = _FieldsRegisterMeta._REGISTER.get
+    return get((type_name, code), get((type_name, None), "BaseCustomField"))
+
+
 class CustomFieldModel(model.Model):
     name = fields._Field("name")
-    code = fields._Field("code")
+    code = fields._Field("code", blank=True)
     sort = fields._Field("sort")
     type = fields._Field("type")
     entity_type = fields._Field("entity_type")
@@ -54,17 +75,16 @@ class CustomFieldModel(model.Model):
         )
 
 
-class BaseCustomField(fields._BaseField):
-    _defaults_create_with = {}
+class BaseCustomField(fields._BaseField, metaclass=_FieldsRegisterMeta):
     _real_code = None
+    type = None
 
-    def __init__(self, name, code=None, real_code=None, auto_create=False, **kwargs):
+    def __init__(self, name, code=None, auto_create=False, field_id=None, **kwargs):
         super().__init__("custom_fields_values", blank=True)
         self._name = name
-        self._code = code
         self._create_with = kwargs
-        self._real_code = self._real_code or real_code
-        self._field_id = None
+        self._code = self._real_code or code
+        self._field_id = field_id
         self._auto_create = auto_create
 
     def _find(self, instance):
@@ -78,15 +98,15 @@ class BaseCustomField(fields._BaseField):
             return
         field = self._find(instance)
         if field:
-            self._real_code = field.code
+            self._code = field.code
             self._field_id = field.id
         # if self._real_code is None and self._auto_create:
         #     self._real_code = CustomFieldModel.create_for(
         #         instance=instance,
         #         name=self._name,
         #         code=self._code,
+        #         type=self.type,
         #         **self._create_with,
-        #         **self._defaults_create_with
         #     )
         #     return
         # raise Exception("Field does not exists")
@@ -105,14 +125,14 @@ class BaseCustomField(fields._BaseField):
         for field in data:
             if field.get("field_name", "error") == self._name:
                 return field
-            if self._real_code and field.get("field_code") == self._real_code:
+            if self._code and field.get("field_code") == self._code:
                 return field
         return None
 
     def _create_raw_field(self):
         _data = {"field_id": self._field_id, "values": []}
-        if self._real_code:
-            _data["field_code"] = self._real_code
+        if self._code:
+            _data["field_code"] = self._code
         if self._name:
             _data["field_name"] = self._name
         return _data
@@ -136,7 +156,7 @@ class BaseCustomField(fields._BaseField):
 
 
 class TextCustomField(BaseCustomField):
-    _defaults_create_with = {"type": TEXT}
+    type = TEXT
 
     def on_get(self, values):
         return values[0]["value"]
@@ -146,55 +166,65 @@ class TextCustomField(BaseCustomField):
 
 
 class TextAreaCustomField(TextCustomField):
-    _defaults_create_with = {"type": TEXTAREA}
+    type = TEXTAREA
 
 
 class UrlCustomField(TextCustomField):
-    _defaults_create_with = {"type": URL}
+    type = URL
 
 
 class StreetAddressCustomField(TextCustomField):
-    _defaults_create_with = {"type": STREET_ADDRESS}
+    type = STREET_ADDRESS
 
 
 class SelectCustomField(TextCustomField):
-    _defaults_create_with = {"type": SELECT}
+    type = SELECT
 
-    def __init__(self, *args, enums=(), **kwargs):
-        kwargs["enums"] = [{"value": enums[i], "sort": i + 1} for i in range(len(enums))]
+    def __init__(self, *args, enums=None, **kwargs):
+        # kwargs["enums"] = [{"value": enums[i], "sort": i + 1} for i in range(len(enums))]
         super().__init__(*args, **kwargs)
+
+    def on_get(self, values):
+        return SelectValue(id=values[0]["id"], value=values[0]["value"])
+
+    def on_set(self, value):
+        if isinstance(value, SelectValue):
+            return [{"value": value.value, "id": value.id}]
+        return [{"value": value.value}]
 
 
 class RadioButtonCustomField(SelectCustomField):
-    _defaults_create_with = {"type": RADIOBUTTON}
+    type = RADIOBUTTON
 
 
 class MultiSelectCustomField(SelectCustomField):
-    _defaults_create_with = {"type": MULTISELECT}
+    type = MULTISELECT
 
     def on_get(self, values):
-        return [item["value"] for item in values]
+        return [SelectValue(id=item["id"], value=item["value"]) for item in values]
 
     def on_set(self, values):
+        if values and isinstance(values[0], SelectValue):
+            return [{"value": value.value, "id": value.id} for value in values]
         return [{"value": value} for value in values]
 
 
 class NumericCustomField(TextCustomField):
-    _defaults_create_with = {"type": NUMERIC}
+    type = NUMERIC
 
     def on_get(self, values):
         return float(values[0]["value"])
 
 
 class CheckboxCustomField(TextCustomField):
-    _defaults_create_with = {"type": CHECKBOX}
+    type = CHECKBOX
 
     def on_get(self, values):
         return bool(values[0]["value"])
 
 
 class DateCustomField(TextCustomField):
-    _defaults_create_with = {"type": DATE}
+    type = DATE
 
     def on_get(self, values):
         return datetime.fromtimestamp(values[0]["value"]).date()
@@ -206,19 +236,19 @@ class DateCustomField(TextCustomField):
 
 
 class DateTimeCustomField(DateCustomField):
-    _defaults_create_with = {"type": DATETIME}
+    type = DATETIME
 
     def on_get(self, values):
         return datetime.fromtimestamp(values[0]["value"])
 
 
 class ContactPhoneField(TextCustomField):
-    _defaults_create_with = {"type": MULTITEXT}
+    type = MULTITEXT
     _real_code = "PHONE"
 
     def __init__(self, *args, enum_code="WORK", **kwargs):
         self._enum_code = enum_code
-        super().__init__(*args, name=None, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def on_get(self, values):
         for value in values:
@@ -235,5 +265,5 @@ class ContactPhoneField(TextCustomField):
 
 
 class ContactEmailField(ContactPhoneField):
-    _defaults_create_with = {"type": MULTITEXT}
+    type = MULTITEXT
     _real_code = "EMAIL"

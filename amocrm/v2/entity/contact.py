@@ -11,8 +11,8 @@ class ContactsInteraction(GenericInteraction):
 class Contact(model.Model):
 
     name = fields._Field("name")
-    first_name = fields._Field("first_name")
-    last_name = fields._Field("last_name")
+    first_name = fields._Field("first_name", blank=True)
+    last_name = fields._Field("last_name", blank=True)
     responsible_user = fields._Link("responsible_user_id", "User")
     created_by = fields._Link("created_by", "User")
     updated_by = fields._Link("updated_by", "User")

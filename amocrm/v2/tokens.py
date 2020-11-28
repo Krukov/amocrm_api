@@ -140,8 +140,11 @@ class TokenManager:
             "refresh_token": refresh_token,
             "redirect_uri": self._redirect_url,
         }
-        response = requests.post("https://{}.amocrm.ru/oauth2/access_token".format(self.subdomain), json=body).json()
-        return response["access_token"], response["refresh_token"]
+        response = requests.post("https://{}.amocrm.ru/oauth2/access_token".format(self.subdomain), json=body)
+        if response.status_code == 200:
+            data = response.json()
+            return data["access_token"], data["refresh_token"]
+        raise EnvironmentError("Can't refresh token {}".format(response.json()))
 
     def get_access_token(self):
         token = self._storage.get_access_token()
