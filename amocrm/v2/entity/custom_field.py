@@ -190,7 +190,7 @@ class SelectCustomField(TextCustomField):
     def on_set(self, value):
         if isinstance(value, SelectValue):
             return [{"value": value.value, "id": value.id}]
-        return [{"value": value.value}]
+        return [{"value": value}]
 
 
 class RadioButtonCustomField(SelectCustomField):

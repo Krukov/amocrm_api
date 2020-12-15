@@ -115,4 +115,12 @@ Example::
         address = custom_field.TextCustomField("Адрес")
 
 
+Однако мапинг всех кастомных полей дело утоминетльное,
+поэтому для генерации файла с готовым мапингом есть команда::
 
+    export AMOCRM_CLIENT_ID=xxx
+    export AMOCRM_SECRET=xxx
+    export AMOCRM_SUBDOMAIN=xxx
+    export AMOCRM_REDIRECT_URL=xxx
+    export AMOCRM_CODE=xxx # optional
+    pyamogen > models.py
