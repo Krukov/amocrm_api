@@ -117,7 +117,6 @@ class BaseCustomField(fields._BaseField, metaclass=_FieldsRegisterMeta):
         field_data = self._get_raw_field(data)
         if field_data:
             return self.on_get(field_data["values"])
-        return self.on_get(None)
 
     def _get_raw_field(self, data):
         if data is None:
