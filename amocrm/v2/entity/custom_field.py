@@ -146,6 +146,8 @@ class BaseCustomField(fields._BaseField, metaclass=_FieldsRegisterMeta):
         _data = self._get_raw_field(data.get(self.name))
         if _data is None:
             self._check(instance)
+            if data.get(self.name) is None:
+                data[self.name] = []
             data.setdefault(self.name, []).append(self._create_raw_field())
             _data = self._get_raw_field(data.get(self.name))
         values = self.on_set_instance(_data["values"], value)
