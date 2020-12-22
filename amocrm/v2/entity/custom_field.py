@@ -187,11 +187,11 @@ class SelectCustomField(TextCustomField):
         super().__init__(*args, **kwargs)
 
     def on_get(self, values):
-        return SelectValue(id=values[0]["id"], value=values[0]["value"])
+        return SelectValue(id=values[0]["enum_id"], value=values[0]["value"])
 
     def on_set(self, value):
         if isinstance(value, SelectValue):
-            return [{"value": value.value, "id": value.id}]
+            return [{"value": value.value, "enum_id": value.id}]
         return [{"value": value}]
 
 
@@ -203,11 +203,11 @@ class MultiSelectCustomField(SelectCustomField):
     type = MULTISELECT
 
     def on_get(self, values):
-        return [SelectValue(id=item["id"], value=item["value"]) for item in values]
+        return [SelectValue(id=item["enum_id"], value=item["value"]) for item in values]
 
     def on_set(self, values):
         if values and isinstance(values[0], SelectValue):
-            return [{"value": value.value, "id": value.id} for value in values]
+            return [{"value": value.value, "enum_id": value.id} for value in values]
         return [{"value": value} for value in values]
 
 
