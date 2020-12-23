@@ -31,7 +31,10 @@ class BaseInteraction:
     def _request(self, method, path, data=None, params=None, headers=None):
         headers = headers or {}
         headers.update(self.get_headers())
-        response = self._session.request(method, url=self._get_url(path), json=data, params=params, headers=headers)
+        try:
+            response = self._session.request(method, url=self._get_url(path), json=data, params=params, headers=headers)
+        except requests.exceptions.ConnectionError as e:
+            raise exceptions.AmoApiException(e.args[0].args[0])  # Sometimes Connection aborted.
         if response.status_code == 204:
             return None, 204
         if response.status_code < 300 or response.status_code == 400:

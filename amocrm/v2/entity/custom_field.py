@@ -116,8 +116,7 @@ class BaseCustomField(fields._BaseField, metaclass=_FieldsRegisterMeta):
             return
         field_data = self._get_raw_field(data)
         if field_data:
-            return self.on_get(field_data)
-        return self.on_get(None)
+            return self.on_get(field_data["values"])
 
     def _get_raw_field(self, data):
         if data is None:
@@ -146,6 +145,8 @@ class BaseCustomField(fields._BaseField, metaclass=_FieldsRegisterMeta):
         _data = self._get_raw_field(data.get(self.name))
         if _data is None:
             self._check(instance)
+            if data.get(self.name) is None:
+                data[self.name] = []
             data.setdefault(self.name, []).append(self._create_raw_field())
             _data = self._get_raw_field(data.get(self.name))
         values = self.on_set_instance(_data["values"], value)
@@ -185,11 +186,11 @@ class SelectCustomField(TextCustomField):
         super().__init__(*args, **kwargs)
 
     def on_get(self, values):
-        return SelectValue(id=values[0]["id"], value=values[0]["value"])
+        return SelectValue(id=values[0]["enum_id"], value=values[0]["value"])
 
     def on_set(self, value):
         if isinstance(value, SelectValue):
-            return [{"value": value.value, "id": value.id}]
+            return [{"value": value.value, "enum_id": value.id}]
         return [{"value": value}]
 
 
@@ -201,11 +202,11 @@ class MultiSelectCustomField(SelectCustomField):
     type = MULTISELECT
 
     def on_get(self, values):
-        return [SelectValue(id=item["id"], value=item["value"]) for item in values]
+        return [SelectValue(id=item["enum_id"], value=item["value"]) for item in values]
 
     def on_set(self, values):
         if values and isinstance(values[0], SelectValue):
-            return [{"value": value.value, "id": value.id} for value in values]
+            return [{"value": value.value, "enum_id": value.id} for value in values]
         return [{"value": value} for value in values]
 
 
