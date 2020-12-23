@@ -91,6 +91,8 @@ Example::
 
     contact.last_name = "Новое"
     contact.tags.append("new")
+    contact.notes.objects.create(text="Примечание")
+
     contact.save()
 
     contact.company = Company(name="Amocrm")  # создаст и приленкует компанию сразу
