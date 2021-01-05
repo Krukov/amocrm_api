@@ -12,11 +12,11 @@ class Manager:
     def __set__(self, instance, value):
         raise TypeError()
 
-    def create(self, *args, **kwargs):
-        return self._model(data=self._interaction.create(*args, **kwargs))
+    def create(self, data=None, **kwargs):
+        return self._model(data=self._interaction.create(data=data or kwargs))
 
-    def update(self, *args, **kwargs):
-        return self._interaction.update(*args, **kwargs)
+    def update(self, object_id, data=None, **kwargs):
+        return self._interaction.update(object_id=object_id, data=data or kwargs)
 
     def get(self, object_id=None, query=None):
         if object_id is not None:

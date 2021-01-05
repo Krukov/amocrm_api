@@ -15,8 +15,14 @@ class Model(metaclass=_RegisterMeta):
         self._data = data or {}
         self._data.update(self._init_data)
         self._updated_fields = set()
-        for attr, value in kwargs.items():
-            setattr(self, attr, value)
+        attribs = kwargs.copy()
+
+        for attr, value in attribs.items():
+            if isinstance(getattr(self.__class__, attr), fields._BaseField):
+                kwargs.pop(attr)
+                setattr(self, attr, value)
+        if kwargs:
+            raise ValueError("Wrong attributes {}".format(list(kwargs.keys())))
 
     @property
     def _path(self):

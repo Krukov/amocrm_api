@@ -127,7 +127,7 @@ class TokenManager:
                 return
             response = response.json()
             self._storage.save_tokens(response["access_token"], response["refresh_token"])
-            logger.info("succesful init and store tokens in %s store", self._storage)
+            logger.info("successful init and store tokens in %s store", self._storage)
 
     def _get_new_tokens(self) -> Tuple[str, str]:
         refresh_token = self._storage.get_refresh_token()

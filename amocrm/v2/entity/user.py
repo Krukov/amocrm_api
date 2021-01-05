@@ -5,6 +5,12 @@ from ..interaction import GenericInteraction
 class UsersInteraction(GenericInteraction):
     path = "users"
 
+    def get_all(self, include=None, query=None, filters=(), order=None):
+        for data in self._all(self._get_path()):
+            for item in data[self._get_field()]:
+                if query in item.values():
+                    yield item
+
 
 class User(model.Model):
     name = fields._Field("name")
