@@ -3,7 +3,8 @@ import pytest
 from amocrm.v2 import Contact, exceptions
 
 from .data.companies import DETAIL_INFO as COMPANY_DETAIL_INFO
-from .data.contacts import CREATE_DATA, DETAIL_INFO, LIST_PAGE_1, UPDATE
+from .data.contacts import (CREATE_DATA, DETAIL_INFO, LIST_PAGE_1, LIST_PAGE_2,
+                            UPDATE)
 from .data.users import DETAIL_INFO as USER_DETAIL_INFO
 
 
@@ -37,9 +38,12 @@ def test_list(response_mock):
     response_mock.add(
         "GET", "https://test.amocrm.ru/api/v4/contacts", match_querystring=False, status=200, json=LIST_PAGE_1
     )
+    response_mock.add(
+        "GET", "https://test.amocrm.ru/api/v4/contacts", match_querystring=False, status=200, json=LIST_PAGE_2
+    )
 
     contacts = list(Contact.objects.all())
-    assert len(contacts) == 2
+    assert len(contacts) == 3
     assert contacts[0].name == "1"
 
 
