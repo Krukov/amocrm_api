@@ -1,6 +1,9 @@
+from typing import Tuple
+
 import requests
 
 from . import exceptions
+from .filters import Filter
 from .tokens import default_token_manager
 
 _session = requests.Session()
@@ -53,7 +56,7 @@ class BaseInteraction:
             params["with"] = ",".join(include)
         return self._request(method, path, data=data, params=params, headers=headers)
 
-    def _list(self, path, page, include=None, limit=250, query=None, filters=(), order=None):
+    def _list(self, path, page, include=None, limit=250, query=None, filters: Tuple[Filter] = (), order=None):
         assert order is None or len(order) == 1
         assert limit <= 250
         params = {
@@ -68,7 +71,7 @@ class BaseInteraction:
             params.update(_filter._as_params())
         return self.request("get", path, params=params, include=include)
 
-    def _all(self, path, include=None, query=None, filters=(), order=None, limit=250):
+    def _all(self, path, include=None, query=None, filters: Tuple[Filter] = (), order=None, limit=250):
         page = 1
         while True:
             response, _ = self._list(
@@ -77,55 +80,9 @@ class BaseInteraction:
             if response is None:
                 return
             yield response["_embedded"]
-            if len(response["_embedded"]) != limit:
-                return
             if "next" not in response["_links"]:
                 return
             page += 1
-
-
-class Filter:
-    def __init__(self, name):
-        self._name = name
-
-    def _as_params(self):
-        return {}
-
-
-class SingleFilter(Filter):
-    def __call__(self, value):
-        self._value = value
-
-    def _as_params(self):
-        return {"filter[{}]".format(self._name): self._value}
-
-
-class SingleListFilter(Filter):
-    def __call__(self, value):
-        self._value = value
-
-    def _as_params(self):
-        return {"filter[{}][]".format(self._name): self._value}
-
-
-class MultiFilter(Filter):
-    def __call__(self, values):
-        self._values = values
-
-    def _as_params(self):
-        return {"filter[{}][0]".format(self._name): self._values}
-
-
-class RangeFilter(Filter):
-    def __call__(self, value_from, value_to):
-        self._value_from = value_from
-        self._value_to = value_to
-
-    def _as_params(self):
-        return {
-            "filter[{}][from]".format(self._name): self._value_from,
-            "filter[{}][to]".format(self._name): self._value_to,
-        }
 
 
 class GenericInteraction(BaseInteraction):

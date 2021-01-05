@@ -81,6 +81,32 @@ LIST_PAGE_1 = {
     },
 }
 
+LIST_PAGE_2 = {
+    "_page": 2,
+    "_links": {"self": {"href": "https://example.amocrm.ru/api/v4/contacts?limit=2&page=2"},},
+    "_embedded": {
+        "contacts": [
+            {
+                "id": 7143599,
+                "name": "1",
+                "first_name": "",
+                "last_name": "",
+                "responsible_user_id": 504141,
+                "group_id": 0,
+                "created_by": 504141,
+                "updated_by": 504141,
+                "created_at": 1585758065,
+                "updated_at": 1585758065,
+                "closest_task_at": None,
+                "custom_fields_values": None,
+                "account_id": 28805383,
+                "_links": {"self": {"href": "https://example.amocrm.ru/api/v4/contacts/7143599"}},
+                "_embedded": {"tags": [], "companies": []},
+            },
+        ]
+    },
+}
+
 CREATE_DATA = {
     "_links": {"self": {"href": "https://example.amocrm.ru/api/v4/contacts"}},
     "_embedded": {
