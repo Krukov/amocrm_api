@@ -5,3 +5,4 @@ from .entity.lead import Lead
 from .entity.pipeline import Pipeline, Status
 from .entity.tag import Tag
 from .entity.user import User
+from .entity.call import Call, Direction as CallDuration, Status as CallStatus

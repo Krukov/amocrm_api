@@ -78,6 +78,14 @@ Example::
     <EntityInstance>.update()
     <EntityInstance>.save()  # создаст или обновит в зависимости от того как обьект был инициализирован
 
+Исключение - зоздание звонка происходит через упрошенную сущьность
+::
+
+    from amocrm.v2 import Call
+
+    Call().create("inbound", phone="....", source="", duration=354)
+
+
 Рассмотрим полный флоу работы на примере контакта
 
 ::
