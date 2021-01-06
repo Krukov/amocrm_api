@@ -1,20 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-__version__ = '2.2.0'
+__version__ = '2.3.0'
 
 import sys
 import logging
-
-from .settings import settings as amo_settings
-from .api import *
-from .apimodels import *
-from . import fields
-
-__all__ = [
-    'BaseCompany', 'BaseContact', 'BaseLead', 'amo_settings', 'AmoApi', 'ContactNote', 'ContactTask',
-    'LeadNote', 'LeadTask', 'fields',
-]
 
 logger = logging.getLogger('amocrm')
 
