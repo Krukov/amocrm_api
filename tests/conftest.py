@@ -1,5 +1,6 @@
 import jwt
 import pytest
+from datetime import datetime, timedelta
 
 import responses
 from amocrm.v2.tokens import TokensStorage, default_token_manager
@@ -7,7 +8,10 @@ from amocrm.v2.tokens import TokensStorage, default_token_manager
 
 class FakeStorage(TokensStorage):
     def get_access_token(self):
-        return jwt.encode({}, "tests").decode()
+        token = jwt.encode({"exp": datetime.utcnow() + timedelta(seconds=10)}, "tests")
+        if isinstance(token, bytes):
+            return token.decode()
+        return token
 
 
 @pytest.fixture(autouse=True)

@@ -8,7 +8,7 @@ class UsersInteraction(GenericInteraction):
     def get_all(self, include=None, query=None, filters=(), order=None):
         for data in self._all(self._get_path()):
             for item in data[self._get_field()]:
-                if query in item.values():
+                if query is None or query in item.values():
                     yield item
 
 

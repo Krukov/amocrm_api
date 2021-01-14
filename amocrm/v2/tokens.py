@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 import os
 from typing import Optional, Tuple
 
@@ -160,8 +161,7 @@ class TokenManager:
         token_data = jwt.decode(token, options={"verify_signature": False})
         exp = datetime.utcfromtimestamp(token_data['exp'])
         now = datetime.utcnow()
-
-        return True if now >= exp else False
+        return now >= exp
 
 
 default_token_manager = TokenManager()
