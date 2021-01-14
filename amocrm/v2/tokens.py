@@ -157,18 +157,11 @@ class TokenManager:
 
     @staticmethod
     def _is_expire(token: str):
-        alg = jwt.get_unverified_header(token).get("alg")
-        try:
-            jwt.decode(
-                token,
-                verify=True,
-                options={"verify_exp": True, "verify_signature": False, "verify_aud": False},
-                algorithms=[alg],
-            )
-        except jwt.exceptions.ExpiredSignatureError:
-            return True
-        else:
-            return False
+        token_data = jwt.decode(token, options={"verify_signature": False})
+        exp = datetime.utcfromtimestamp(token_data['exp'])
+        now = datetime.utcnow()
+
+        return True if now >= exp else False
 
 
 default_token_manager = TokenManager()
