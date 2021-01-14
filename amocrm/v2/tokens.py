@@ -161,7 +161,7 @@ class TokenManager:
         exp = datetime.utcfromtimestamp(token_data['exp'])
         now = datetime.utcnow()
 
-        return True if now > exp else False
+        return True if now >= exp else False
 
 
 default_token_manager = TokenManager()
