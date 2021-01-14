@@ -1,6 +1,6 @@
 import logging
-from datetime import datetime
 import os
+from datetime import datetime
 from typing import Optional, Tuple
 
 import jwt
@@ -159,7 +159,7 @@ class TokenManager:
     @staticmethod
     def _is_expire(token: str):
         token_data = jwt.decode(token, options={"verify_signature": False})
-        exp = datetime.utcfromtimestamp(token_data['exp'])
+        exp = datetime.utcfromtimestamp(token_data["exp"])
         now = datetime.utcnow()
         return now >= exp
 
