@@ -243,25 +243,40 @@ class DateTimeCustomField(DateCustomField):
         return datetime.fromtimestamp(values[0]["value"])
 
 
+class _All:
+    def __contains__(self, item):
+        return True
+
+
+ALL = _All()
+
+
 class ContactPhoneField(TextCustomField):
     type = MULTITEXT
     _real_code = "PHONE"
 
-    def __init__(self, *args, enum_code="WORK", **kwargs):
-        self._enum_code = enum_code
+    def __init__(self, *args, enum_code="WORK", enum_codes=None, **kwargs):
+        self._enum_codes = enum_codes or (enum_code, )
         super().__init__(*args, **kwargs)
 
     def on_get(self, values):
+        result = []
         for value in values:
-            if value["enum_code"] == self._enum_code:
-                return value["value"]
+            if value["enum_code"] in self._enum_codes:
+                result.append(value["value"])
+        if len(self._enum_codes) == 1:
+            return result[0]
+        return result
 
     def on_set_instance(self, values, value):
+        if len(self._enum_codes) != 1:
+            raise ValueError("can not set multivalue phone field")
+        _enum_code = self._enum_codes[0]
         for item in values:
-            if item["enum_code"] == self._enum_code:
+            if item["enum_code"] == _enum_code:
                 item["value"] = value
                 return values
-        values.append({"enum_code": self._enum_code, "value": value})
+        values.append({"enum_code": _enum_code, "value": value})
         return values
 
 
