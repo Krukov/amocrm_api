@@ -132,7 +132,7 @@ class TokenManager:
 
     def _get_new_tokens(self) -> Tuple[str, str]:
         refresh_token = self._storage.get_refresh_token()
-        if refresh_token is None:
+        if not refresh_token:
             raise ValueError()
         body = {
             "client_id": self._client_id,
@@ -149,7 +149,7 @@ class TokenManager:
 
     def get_access_token(self):
         token = self._storage.get_access_token()
-        if token is None:
+        if not token:
             raise exceptions.NoToken("You need to init tokens with code by 'init' method")
         if self._is_expire(token):
             token, refresh_token = self._get_new_tokens()
