@@ -137,3 +137,5 @@ Example::
     export AMOCRM_REDIRECT_URL=xxx
     export AMOCRM_CODE=xxx # optional
     pyamogen > models.py
+
+Для ее работы необходимо установить пакет python-slugify (https://github.com/un33k/python-slugify)
