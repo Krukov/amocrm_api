@@ -83,7 +83,9 @@ LIST_PAGE_1 = {
 
 LIST_PAGE_2 = {
     "_page": 2,
-    "_links": {"self": {"href": "https://example.amocrm.ru/api/v4/contacts?limit=2&page=2"},},
+    "_links": {
+        "self": {"href": "https://example.amocrm.ru/api/v4/contacts?limit=2&page=2"},
+    },
     "_embedded": {
         "contacts": [
             {
