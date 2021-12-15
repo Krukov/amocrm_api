@@ -54,3 +54,16 @@ class DateRangeFilter(RangeFilter):
         self._value_from = int(value_from.timestamp())
         self._value_to = int(value_to.timestamp())
         return self
+
+
+class EventsFiltersByPipelineAndStatus(Filter):
+    def __call__(self, pipline_id, status_id):
+        self._pipline_id = pipline_id
+        self._status_id = status_id
+        return self
+    
+    def _as_params(self):
+        return {
+            "filter[value_before][leads_statuses][0][pipeline_id]": self._pipline_id,
+            "filter[value_before][leads_statuses][0][status_id]": self._status_id
+        }
