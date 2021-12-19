@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-__version__ = '2.3.2'
+__version__ = '2.4.0'
 
 import sys
 import logging

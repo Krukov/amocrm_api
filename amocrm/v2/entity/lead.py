@@ -36,6 +36,7 @@ class Lead(model.Model):
     created_by = fields._Link("created_by", "User")
     updated_by = fields._Link("updated_by", "User")
     created_at = fields._DateTimeField("created_at")
+    closed_at = fields._DateTimeField("closed_at")
     updated_at = fields._DateTimeField("updated_at")
     closest_task_at = fields._DateTimeField("closest_task_at", blank=True)
     account_id = fields._UnEditableField("account_id")

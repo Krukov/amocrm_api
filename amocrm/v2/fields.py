@@ -8,11 +8,10 @@ from .register import get_model_by_name
 class _BaseField:
     _path = []
 
-    def __init__(self, name=None, blank=False, path=None, cache=False, is_embedded=None):
+    def __init__(self, name=None, blank=False, path=None, is_embedded=None):
         self.name = name
         self._blank = blank
         self._path = path if path is not None else self._path
-        self._cache = cache
         self.__value = None
         self.__is_embedded = is_embedded
 
@@ -23,7 +22,6 @@ class _BaseField:
         return "{}:{}".format(self.name, ":".join(self._path))
 
     def __get__(self, instance, _=None):
-        # TODO: cache for get and check set for difference
         if instance is None:
             return self
         data = instance._data

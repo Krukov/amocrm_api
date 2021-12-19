@@ -52,13 +52,12 @@ def test_list_filter(response_mock):
         "GET", "https://test.amocrm.ru/api/v4/contacts", match_querystring=False, status=200, json=LIST_PAGE_2
     )
 
-    contacts = list(Contact.objects.filter(filters=(filters.RangeFilter("created_at")(value_from="f", value_to="t"), )))
+    contacts = list(Contact.objects.filter(filters=(filters.RangeFilter("created_at")(value_from="f", value_to="t"),)))
     assert len(contacts) == 1
     assert contacts[0].name == "1"
     assert response_mock.calls[0].request.params["page"] == "1"
     assert response_mock.calls[0].request.params["filter[created_at][from]"] == "f"
     assert response_mock.calls[0].request.params["filter[created_at][to]"] == "t"
-
 
 
 def test_create(response_mock):
