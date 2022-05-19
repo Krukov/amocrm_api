@@ -1,6 +1,6 @@
 import pytest
 
-from amocrm.v2 import Contact, exceptions
+from amocrm.v2 import Contact, exceptions, filters
 
 from .data.companies import DETAIL_INFO as COMPANY_DETAIL_INFO
 from .data.contacts import (CREATE_DATA, DETAIL_INFO, LIST_PAGE_1, LIST_PAGE_2,
@@ -45,6 +45,19 @@ def test_list(response_mock):
     contacts = list(Contact.objects.all())
     assert len(contacts) == 3
     assert contacts[0].name == "1"
+
+
+def test_list_filter(response_mock):
+    response_mock.add(
+        "GET", "https://test.amocrm.ru/api/v4/contacts", match_querystring=False, status=200, json=LIST_PAGE_2
+    )
+
+    contacts = list(Contact.objects.filter(filters=(filters.RangeFilter("created_at")(value_from="f", value_to="t"),)))
+    assert len(contacts) == 1
+    assert contacts[0].name == "1"
+    assert response_mock.calls[0].request.params["page"] == "1"
+    assert response_mock.calls[0].request.params["filter[created_at][from]"] == "f"
+    assert response_mock.calls[0].request.params["filter[created_at][to]"] == "t"
 
 
 def test_create(response_mock):

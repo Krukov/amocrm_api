@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 
 import jwt
 import pytest
-
 import responses
+
 from amocrm.v2.tokens import TokensStorage, default_token_manager
 
 

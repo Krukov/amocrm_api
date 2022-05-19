@@ -67,7 +67,10 @@ def render_model(model: Type[Model], enums=True):
 
 def get_fields_for(model: Type[Model]) -> Iterable[custom_field.CustomFieldModel]:
     return Manager(
-        GenericInteraction(path=f"{model.objects._interaction.path}/custom_fields", field="custom_fields",),
+        GenericInteraction(
+            path=f"{model.objects._interaction.path}/custom_fields",
+            field="custom_fields",
+        ),
         model=custom_field.CustomFieldModel,
     ).all()
 
