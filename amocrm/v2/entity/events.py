@@ -82,29 +82,29 @@ class _EventValueField(fields._UnEditableField):
         if instance.type in EVENT_TYPES_WITH_BLANK_VALUE:
             return None
         if instance.type == EVENT_TYPE_LEAD_STATUS_CHANGE:
-            return value[0]["lead_status"]
+            return value[0]["lead_status"] if len(value) != 0 else None
         if instance.type == EVENT_TYPE_TASK_TEXT_CHANGE:
-            return value[0]["task"]["text"]
+            return value[0]["task"]["text"] if len(value) != 0 else None
         if instance.type in [EVENT_TYPE_INTENT_IDENTIFIED, EVENT_TYPE_ROBOT_REPLIED]:
-            return value[0]["helpbot"]["id"]
+            return value[0]["helpbot"]["id"] if len(value) != 0 else None
         if instance.type == EVENT_TYPE_TRANSACTION_ADDED:
-            return value[0]["transaction"]["id"]
+            return value[0]["transaction"]["id"] if len(value) != 0 else None
         if instance.type in EVENT_TYPES_WITH_NOTE:
-            return value[0]["note"]["id"]
+            return value[0]["note"]["id"] if len(value) != 0 else None
         if instance.type == EVENT_TYPE_NPS_RATE_ADDED:
-            return value[0]["nps"]["rate"]
+            return value[0]["nps"]["rate"] if len(value) != 0 else None
         if instance.type in [EVENT_TYPE_INCOMING_CHAT_MESSAGE, EVENT_TYPE_OUTGOING_CHAT_MESSAGE]:
-            return value[0]["message"]["id"]
+            return value[0]["message"]["id"] if len(value) != 0 else None
         if instance.type in [EVENT_TYPE_ENTITY_TAG_DELETED, EVENT_TYPE_ENTITY_TAG_ADDED]:
             return [item["tag"]["name"] for item in value]
         if instance.type == EVENT_TYPE_CUSTOMER_STATUS_CHANGED:
-            return value[0]["customer_status"]["id"]
+            return value[0]["customer_status"]["id"] if len(value) != 0 else None
         if instance.type in EVENT_TYPES_LINK_ENTITY:
-            return value[0]["link"]["entity"]
+            return value[0]["link"]["entity"] if len(value) != 0 else None
         if instance.type == EVENT_TYPE_ENTITY_RESPONSIBLE_CHANGED:
-            return value[0]["responsible_user"]["id"]
+            return value[0]["responsible_user"]["id"] if len(value) != 0 else None
         if instance.type == EVENT_TYPE_TASK_TYPE_CHANGED:
-            return value[0]["task_type"]["id"]
+            return value[0]["task_type"]["id"] if len(value) != 0 else None
         if instance.type == EVENT_TYPE_CUSTOM_FIELD_VALUE_CHANGED:
             return [item["custom_field_value"] for item in value]
         if instance.type == EVENT_TYPE_TASK_DEADLINE_CHANGED:
