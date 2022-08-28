@@ -47,7 +47,9 @@ class _TaskList:
         self.entity_id = entity_id
 
     def __iter__(self):
-        return Task.objects.filter(filters=[SingleFilter("entity_type")(self.entity_type), SingleFilter("entity_id")(self.entity_id)])
+        return Task.objects.filter(
+            filters=[SingleFilter("entity_type")(self.entity_type), SingleFilter("entity_id")(self.entity_id)]
+        )
 
     def add(self, task: Task):
         task.entity_id = self.entity_id
@@ -56,7 +58,6 @@ class _TaskList:
 
 
 class TaskField(fields._BaseField):
-
     def __init__(self, entity_type):
         self._entity_type = entity_type
         super().__init__(blank=True)

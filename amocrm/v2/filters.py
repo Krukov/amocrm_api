@@ -67,8 +67,8 @@ class EventsFiltersByPipelineAndStatus(Filter):
             "filter[value_before][leads_statuses][0][pipeline_id]": self._pipline_id,
             "filter[value_before][leads_statuses][0][status_id]": self._status_id,
         }
-    
-    
+
+
 class FiltersByPipelineAndStatus(Filter):
     def __call__(self, pipline_id, status_id):
         self._pipline_id = pipline_id

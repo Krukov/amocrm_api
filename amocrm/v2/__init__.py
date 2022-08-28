@@ -4,9 +4,9 @@ from .entity.call import Direction as CallDuration
 from .entity.call import Status as CallStatus
 from .entity.company import Company
 from .entity.contact import Contact
+from .entity.events import Event
 from .entity.lead import Lead
 from .entity.pipeline import Pipeline, Status
 from .entity.tag import Tag
 from .entity.task import Task
 from .entity.user import User
-from .entity.events import Event

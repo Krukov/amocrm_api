@@ -1,8 +1,8 @@
-from .task import TaskField
 from .. import fields, manager, model
 from ..interaction import GenericInteraction
 from .note import NotesField
 from .tag import TagsField
+from .task import TaskField
 
 
 class ContactsInteraction(GenericInteraction):
