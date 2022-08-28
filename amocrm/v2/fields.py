@@ -27,7 +27,10 @@ class _BaseField:
         data = instance._data
         for _path in self._path:
             data = data.get(_path, {})
-        data = data.get(self.name)
+        if isinstance(data, dict):
+            data = data.get(self.name)
+        else:
+            data = None
         if data is None and not self._blank:
             raise exceptions.NoDataException(str(self))
         return self.on_get_instance(instance, data)

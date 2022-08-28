@@ -1,3 +1,4 @@
+from .task import TaskField
 from .. import fields, manager, model
 from ..interaction import GenericInteraction
 from .note import NotesField
@@ -26,5 +27,6 @@ class Contact(model.Model):
     leads = fields._EmbeddedLinkListField("leads", "Lead")
 
     notes = NotesField()
+    tasks = TaskField("contacts")
 
     objects = manager.Manager(ContactsInteraction())

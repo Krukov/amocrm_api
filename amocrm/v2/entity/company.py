@@ -2,6 +2,7 @@ from .. import fields, manager, model
 from ..interaction import GenericInteraction
 from .note import NotesField
 from .tag import TagsField
+from .task import TaskField
 
 
 class CompaniesInteraction(GenericInteraction):
@@ -21,6 +22,7 @@ class Company(model.Model):
 
     tags = TagsField()
     notes = NotesField()
+    tasks = TaskField("companies")
 
     leads = fields._EmbeddedLinkListField("leads", "Lead")
     customers = fields._EmbeddedLinkListField("customers", "Customer")

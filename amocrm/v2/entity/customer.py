@@ -1,3 +1,4 @@
+from .task import TaskField
 from .. import fields, manager, model
 from ..interaction import GenericInteraction
 from .tag import TagsField
@@ -36,6 +37,7 @@ class Customer(model.Model):
 
     account_id = fields._UnEditableField("account_id")
     tags = TagsField()
+    tasks = TaskField("customers")
 
     contacts = fields._EmbeddedLinkListField("contacts", "Contact")
     company = fields._EmbeddedLinkField("companies", "Company")

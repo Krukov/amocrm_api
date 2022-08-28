@@ -3,6 +3,7 @@ from ..interaction import GenericInteraction
 from .note import NotesField
 from .pipeline import Status
 from .tag import TagsField
+from .task import TaskField
 
 
 class _StatusesField(fields._BaseField):
@@ -52,5 +53,6 @@ class Lead(model.Model):
 
     tags = TagsField()
     notes = NotesField()
+    tasks = TaskField("leads")
 
     objects = manager.Manager(LeadsInteraction())
