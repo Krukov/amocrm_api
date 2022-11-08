@@ -14,7 +14,7 @@ class LinksInteraction(BaseInteraction):
         data = {"to_entity_id": to_entity.id, "to_entity_type": to_entity._path}
         if main:
             metadata = metadata or {}
-            metadata["main"] = True
+            metadata["is_main"] = True
         data["metadata"] = metadata
         response, status = self.request("post", path, data=[data])
         if status == 400:
