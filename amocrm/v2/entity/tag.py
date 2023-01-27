@@ -5,10 +5,10 @@ from ..interaction import GenericInteraction
 class Tag(model.Model):
     name = fields._Field("name")
 
-    leads = manager.Manager(GenericInteraction(path="leads/tags"))
-    contacts = manager.Manager(GenericInteraction(path="contacts/tags"))
-    companies = manager.Manager(GenericInteraction(path="companies/tags"))
-    customers = manager.Manager(GenericInteraction(path="customers/tags"))
+    leads = manager.Manager(GenericInteraction(path="leads/tags", field="tags"))
+    contacts = manager.Manager(GenericInteraction(path="contacts/tags", field="tags"))
+    companies = manager.Manager(GenericInteraction(path="companies/tags", field="tags"))
+    customers = manager.Manager(GenericInteraction(path="customers/tags", field="tags"))
 
 
 class _TagsList:
