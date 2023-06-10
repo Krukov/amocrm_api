@@ -80,7 +80,7 @@ class BaseInteraction:
             if response is None:
                 return
             yield response["_embedded"]
-            if "next" not in response["_links"]:
+            if "next" not in response.get("_links", []):
                 return
             page += 1
 
