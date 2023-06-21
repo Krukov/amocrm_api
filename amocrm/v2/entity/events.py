@@ -64,6 +64,7 @@ EVENT_TYPES_LINK_ENTITY = (
     "entity_linked",
     "entity_unlinked",
 )
+EVENT_REQUEST_LIMIT = 100
 
 
 class _EventValueField(fields._UnEditableField):
@@ -115,6 +116,9 @@ class _EventValueField(fields._UnEditableField):
 class EventsInteraction(GenericInteraction):
     path = "events"
 
+    def get_all(self, include=None, query=None, filters=(), order=None):
+        for data in self._all(self._get_path(), include=include, query=query, filters=filters, order=order, limit=EVENT_REQUEST_LIMIT):
+            yield from data[self._get_field()]
 
 class Event(model.Model):
     type = fields._Field("type")
