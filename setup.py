@@ -14,7 +14,7 @@ version = get_version()
 setup(
     name='amocrm_api',
     version=version,
-    packages=find_packages(),
+    packages=find_packages(exclude=("tests", "tests.*")),
     url='https://github.com/Krukov/amocrm_api',
     download_url='https://github.com/Krukov/amocrm_api/tarball/%s' % version,
     license='MIT license',
@@ -45,6 +45,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
 )
