@@ -1,5 +1,5 @@
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .. import fields, manager, model
 from ..interaction import GenericInteraction
@@ -244,6 +244,10 @@ class DateCustomField(TextCustomField):
     def on_set(self, value):
         if isinstance(value, datetime):
             value = value.timestamp()
+        if isinstance(value, str):
+            date_obj = datetime.strptime(value, "%d.%m.%Y")
+            date_obj_utc = date_obj.replace(tzinfo=timezone.utc)
+            value = date_obj_utc.strftime("%Y-%m-%dT%H:%M:%S%z")
         return super().on_set(value)
 
 
