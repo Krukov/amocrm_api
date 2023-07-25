@@ -127,7 +127,11 @@ Example::
         utm = custom_field.UrlCustomField("UTM метка")
         delivery_type = custom_field.SelectCustomField("Способ доставки")
         address = custom_field.TextCustomField("Адрес")
+        date = custom_field.DateCustomField(
+        "Дата платежа")
 
+    my_lead = Lead.objects.get(object_id=33462781)
+    my_lead.date = "10.12.2025" # дату можно указать в виде строки День.Месяц.Год
 
 Однако мапинг всех кастомных полей дело утоминетльное,
 поэтому для генерации файла с готовым мапингом есть команда::
