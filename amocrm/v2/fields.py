@@ -115,7 +115,7 @@ class _Link(_BaseField):
 
     @property
     def _manager(self):
-        return self.__manager or self._model.objects
+        return self.__manager or self._model.objects if self._model else None
 
     def on_get(self, data):
         return self._manager.get(object_id=data)
@@ -131,7 +131,7 @@ class _ListData:
         self._data = data
         self._model = model
         self._instance = instance
-        self._manager = manager or model.objects
+        self._manager = manager or model.objects if model else None
         self._links = links
 
     def __iter__(self):

@@ -2,7 +2,7 @@ import pytest
 
 from amocrm.v2 import Contact, exceptions, filters
 
-from .data.companies import DETAIL_INFO as COMPANY_DETAIL_INFO
+from .data.companies import DETAIL_INFO as COMPANY_DETAIL_INFO, DETAIL_INFO_2
 from .data.contacts import (CREATE_DATA, DETAIL_INFO, LIST_PAGE_1, LIST_PAGE_2,
                             UPDATE)
 from .data.users import DETAIL_INFO as USER_DETAIL_INFO
@@ -75,3 +75,15 @@ def test_update(response_mock):
     contact.last_name = "e"
     contact.tags.add("tag")
     contact.save()
+
+
+def test_repr(response_mock):
+    response_mock.add("GET", "https://test.amocrm.ru/api/v4/contacts/3", match_querystring=False, json=DETAIL_INFO)
+    response_mock.add("GET",
+                      "https://test.amocrm.ru/api/v4/companies/1?with=contacts%2Ccustomers%2Cleads%2Ctags",
+                      match_querystring=False,
+                      json=DETAIL_INFO_2)
+    contact = Contact.objects.get(3)
+
+    representation = repr(contact)
+    assert representation
