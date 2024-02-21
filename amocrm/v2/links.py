@@ -7,7 +7,7 @@ class LinksInteraction(BaseInteraction):
         return self._set("link", for_entity, to_entity, main=main, metadata=metadata)
 
     def unlink(self, for_entity, to_entity):
-        return self._set("link", for_entity, to_entity)
+        return self._set("unlink", for_entity, to_entity)
 
     def _set(self, direction, for_entity, to_entity, main=False, metadata=None):
         path = "{}/{}/{}".format(for_entity._path, for_entity.id, direction)
