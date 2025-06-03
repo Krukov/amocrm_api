@@ -61,7 +61,7 @@ class Call(BaseInteraction):
         }
         if created_at:
             data["created_at"] = created_at.timestamp()
-        if created_at:
+        if updated_at:
             data["updated_at"] = updated_at.timestamp()
         response, status_ = self.request("post", "calls", data=[data])
         if status_ == 400:
