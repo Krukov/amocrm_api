@@ -263,9 +263,15 @@ class ContactPhoneField(TextCustomField):
         super().__init__(*args, **kwargs)
 
     def on_get(self, values):
+        response = []
         for value in values:
             if value["enum_code"] == self._enum_code:
-                return value["value"]
+                response += [value['value']]
+        
+        if len(response) == 1:
+            return response[0]
+
+        return response
 
     def on_set_instance(self, values, value):
         for item in values:
